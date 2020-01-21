@@ -14248,9 +14248,16 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible) const
 			}
 			else
 			{
-				if ((!pCity->hasBonus((BonusTypes)kUnit.getPrereqAndBonus())) && (!pCity->getNumRealBuilding((BuildingTypes)kUnit.getOverrideResourceBuilding()) > 0))
+				if (!pCity->hasBonus((BonusTypes)kUnit.getPrereqAndBonus()))
 				{
-					return false;
+					//&& !pCity->getNumRealBuilding((BuildingTypes)kUnit.getOverrideResourceBuilding()) > 0)
+					// <f1rpo> Replacing the above b/c of "unsafe use of type bool" warning.
+					BuildingTypes eOverrideBuilding = (BuildingTypes)kUnit.getOverrideResourceBuilding();
+					if (eOverrideBuilding == NO_BUILDING ||
+						pCity->getNumRealBuilding(eOverrideBuilding) <= 0) // </f1rpo>
+					{
+						return false;
+					}
 				}
 			}
 		}
