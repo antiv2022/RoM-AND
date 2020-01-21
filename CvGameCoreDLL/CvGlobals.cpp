@@ -5686,9 +5686,10 @@ void cvInternalGlobals::setXMLLogging(bool bNewVal)
 
 bool cvInternalGlobals::isXMLLogging()
 {
-#ifdef _DEBUG
-	return true;
-#endif
+	// f1rpo: Commented out
+	//#ifdef _DEBUG
+	//	return true;
+	//#endif
 	return m_bXMLLogging;
 }
 

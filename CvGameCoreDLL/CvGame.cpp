@@ -11621,6 +11621,9 @@ bool CvGame::hasSkippedSaveChecksum() const
 //
 void CvGame::logMsg(char* format, ... )
 {
+	// <f1rpo>
+	if (!GC.getLogging())
+		return; // </f1rpo>
 	static char buf[2048];
 	_vsnprintf( buf, 2048-4, format, (char*)(&format+1) );
 	if (GC.getGameINLINE().getActivePlayer() != -1)
@@ -11632,6 +11635,9 @@ void CvGame::logMsg(char* format, ... )
 void CvGame::logDebugMsg(char* format, ...)
 {
 #ifdef _DEBUG
+	// <f1rpo>
+	if (!GC.getLogging())
+		return; // </f1rpo>
 	TCHAR szOut[1024];
 	if (GC.getGameINLINE().getActivePlayer() != -1)
 		sprintf(szOut, "Player %d - Multiplayer Game Log.log", GC.getGameINLINE().getActivePlayer());
