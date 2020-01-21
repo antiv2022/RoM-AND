@@ -36468,7 +36468,8 @@ void CvPlayer::changeSpecialistYieldPercentChanges(SpecialistTypes eIndex1, Yiel
 
 		for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 		{
-			iExistingValue = (pLoopCity->getSpecialistCount(eIndex1) * (getSpecialistYieldPercentChanges(eIndex1, eIndex2)) - iOldValue) / 100;
+			//iExistingValue = (pLoopCity->getSpecialistCount(eIndex1) * (getSpecialistYieldPercentChanges(eIndex1, eIndex2)) - iOldValue) / 100;
+			iExistingValue = (pLoopCity->getFreeSpecialistCount(eIndex1) + pLoopCity->getSpecialistCount(eIndex1)) * (getSpecialistYieldPercentChanges(eIndex1, eIndex2) - iOldValue) / 100;
 			// set the new
 			pLoopCity->changeBaseYieldRate(eIndex2, iExistingValue);
 		}
