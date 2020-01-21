@@ -25697,132 +25697,39 @@ int CvUnit::getRetrainsAvailable() const
 	return m_iRetrainsAvailable;
 }
 #endif
-// Movement Limits by 45deg - START
+// Movement Limits by 45deg - START  // f1rpo: rewritten
 bool CvUnit::isInsideMovementLimits (const CvPlot* pPlot) const
 {
-	CvCity* pBestCity;
-	int iLoop;
-	pBestCity = GET_PLAYER(getOwnerINLINE()).getCapitalCity();
-	int iBestDistance = MAX_INT;
-	for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
-	{
-		int iDistance = plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
-		if (iDistance < iBestDistance)
-		{
-			pBestCity = pLoopCity;
-			iBestDistance = iDistance;
-		}
-	}
+	if (pPlot->isOwned() || pPlot->isRoute() || isRivalTerritory())
+		return true;
 
-	int iBaseRadius = GC.getDefineINT("BASE_EXPLORATION_RADIUS");					
-	int iRadius = 0;
-	int iRadiusScaled = 0;
-	iRadiusScaled = iBaseRadius + GC.getMapINLINE().getWorldSize();
-	iRadius += iRadiusScaled;
+	CvPlayer const& kOwner = GET_PLAYER(getOwner());
+	CvTeam const& kTeam = GET_TEAM(kOwner.getTeam());
+	if (kTeam.isRemoveMovementLimits())
+		return true;
+	if (kOwner.getNumCities() <= 0 || kOwner.isBarbarian())
+		return true;
 
-	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
+	static int const iDefaultLimit = GC.getDefineINT("BASE_EXPLORATION_RADIUS")
+			+ GC.getMap().getWorldSize();
+	int iMovementLimit = iDefaultLimit;
+	if (kTeam.isExtendMovementLimits())
+		iMovementLimit *= 2;
+	int iIter;
+	for (CvCity const* pCity = kOwner.firstCity(&iIter); pCity != NULL; pCity = kOwner.nextCity(&iIter))
 	{
-		if (GC.getTechInfo((TechTypes)iI).isExtendMovementLimits())
-		{
-			if (GET_TEAM(getTeam()).isHasTech((TechTypes)iI))
-			{
-				iRadius += iRadiusScaled;
-			}
-		}
-	}	
-	for (int iJ = 0; iJ < GC.getNumTechInfos(); iJ++)
-	{		
-		if (GC.getTechInfo((TechTypes)iJ).isRemoveMovementLimits())
-		{
-			if (GET_TEAM(getTeam()).isHasTech((TechTypes)iJ))
-			{
-				iRadius = -1;
-			}
-		}				
+		if (plotDistance(pPlot->getX(), pPlot->getY(), pCity->getX(), pCity->getY()) <= iMovementLimit)
+			return true;
 	}
-	
-	if (isBarbarian() || GET_PLAYER(getOwnerINLINE()).getNumCities() < 1)
-	{
-		iRadius = -1;
-	}
-	if (iRadius != -1)
-	{
-		if (pPlot != NULL)
-		{
-			if ((getTeam() != NO_TEAM) && (GET_PLAYER(pPlot->getOwnerINLINE()).getTeam() != NO_TEAM) && (GET_PLAYER(pPlot->getOwnerINLINE()).getTeam() < 100 /*temporary hack for pitboss*/) && !isBarbarian() && (!GET_PLAYER(pPlot->getOwnerINLINE()).isBarbarian()) && (!gDLL->IsPitbossHost()))
-			{
-				int jDistance = plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pBestCity->getX_INLINE(), pBestCity->getY_INLINE());
-				if ((!GET_TEAM(GET_PLAYER(getOwnerINLINE()).getTeam()).isOpenBorders((GET_PLAYER(pPlot->getOwnerINLINE()).getTeam()))) && /*(!GET_TEAM(pPlot->getTeam()).isVassal(getTeam())) && */(!atWar(getTeam(), (GET_PLAYER(pPlot->getOwnerINLINE()).getTeam()))) && !(isRivalTerritory()) && (!pPlot->isRoute()) && (pPlot->getOwnerINLINE() != getOwnerINLINE()) && (jDistance > iRadius+1))
-				{
-					return false;
-				}
-			}	
-		}	
-	}
-	return true;
+	// temporary hack for pitboss
+	if (gDLL->IsPitbossHost() || (pPlot->isOwned() && pPlot->getTeam() >= 100))
+		return true;
+
+	return false;
 }
 
 bool CvUnit::isOutsideMovementLimits (const CvPlot* pPlot) const
 {
-	CvCity* pBestCity;
-	int iLoop;
-	pBestCity = GET_PLAYER(getOwnerINLINE()).getCapitalCity();
-	int iBestDistance = MAX_INT;
-	for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
-	{
-		int iDistance = plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
-		if (iDistance < iBestDistance)
-		{
-			pBestCity = pLoopCity;
-			iBestDistance = iDistance;
-		}
-	}
-
-	int iBaseRadius = GC.getDefineINT("BASE_EXPLORATION_RADIUS");					
-	int iRadius = 0;
-	int iRadiusScaled = 0;
-	iRadiusScaled = iBaseRadius + GC.getMapINLINE().getWorldSize();
-	iRadius += iRadiusScaled;
-
-	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
-	{
-		if (GC.getTechInfo((TechTypes)iI).isExtendMovementLimits())
-		{
-			if (GET_TEAM(getTeam()).isHasTech((TechTypes)iI))
-			{
-				iRadius += iRadiusScaled;
-			}
-		}
-	}	
-	for (int iJ = 0; iJ < GC.getNumTechInfos(); iJ++)
-	{		
-		if (GC.getTechInfo((TechTypes)iJ).isRemoveMovementLimits())
-		{
-			if (GET_TEAM(getTeam()).isHasTech((TechTypes)iJ))
-			{
-				iRadius = -1;
-			}
-		}				
-	}
-	
-	if (isBarbarian() || GET_PLAYER(getOwnerINLINE()).getNumCities() < 1)
-	{
-		iRadius = -1;
-	}
-	if (iRadius != -1)
-	{
-		if (pPlot != NULL)
-		{
-			if ((getTeam() != NO_TEAM) && (GET_PLAYER(pPlot->getOwnerINLINE()).getTeam() != NO_TEAM) && (GET_PLAYER(pPlot->getOwnerINLINE()).getTeam() < 100 /*temporary hack for pitboss*/) && !isBarbarian() && (!GET_PLAYER(pPlot->getOwnerINLINE()).isBarbarian()) && (!gDLL->IsPitbossHost()))
-			{
-				int jDistance = plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pBestCity->getX_INLINE(), pBestCity->getY_INLINE());
-				if ((!GET_TEAM(GET_PLAYER(getOwnerINLINE()).getTeam()).isOpenBorders((GET_PLAYER(pPlot->getOwnerINLINE()).getTeam()))) && /*(!GET_TEAM(pPlot->getTeam()).isVassal(getTeam())) && */(!atWar(getTeam(), (GET_PLAYER(pPlot->getOwnerINLINE()).getTeam()))) && !(isRivalTerritory()) && (!pPlot->isRoute()) && (pPlot->getOwnerINLINE() != getOwnerINLINE()) && (jDistance >= iRadius+1))
-				{
-					return true;
-				}
-			}	
-		}	
-	}
-	return false;
+	return !isInsideMovementLimits(pPlot); // f1rpo: Replacing duplicate code
 }
 // Movement Limits by 45deg - END
