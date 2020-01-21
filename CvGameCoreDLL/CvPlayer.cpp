@@ -13051,7 +13051,7 @@ void CvPlayer::revolution(CivicTypes* paeNewCivics, bool bForce)
 	{
 		changeAnarchyTurns(iAnarchyLength);
 	}
-
+	bool bRecalc = false; // f1rpo
 	for (iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
 	{
 		if ( paeOldCivics[iI] != paeNewCivics[iI] )
@@ -13063,8 +13063,16 @@ void CvPlayer::revolution(CivicTypes* paeNewCivics, bool bForce)
 						getCivilizationDescription(0),
 						GC.getCivicInfo(paeOldCivics[iI]).getDescription(),
 						GC.getCivicInfo(paeNewCivics[iI]).getDescription());
-			}
-
+			} // <f1rpo>
+			for (int j = 0; !bRecalc && j < GC.getNumSpecialistInfos(); j++)
+			{
+				for (int k = 0; !bRecalc && k < NUM_YIELD_TYPES; k++)
+				{
+					if (GC.getCivicInfo((CivicTypes)paeNewCivics[iI]).
+							getSpecialistYieldPercentChanges(j, k) != 0)
+						bRecalc = true;
+				}
+			} // </f1rpo>
 			setCivics(((CivicOptionTypes)iI), paeNewCivics[iI]);
 
 			civcSwitchInstance	switchInstance;
@@ -13075,11 +13083,13 @@ void CvPlayer::revolution(CivicTypes* paeNewCivics, bool bForce)
 			switchInstance.bNoAnarchy = (iAnarchyLength == 0);
 			m_civicSwitchHistory.push_back(switchInstance);
 		}
-	}
-
+	} // <f1rpo> Avoid infinite recursion by doing the recalc only once in the end
+	if (bRecalc)
+		GC.getGameINLINE().recalculateModifiers(); // </f1rpo>
 	NoteCivicsSwitched(iCivicChanges);
 
-	setRevolutionTimer(std::max(1, ((100 + getAnarchyModifier()) * GC.getDefineINT("MIN_REVOLUTION_TURNS")) / 100) + iAnarchyLength);
+	setRevolutionTimer(std::max(1, ((100 + getAnarchyModifier()) *
+			GC.getDefineINT("MIN_REVOLUTION_TURNS")) / 100) + iAnarchyLength);
 
 	if (getID() == GC.getGameINLINE().getActivePlayer())
 	{
@@ -36446,11 +36456,10 @@ void CvPlayer::changeSpecialistYieldPercentChanges(SpecialistTypes eIndex1, Yiel
 	if (iChange != 0)
 	{
 		int iOldValue = getSpecialistYieldPercentChanges(eIndex1, eIndex2);
-		
-		if (iOldValue != 0)
+		/*if (iOldValue != 0) // f1rpo: Avoid infinite recursion
 		{
 			bRecalc = true;
-		}
+		}*/ 
 		int iExistingValue = 0;
 		m_ppiSpecialistYieldPercentChanges[eIndex1][eIndex2] += iChange;		
 		
@@ -36464,10 +36473,10 @@ void CvPlayer::changeSpecialistYieldPercentChanges(SpecialistTypes eIndex1, Yiel
 			pLoopCity->changeBaseYieldRate(eIndex2, iExistingValue);
 		}
 	}
-	if (bRecalc)
+	/*if (bRecalc) // f1rpo: Caller will have to handle this
 	{
 		GC.getGameINLINE().recalculateModifiers();
-	}
+	}*/
 }
 
 int CvPlayer::getFractionalCombatExperience() const
