@@ -235,7 +235,8 @@ public:
 
 	// allocate and initialize a list from a tag pair in the xml
 	void SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
-		int iInfoBaseSize, int iInfoBaseLength, int iDefaultListVal = 0);
+		int iInfoBaseSize, int iInfoBaseLength, int iDefaultListVal = 0,
+		bool bCollapse = false); // f1rpo
 
 /************************************************************************************************/
 /* RevDCM  XMLloading                             05/05/10             phungus420               */

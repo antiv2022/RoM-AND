@@ -3462,7 +3462,8 @@ bool CvXMLLoadUtility::SetAndLoadVar(int** ppiVar, int iDefault)
 //
 //------------------------------------------------------------------------------------------------------
 void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
-											  int iInfoBaseSize, int iInfoBaseLength, int iDefaultListVal)
+											  int iInfoBaseSize, int iInfoBaseLength, int iDefaultListVal,
+											  bool bCollapse) // f1rpo (from AdvCiv)
 {
 	int i;
 	int iIndexVal;
@@ -3487,6 +3488,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 			if (0 < iNumSibs)
 			{
 				InitList(ppiList, iInfoBaseLength, iDefaultListVal);
+				bool bListModified = false; // f1rpo
 				piList = *ppiList;
 				if(!(iNumSibs <= iInfoBaseLength))
 				{
@@ -3504,7 +3506,11 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 
 							if (iIndexVal != -1)
 							{
+								int const iOldVal = piList[iIndexVal]; // f1rpo
 								GetNextXmlVal(&piList[iIndexVal]);
+								// <f1rpo>
+								if (iOldVal != piList[iIndexVal])
+									bListModified = true; // </f1rpo>
 							}
 
 							GETXML->SetToParent(m_pFXml);
@@ -3518,6 +3524,9 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 
 					GETXML->SetToParent(m_pFXml);
 				}
+				// <f1rpo>
+				if (bCollapse && !bListModified && iDefaultListVal == 0)
+					SAFE_DELETE_ARRAY(*ppiList); // </f1rpo>
 			}
 		}
 
