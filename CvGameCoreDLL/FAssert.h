@@ -43,10 +43,32 @@ bool FAssertDlg( const char*, const char*, const char*, unsigned int, bool& );
 
 #endif
 
+// <f1rpo> Moved from CvInitCore.h. Merged some changes from K-Mod and AdvCiv.
+#define FASSERT_BOUNDS(lower,upper,index,fnString)\
+	if (static_cast<int>(index) < static_cast<int>(lower))\
+	{\
+		char acOut[256];\
+		sprintf(acOut, "Index in %s expected to be >= %d. (value: %d)", fnString,\
+				static_cast<int>(lower), static_cast<int>(index));\
+		FAssertMsg(static_cast<int>(index) >= static_cast<int>(lower), acOut);\
+	}\
+	else if (static_cast<int>(index) >= static_cast<int>(upper))\
+	{\
+		char acOut[256];\
+		sprintf(acOut, "Index in %s expected to be < %d. (value: %d)", fnString,\
+				static_cast<int>(upper), static_cast<int>(index));\
+		FAssertMsg(static_cast<int>(index) < static_cast<int>(upper), acOut);\
+	}
+/*	The fnString is pretty unnecessary; we get __FILE__ and __LINE__ anyway.
+	Could also get __FUNCTION__. */
+#define FAssertBounds(lower,upper,index) FASSERT_BOUNDS(lower,upper,index, "array accessor");
+// </f1rpo>
+
 #else
 // FASSERT_ENABLE not defined
 #define FAssert( expr )
 #define FAssertMsg( expr, msg )
+#define FASSERT_BOUNDS void(0) // f1rpo (forces semicolon)
 
 #endif
 
