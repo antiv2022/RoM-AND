@@ -187,6 +187,21 @@
 	<ElementType name="iFreedomAppreciation" content="textOnly" dt:type="int"/>
 	<ElementType name="FavoriteCivic" content="textOnly"/>
 	<ElementType name="FavoriteReligion" content="textOnly"/>
+	<!-- f1rpo (AI Civic Weights): start
+		 Optional list of per-civic AI weight percentages
+		 between -100 and INT_MAX. The weights are applied as
+		 iValue = (iValue * (100 + iAIWeight)) / 100
+		 at the end of the AI evaluation of a given civic.
+		 Implemented at the request of Inthegrave. -->
+	<ElementType name="iAIWeight" content="textOnly" dt:type="int"/>
+	<ElementType name="CivicAIWeight" content="eltOnly">
+		<element type="CivicType"/>
+		<element type="iAIWeight"/>
+	</ElementType>
+	<ElementType name="CivicAIWeights" content="eltOnly" minOccurs="0">
+		<element type="CivicAIWeight" minOccurs="0" maxOccurs="*"/>
+	</ElementType>
+	<!-- f1rpo: end -->
 	<ElementType name="TraitType" content="textOnly"/>
 	<ElementType name="bTrait" content="textOnly" dt:type="boolean"/>
 	<ElementType name="Trait" content="eltOnly">

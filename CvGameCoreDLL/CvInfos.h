@@ -5515,6 +5515,8 @@ public:
 	int getNoWarAttitudeProb(int i) const;				// Exposed to Python
 	int getUnitAIWeightModifier(int i) const;				// Exposed to Python
 	int getImprovementWeightModifier(int i) const;				// Exposed to Python
+	int getCivicAIWeight(CivicTypes eCivic) const; // f1rpo (Civic AI Weights) - Exposed to python
+
 	int getDiploPeaceIntroMusicScriptIds(int i) const;
 	int getDiploPeaceMusicScriptIds(int i) const;
 	int getDiploWarIntroMusicScriptIds(int i) const;
@@ -5663,11 +5665,16 @@ protected:
 	int* m_piNoWarAttitudeProb;
 	int* m_piUnitAIWeightModifier;
 	int* m_piImprovementWeightModifier;
+	int* m_piCivicAIWeights;
 	int* m_piDiploPeaceIntroMusicScriptIds;
 	int* m_piDiploPeaceMusicScriptIds;
 	int* m_piDiploWarIntroMusicScriptIds;
 	int* m_piDiploWarMusicScriptIds;
 
+	// f1rpo: Python wrappers for functions that take enum-type parameters
+	void friend CyInfoPythonInterface3();
+private:
+	int pyCivicAIWeight(int iCivic) const { return getCivicAIWeight((CivicTypes)iCivic); } // f1rpo (Civic AI Weights)
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

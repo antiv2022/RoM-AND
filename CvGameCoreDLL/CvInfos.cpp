@@ -20486,6 +20486,17 @@ int CvLeaderHeadInfo::getImprovementWeightModifier(int i) const
 	return m_piImprovementWeightModifier ? m_piImprovementWeightModifier[i] : 0;
 }
 
+// <f1rpo> (Civic AI Weights)
+int CvLeaderHeadInfo::getCivicAIWeight(CivicTypes eCivic) const
+{
+	FAssertBounds(0, GC.getNumCivicInfos(), eCivic);
+	if (m_piCivicAIWeights == NULL)
+		return 0;
+	int r = m_piCivicAIWeights[eCivic];
+	FAssert(r >= -100);
+	return r;
+} // </f1rpo>
+
 int CvLeaderHeadInfo::getDiploPeaceIntroMusicScriptIds(int i) const
 {
 	FAssertMsg(i < GC.getNumEraInfos(), "Index out of bounds");
@@ -20683,6 +20694,18 @@ void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 
 	bool bPresent = false;
 
+	// <f1rpo> (Civic AI Weights) - probably moot, untested
+	if (uiFlag >= 2)
+	{
+		SAFE_DELETE_ARRAY(m_piCivicAIWeights);
+		stream->Read(&bPresent);
+		if (bPresent)
+		{
+			m_piCivicAIWeights = new int[GC.getNumCivicInfos()];
+			stream->Read(GC.getNumCivicInfos(), m_piCivicAIWeights);
+		}
+	} // </f1rpo>
+
 	SAFE_DELETE_ARRAY(m_pbTraits);
 	stream->Read(&bPresent);
 	if (bPresent)
@@ -20805,6 +20828,7 @@ void CvLeaderHeadInfo::write(FDataStreamBase* stream)
 	CvInfoBase::write(stream);
 
 	uint uiFlag=1;
+	uiFlag = 2; // f1rpo (Civic AI Weights)
 	stream->Write(uiFlag);		// flag for expansion
 
 	stream->Write(m_iWonderConstructRand);
@@ -20897,6 +20921,14 @@ void CvLeaderHeadInfo::write(FDataStreamBase* stream)
 	stream->WriteString(m_szArtDefineTag);
 
 	// Arrays
+
+	// <f1rpo> (Civic AI Weights)
+	if (m_piCivicAIWeights != NULL)
+	{
+		stream->Write(true); // bPresent
+		stream->Write(GC.getNumCivicInfos(), m_piCivicAIWeights);
+	}
+	else stream->Write(false); // </f1rpo>
 
 	if (m_pbTraits)
 	{
@@ -21138,6 +21170,7 @@ void CvLeaderHeadInfo::getCheckSum(unsigned int& iSum)
 	CheckSumI(iSum, NUM_ATTITUDE_TYPES, m_piNoWarAttitudeProb);
 	CheckSumI(iSum, NUM_UNITAI_TYPES, m_piUnitAIWeightModifier);
 	CheckSumI(iSum, GC.getNumImprovementInfos(), m_piImprovementWeightModifier);
+	CheckSumI(iSum, GC.getNumCivicInfos(), m_piCivicAIWeights); // f1rpo (Civic AI Weights)
 
 	CheckSum(iSum, m_iMilitaryUnitRefuseAttitudeThreshold);
 	CheckSum(iSum, m_iWorkerRefuseAttitudeThreshold);
@@ -21290,6 +21323,8 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 #endif
 	pXML->GetChildXmlValByName(szTextVal, "FavoriteReligion");
 	m_iFavoriteReligion = pXML->FindInInfoClass(szTextVal);
+
+	pXML->SetVariableListTagPair(&m_piCivicAIWeights, "CivicAIWeights", -1/*(unused)*/, GC.getNumCivicInfos()); // f1rpo
 
 	pXML->SetVariableListTagPair(&m_pbTraits, "Traits", sizeof(GC.getTraitInfo((TraitTypes)0)), GC.getNumTraitInfos());
 

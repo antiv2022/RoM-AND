@@ -18516,6 +18516,13 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 		iValue += iTempValue;
 	}
 	*/
+	// <f1rpo> (Civic AI Weights)
+	if (iValue > 0)
+	{
+		int iAIWeight = GC.getLeaderHeadInfo(getPersonalityType()).getCivicAIWeight(eCivic);
+		iValue = (iValue * (100 + iAIWeight)) / 100;
+	} // </f1rpo>
+
 	if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2) && (GC.getCivicInfo(eCivic).isNoNonStateReligionSpread()))
 	{
 		//is this really necessary, even if already running culture3/4 ?

@@ -306,6 +306,17 @@
 			<iFreedomAppreciation>10</iFreedomAppreciation>
 			<FavoriteCivic>CIVIC_DESPOTISM</FavoriteCivic>
 			<FavoriteReligion>RELIGION_HELLENISM</FavoriteReligion>
+			<!-- f1rpo (AI Civic Weights) - example -->
+			<CivicAIWeights>
+				<CivicAIWeight>
+					<CivicType>CIVIC_DESPOTISM</CivicType>
+					<iAIWeight>50</iAIWeight>
+				</CivicAIWeight>
+				<CivicAIWeight>
+					<CivicType>CIVIC_THEOCRACY</CivicType>
+					<iAIWeight>-100</iAIWeight>
+				</CivicAIWeight>
+			</CivicAIWeights>
 			<Traits>
 				<Trait>
 					<TraitType>TRAIT_PHILOSOPHICAL</TraitType>
