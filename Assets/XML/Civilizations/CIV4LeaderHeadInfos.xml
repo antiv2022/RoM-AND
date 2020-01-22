@@ -91,7 +91,12 @@
 			<iFreedomAppreciation>0</iFreedomAppreciation>
 			<FavoriteCivic>NONE</FavoriteCivic>
 			<FavoriteReligion>NONE</FavoriteReligion>
-			<Traits/>
+			<Traits>
+				<Trait>
+					<TraitType>TRAIT_NOMAD</TraitType>
+					<bTrait>1</bTrait>
+				</Trait>
+			</Traits>
 			<Flavors/>
 			<ContactRands/>
 			<ContactDelays/>
@@ -309,11 +314,11 @@
 			<!-- f1rpo (AI Civic Weights) - example -->
 			<CivicAIWeights>
 				<CivicAIWeight>
-					<CivicType>CIVIC_DESPOTISM</CivicType>
+					<CivicType>CIVIC_OLIGARCHY</CivicType>
 					<iAIWeight>50</iAIWeight>
 				</CivicAIWeight>
 				<CivicAIWeight>
-					<CivicType>CIVIC_THEOCRACY</CivicType>
+					<CivicType>CIVIC_AUTOCRACY</CivicType>
 					<iAIWeight>-100</iAIWeight>
 				</CivicAIWeight>
 			</CivicAIWeights>
@@ -14903,6 +14908,7 @@
 			<VassalRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</VassalRefuseAttitudeThreshold>
 			<iVassalPowerModifier>0</iVassalPowerModifier>
 			<iFreedomAppreciation>10</iFreedomAppreciation>
+			<!-- f1rpo: Was CIVIC_PROLETARIAT - which doesn't exist anymore. -->
 			<FavoriteCivic>NONE</FavoriteCivic>
 			<FavoriteReligion>RELIGION_CONFUCIANISM</FavoriteReligion>
 			<Traits>
