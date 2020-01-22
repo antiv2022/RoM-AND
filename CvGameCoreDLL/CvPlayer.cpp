@@ -17010,7 +17010,8 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			}
 
 			//Afforess: AI Alive Sanity Checking
-			if (getNumCities() == 0)
+			if (getNumCities() == 0
+				&& !isBarbarian()) // f1rpo
 			{
 				//We are dead if we have no cities and do not need complete kills
 				bool bDead = !GC.getGameINLINE().isOption(GAMEOPTION_COMPLETE_KILLS);
