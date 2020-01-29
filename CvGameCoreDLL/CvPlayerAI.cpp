@@ -8659,24 +8659,21 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-
-	iAttitude = GC.getLeaderHeadInfo(getPersonalityType()).getBaseAttitude();
-
+	int iAttitude = AI_getFirstImpressionAttitude(ePlayer, false); // f1rpo: Replacing duplicate code below
+	/*iAttitude = GC.getLeaderHeadInfo(getPersonalityType()).getBaseAttitude();
 	iAttitude += GC.getHandicapInfo(GET_PLAYER(ePlayer).getHandicapType()).getAttitudeChange();
-
-//	if (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI))
-//	{
-//		if (GET_PLAYER(ePlayer).isHuman())
-//		{
-//			iAttitude -= 2;
-//		}
-//	}
-
+	//if (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI))
+	//{
+	//	if (GET_PLAYER(ePlayer).isHuman())
+	//	{
+	//		iAttitude -= 2;
+	//	}
+	//}
 	if (!(GET_PLAYER(ePlayer).isHuman()))
 	{
 		iAttitude += (4 - abs(AI_getPeaceWeight() - GET_PLAYER(ePlayer).AI_getPeaceWeight()));
 		iAttitude += std::min(GC.getLeaderHeadInfo(getPersonalityType()).getWarmongerRespect(), GC.getLeaderHeadInfo(GET_PLAYER(ePlayer).getPersonalityType()).getWarmongerRespect());
-	}
+	}*/
 
 	iAttitude -= std::max(0, (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getNumMembers() - GET_TEAM(getTeam()).getNumMembers()));
 
@@ -8825,38 +8822,53 @@ bool isShowSpoilerModifiers()
 #endif
 }
 
-int CvPlayerAI::AI_getFirstImpressionAttitude(PlayerTypes ePlayer) const
+// f1rpo: Param bAsync added so that this function can be called from AI_getAttitudeVal
+int CvPlayerAI::AI_getFirstImpressionAttitude(PlayerTypes ePlayer, bool bAsync) const
 {
-	bool bShowPersonalityAttitude = isShowPersonalityModifiers();
-	CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
-    int iAttitude = GC.getHandicapInfo(kPlayer.getHandicapType()).getAttitudeChange();
-
 	//ls612: If you Start as Minors the first impression is not important
+	// (f1rpo: This now means that first impression attitude is actually 0, not just displayed as 0.)
 	if (GC.getGameINLINE().isOption(GAMEOPTION_START_AS_MINORS))
-	{
 		return 0;
-	}
 
-	if (bShowPersonalityAttitude)
+	CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
+	// f1rpo: Increase precision to times 100 (also in the code below); divide at the end.
+    int iAttitude = GC.getHandicapInfo(kPlayer.getHandicapType()).getAttitudeChange() * 100;
+	// (f1rpo: Copied from AI_getAttitudeVal; was already commented out)
+//	if (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI))
+//	{
+//		if (GET_PLAYER(ePlayer).isHuman())
+//		{
+//			iAttitude -= 2 * 100;
+//		}
+//	}
+	if (!bAsync || isShowPersonalityModifiers())
 	{
-		iAttitude += GC.getLeaderHeadInfo(getPersonalityType()).getBaseAttitude();
+		iAttitude += GC.getLeaderHeadInfo(getPersonalityType()).getBaseAttitude() * 100;
 		if (!kPlayer.isHuman())
 		{
-			if (isShowSpoilerModifiers())
+			int iPeaceWeightAttitude = 0; // f1rpo
+			if (!bAsync || isShowSpoilerModifiers())
 			{
 				// iBasePeaceWeight + iPeaceWeightRand
-				iAttitude += (4 - abs(AI_getPeaceWeight() - kPlayer.AI_getPeaceWeight()));
+				iPeaceWeightAttitude += 4 - abs(AI_getPeaceWeight() - kPlayer.AI_getPeaceWeight());
 			}
 			else
 			{
 				// iBasePeaceWeight
-				iAttitude += (4 - abs(GC.getLeaderHeadInfo(getPersonalityType()).getBasePeaceWeight() - GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).getBasePeaceWeight()));
+				iPeaceWeightAttitude += 4 - abs(GC.getLeaderHeadInfo(getPersonalityType()).getBasePeaceWeight()
+						- GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).getBasePeaceWeight());
 			}
-			iAttitude += std::min(GC.getLeaderHeadInfo(getPersonalityType()).getWarmongerRespect(), GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).getWarmongerRespect());
+			// <f1rpo>
+			static int const iPEACE_WEIGHT_PERCENT = GC.getDefineINT("PEACE_WEIGHT_PERCENT", 100);
+			static int const iWARMONGER_RESPECT_PERCENT = GC.getDefineINT("WARMONGER_RESPECT_PERCENT", 100);
+			iAttitude += iPeaceWeightAttitude * iPEACE_WEIGHT_PERCENT; // </f1rpo>
+			iAttitude += std::min(GC.getLeaderHeadInfo(getPersonalityType()).getWarmongerRespect(),
+					GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).getWarmongerRespect())
+					* iWARMONGER_RESPECT_PERCENT; // f1rpo
 		}
 	}
 
-    return iAttitude;
+    return ROUND_DIVIDE(iAttitude, 100);
 }
 
 

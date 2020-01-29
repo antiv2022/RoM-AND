@@ -51,5 +51,16 @@
 		<!-- AI Research balancing. default:500, correct value: 5000 -->
 		<DefineName>BBAI_AI_VALUE_TECH_TRADING</DefineName>
 		<iDefineIntVal>5000</iDefineIntVal>
-	</Define>	
+	</Define>
+
+	<!-- f1rpo (start): GlobalDefines for AI attitude -->
+	<Define>
+		<DefineName>PEACE_WEIGHT_PERCENT</DefineName>
+		<iDefineIntVal>66</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>WARMONGER_RESPECT_PERCENT</DefineName>
+		<iDefineIntVal>80</iDefineIntVal>
+	</Define>
+	<!-- f1rpo: end -->
 </Civ4Defines>
