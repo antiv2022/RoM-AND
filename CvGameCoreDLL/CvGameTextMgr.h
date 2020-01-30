@@ -74,6 +74,9 @@ public:
 	DllExport void parseLeaderTraits(CvWStringBuffer &szInfoText, LeaderHeadTypes eLeader = NO_LEADER, CivilizationTypes eCivilization = NO_CIVILIZATION, bool bDawnOfMan = false, bool bCivilopediaText = false);
 	DllExport void parseLeaderShortTraits(CvWStringBuffer &szInfoText, LeaderHeadTypes eLeader);
 	DllExport void parseCivInfos(CvWStringBuffer &szHelpString, CivilizationTypes eCivilization, bool bDawnOfMan = false, bool bLinks = true);
+	// <f1rpo> (from AdvCiv)
+	void appendUniqueDesc(CvWStringBuffer& szBuffer, bool bSeparator, bool bDawnOfMan, bool bLinks,
+			wchar const* szUniqueDesc, wchar const* szDefaultDesc = NULL); // </f1rpo>
 	DllExport void parseSpecialistHelp(CvWStringBuffer &szHelpString, SpecialistTypes eSpecialist, CvCity* pCity, bool bCivilopediaText = false);
 // BUG - Specialist Actual Effects - start
 	void parseSpecialistHelpActual(CvWStringBuffer &szHelpString, SpecialistTypes eSpecialist, CvCity* pCity, bool bCivilopediaText = false, int iChange = 0);

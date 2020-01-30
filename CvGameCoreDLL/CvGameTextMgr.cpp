@@ -7548,28 +7548,16 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 		{
 			eDefaultUnit = ((UnitTypes)(GC.getCivilizationInfo(eCivilization).getCivilizationUnits(iI)));
 			eUniqueUnit = ((UnitTypes)(GC.getUnitClassInfo((UnitClassTypes) iI).getDefaultUnitIndex()));
-			if ((eDefaultUnit != NO_UNIT) && (eUniqueUnit != NO_UNIT))
+			if (/*eDefaultUnit != NO_UNIT &&*/ // f1rpo: Don't require a default unit
+				eUniqueUnit != NO_UNIT)
 			{
 				if (eDefaultUnit != eUniqueUnit)
-				{
-					// Add Unit
-					if (bDawnOfMan)
-					{
-						if (bFound)
-						{
-							szInfoText.append(L", ");
-						}
-						szBuffer.Format((bLinks ? L"<link=literal>%s</link> - (<link=literal>%s</link>)" : L"%s - (%s)"),
-							GC.getUnitInfo(eDefaultUnit).getDescription(),
-							GC.getUnitInfo(eUniqueUnit).getDescription());
-					}
-					else
-					{
-						szBuffer.Format(L"\n  %c%s - (%s)", gDLL->getSymbolID(BULLET_CHAR),
-							GC.getUnitInfo(eDefaultUnit).getDescription(),
-							GC.getUnitInfo(eUniqueUnit).getDescription());
-					}
-					szInfoText.append(szBuffer);
+				{	// <f1rpo> (from AdvCiv)
+					appendUniqueDesc(szInfoText, bFound, bDawnOfMan, bLinks,
+							GC.getUnitInfo(eUniqueUnit).getDescription(),
+							eDefaultUnit == NO_UNIT ? NULL :
+							GC.getUnitInfo(eDefaultUnit).getDescription());
+					// </f1rpo>
 					bFound = true;
 				}
 			}
@@ -7612,28 +7600,16 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 		{
 			eDefaultBuilding = ((BuildingTypes)(GC.getCivilizationInfo(eCivilization).getCivilizationBuildings(iI)));
 			eUniqueBuilding = ((BuildingTypes)(GC.getBuildingClassInfo((BuildingClassTypes) iI).getDefaultBuildingIndex()));
-			if ((eDefaultBuilding != NO_BUILDING) && (eUniqueBuilding != NO_BUILDING))
+			if (/*eDefaultBuilding != NO_BUILDING &&*/ // f1rpo: Don#t require a default building
+				eUniqueBuilding != NO_BUILDING)
 			{
 				if (eDefaultBuilding != eUniqueBuilding)
-				{
-					// Add Building
-					if (bDawnOfMan)
-					{
-						if (bFound)
-						{
-							szInfoText.append(L", ");
-						}
-						szBuffer.Format((bLinks ? L"<link=literal>%s</link> - (<link=literal>%s</link>)" : L"%s - (%s)"),
-							GC.getBuildingInfo(eDefaultBuilding).getDescription(),
-							GC.getBuildingInfo(eUniqueBuilding).getDescription());
-					}
-					else
-					{
-						szBuffer.Format(L"\n  %c%s - (%s)", gDLL->getSymbolID(BULLET_CHAR),
-							GC.getBuildingInfo(eDefaultBuilding).getDescription(),
-							GC.getBuildingInfo(eUniqueBuilding).getDescription());
-					}
-					szInfoText.append(szBuffer);
+				{	// <f1rpo> (from AdvCiv)
+					appendUniqueDesc(szInfoText, bFound, bDawnOfMan, bLinks,
+							GC.getBuildingInfo(eUniqueBuilding).getDescription(),
+							eDefaultBuilding == NO_BUILDING ? NULL :
+							GC.getBuildingInfo(eDefaultBuilding).getDescription());
+					// </f1rpo>
 					bFound = true;
 				}
 			}
@@ -7659,6 +7635,35 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 	}
 
 //	return szInfoText;
+}
+
+// f1rpo: Extracted from parseCivInfos
+void CvGameTextMgr::appendUniqueDesc(CvWStringBuffer& szBuffer, bool bSeparator, bool bDawnOfMan,
+	bool bLinks, wchar const* szUniqueDesc, wchar const* szDefaultDesc)
+{
+	CvWString szTmp;
+	if (bDawnOfMan)
+	{
+		if (bSeparator)
+			szBuffer.append(L", ");
+		szTmp.Format(!bLinks ? L"%s": L"<link=literal>%s</link>", szUniqueDesc);
+		szBuffer.append(szTmp);
+		if (szDefaultDesc != NULL) // Don't require a default entity
+		{
+			szTmp.Format(!bLinks ? L" - (%s)" : L" - (<link=literal>%s</link>)", szDefaultDesc);
+			szBuffer.append(szTmp);
+		}
+	}
+	else
+	{
+		szTmp.Format(L"\n  %c%s", gDLL->getSymbolID(BULLET_CHAR), szUniqueDesc);
+		szBuffer.append(szTmp);
+		if (szDefaultDesc != NULL) // Don't require a default entity
+		{
+			szTmp.Format(L" - (%s)", szDefaultDesc);
+			szBuffer.append(szTmp);
+		}
+	}
 }
 
 
@@ -21052,7 +21057,7 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 				szBuffer.append(szTempBuffer);
 			}
 	
-			iAttitudeChange = kPlayer.AI_getFirstImpressionAttitude(eTargetPlayer);
+			iAttitudeChange = kPlayer.AI_getFirstImpressionAttitude(eTargetPlayer, /* f1rpo: */ true);
 			if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 			{
 				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_FIRST_IMPRESSION", iAttitudeChange).GetCString());
