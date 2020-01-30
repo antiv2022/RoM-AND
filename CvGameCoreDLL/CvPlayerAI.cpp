@@ -12904,7 +12904,8 @@ DenialTypes CvPlayerAI::AI_civicTrade(CivicTypes eCivic, PlayerTypes ePlayer) co
 		return DENIAL_ANGER_CIVIC;
 	}
 
-	CivicTypes eFavoriteCivic = (CivicTypes)GC.getLeaderHeadInfo(getPersonalityType()).getFavoriteCivic();
+	CvLeaderHeadInfo const& kOurPersonality = GC.getLeaderHeadInfo(getPersonalityType()); // f1rpo
+	CivicTypes eFavoriteCivic = (CivicTypes)kOurPersonality.getFavoriteCivic();
 	if (eFavoriteCivic != NO_CIVIC)
 	{
 		if (isCivic(eFavoriteCivic) && (GC.getCivicInfo(eCivic).getCivicOptionType() == GC.getCivicInfo(eFavoriteCivic).getCivicOptionType()))
@@ -12912,13 +12913,17 @@ DenialTypes CvPlayerAI::AI_civicTrade(CivicTypes eCivic, PlayerTypes ePlayer) co
 			return DENIAL_FAVORITE_CIVIC;
 		}
 	}
+	// <f1rpo> (Civic AI Weight)
+	if (kOurPersonality.getCivicAIWeight(eCivic) <= -100)
+		return DENIAL_FAVORITE_CIVIC;
+	// </f1rpo>
 
 	if (GC.getCivilizationInfo(getCivilizationType()).getCivilizationInitialCivics(GC.getCivicInfo(eCivic).getCivicOptionType()) == eCivic)
 	{
 		return DENIAL_JOKING;
 	}
 
-	if (AI_getAttitude(ePlayer) <= GC.getLeaderHeadInfo(getPersonalityType()).getAdoptCivicRefuseAttitudeThreshold())
+	if (AI_getAttitude(ePlayer) <= kOurPersonality.getAdoptCivicRefuseAttitudeThreshold())
 	{
 		return DENIAL_ATTITUDE;
 	}
