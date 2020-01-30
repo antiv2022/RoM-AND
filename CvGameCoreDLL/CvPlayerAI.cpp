@@ -2179,7 +2179,10 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 	int iRazeValue;
 	int iI;
 
-	if (canRaze(pCity))
+	// f1rpo: (It's not really a probability)
+	int const iPersonalityVal = GC.getLeaderHeadInfo(getPersonalityType()).getRazeCityProb();
+	if (canRaze(pCity)
+		&& iPersonalityVal > 0) // f1rpo (at Inthegrave's request)
 	{
 	    iRazeValue = 0;
 		int iCloseness = pCity->AI_playerCloseness(getID());
@@ -2233,7 +2236,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 				{
 					if( (pCity->getPreviousOwner() != BARBARIAN_PLAYER) && (pCity->getOriginalOwner() != BARBARIAN_PLAYER) )
 					{
-						iRazeValue += GC.getLeaderHeadInfo(getPersonalityType()).getRazeCityProb();
+						iRazeValue += iPersonalityVal;
 						iRazeValue -= iCloseness;
 					}
 				}
@@ -2255,7 +2258,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 						if( iCloseness == 0 )
 						{
 							// Safe to raze these now that AI can do pick up ...
-							iRazeValue += GC.getLeaderHeadInfo(getPersonalityType()).getRazeCityProb();
+							iRazeValue += iPersonalityVal;
 						}
 					}
 					else
@@ -2277,11 +2280,11 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 										if (GC.getGameINLINE().isOption(GAMEOPTION_NO_REVOLUTION))
 										{
 											//Fuyu: not so much
-											iRazeValue += std::max(0, (GC.getLeaderHeadInfo(getPersonalityType()).getRazeCityProb() - iCloseness));
+											iRazeValue += std::max(0, iPersonalityVal - iCloseness);
 										}
 										else
 										{
-											iRazeValue += GC.getLeaderHeadInfo(getPersonalityType()).getRazeCityProb();
+											iRazeValue += iPersonalityVal;
 										}
 									}
 								}
@@ -2346,11 +2349,11 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 					if (GC.getGameINLINE().isOption(GAMEOPTION_NO_REVOLUTION))
 					{
 						//Fuyu: not so much
-						iRazeValue += std::max(0, ((GC.getLeaderHeadInfo(getPersonalityType()).getRazeCityProb() / 2) - iCloseness));
+						iRazeValue += std::max(0, iPersonalityVal / 2 - iCloseness);
 					}
 					else
 					{
-						iRazeValue += GC.getLeaderHeadInfo(getPersonalityType()).getRazeCityProb();
+						iRazeValue += iPersonalityVal;
 					}
 
 					if (getStateReligion() != NO_RELIGION)
