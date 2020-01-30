@@ -1673,6 +1673,13 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit)
 
 				if (pLoopCity != NULL)
 				{
+					// <f1rpo> Destroy size-1 cities always (idea: Inthegrave)
+					if (pLoopCity->getPopulation() <= 1)
+					{
+						// (I don't think we want to call CvPlayer::raze)
+						GET_PLAYER(pLoopCity->getOwner()).disband(pLoopCity);
+						continue;
+					} // </f1rpo>
 					for (iI = 0; iI < GC.getNumBuildingInfos(); ++iI)
 					{
 						if (pLoopCity->getNumRealBuilding((BuildingTypes)iI) > 0)
@@ -1687,7 +1694,10 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit)
 						}
 					}
 
-					iNukedPopulation = ((pLoopCity->getPopulation() * (GC.getDefineINT("NUKE_POPULATION_DEATH_BASE") + GC.getGameINLINE().getSorenRandNum(GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_1"), "Population Nuked 1") + GC.getGameINLINE().getSorenRandNum(GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_2"), "Population Nuked 2"))) / 100);
+					iNukedPopulation = ((pLoopCity->getPopulation()
+							* (GC.getDefineINT("NUKE_POPULATION_DEATH_BASE")
+							+ GC.getGameINLINE().getSorenRandNum(GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_1"), "Population Nuked 1")
+							+ GC.getGameINLINE().getSorenRandNum(GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_2"), "Population Nuked 2"))) / 100);
 
 					iNukedPopulation *= std::max(0, (pLoopCity->getNukeModifier() + 100));
 					iNukedPopulation /= 100;
