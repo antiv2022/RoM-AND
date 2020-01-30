@@ -8691,11 +8691,12 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 		iAttitude += ((GC.getLeaderHeadInfo(getPersonalityType()).getBetterRankDifferenceAttitudeChange() * -(iRankDifference)) / (GC.getGameINLINE().countCivPlayersEverAlive() + 1));
 	}
 
-	if ((GC.getGameINLINE().getPlayerRank(getID()) >= (GC.getGameINLINE().countCivPlayersEverAlive() / 2)) &&
+	/*if ((GC.getGameINLINE().getPlayerRank(getID()) >= (GC.getGameINLINE().countCivPlayersEverAlive() / 2)) &&
 		  (GC.getGameINLINE().getPlayerRank(ePlayer) >= (GC.getGameINLINE().countCivPlayersEverAlive() / 2)))
 	{
 		iAttitude++;
-	}
+	}*/ // f1rpo (LowRankAttitude): There's a function for this
+	iAttitude += AI_getLowRankAttitude(ePlayer);
 
 	if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).AI_getWarSuccess(getTeam()) > GET_TEAM(getTeam()).AI_getWarSuccess(GET_PLAYER(ePlayer).getTeam()))
 	{
@@ -8967,7 +8968,8 @@ int CvPlayerAI::AI_getWorseRankDifferenceAttitude(PlayerTypes ePlayer) const
 
 int CvPlayerAI::AI_getLowRankAttitude(PlayerTypes ePlayer) const
 {
-	int iThisPlayerRank;
+	return 0; // f1rpo: Disable LowRankAttitude (at the request of Inthegrave)
+	/*int iThisPlayerRank;
 	int iPlayerRank;
 	if (isShowSpoilerModifiers())
 	{
@@ -8981,7 +8983,7 @@ int CvPlayerAI::AI_getLowRankAttitude(PlayerTypes ePlayer) const
 	}
 
 	int iMedianRank = GC.getGameINLINE().countCivPlayersEverAlive() / 2;
-	return (iThisPlayerRank >= iMedianRank && iPlayerRank >= iMedianRank) ? 1 : 0;
+	return (iThisPlayerRank >= iMedianRank && iPlayerRank >= iMedianRank) ? 1 : 0;*/
 }
 
 
