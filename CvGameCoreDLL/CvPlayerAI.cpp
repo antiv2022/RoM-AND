@@ -8616,7 +8616,6 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 	PROFILE_FUNC();
 
 	int iRankDifference;
-	int iAttitude;
 	int iI;
 
 //	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
@@ -18539,10 +18538,12 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 	}
 	*/
 	// <f1rpo> (Civic AI Weights)
-	if (iValue > 0)
+	if (!kCivic.isStateReligion() || iHighestReligionCount > 0)
 	{
 		int iAIWeight = GC.getLeaderHeadInfo(getPersonalityType()).getCivicAIWeight(eCivic);
-		iValue = (iValue * (100 + iAIWeight)) / 100;
+		iValue += iAIWeight / 10;
+		if (iValue > 0)
+			iValue = (iValue * (100 + iAIWeight)) / 100;
 	} // </f1rpo>
 
 	if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2) && (GC.getCivicInfo(eCivic).isNoNonStateReligionSpread()))
