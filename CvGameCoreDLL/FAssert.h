@@ -59,17 +59,17 @@ bool FAssertDlg( const char*, const char*, const char*, unsigned int, bool& );
 				static_cast<int>(upper), static_cast<int>(index));\
 		FAssertMsg(static_cast<int>(index) < static_cast<int>(upper), acOut);\
 	}
-/*	The fnString is pretty unnecessary; we get __FILE__ and __LINE__ anyway.
-	Could also get __FUNCTION__. */
-#define FAssertBounds(lower,upper,index) FASSERT_BOUNDS(lower,upper,index, "array accessor");
 // </f1rpo>
 
 #else
 // FASSERT_ENABLE not defined
 #define FAssert( expr )
 #define FAssertMsg( expr, msg )
-#define FASSERT_BOUNDS void(0) // f1rpo (forces semicolon)
-
+#define FASSERT_BOUNDS(lower,upper,index,fnString) void(0) // f1rpo (forces semicolon)
 #endif
+
+/*	f1rpo: The fnString is pretty unnecessary; we get __FILE__ and __LINE__ anyway.
+	Could also get __FUNCTION__. */
+#define FAssertBounds(lower,upper,index) FASSERT_BOUNDS(lower,upper,index, "array accessor");
 
 #endif // FASSERT_H

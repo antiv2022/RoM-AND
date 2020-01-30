@@ -43,9 +43,10 @@ class CvInfoBase;
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };
 
-// f1rpo (from AdvCiv; based on K-Mod)
+// f1rpo (from AdvCiv)
 inline int ROUND_DIVIDE(int a, int b)
 {
+	FAssert(a <= MAX_INT / b && b <= MAX_INT / 2);
 	int const iSign = (a * b > 0 ? 1 : -1);
 	return (2 * a + iSign * b) / (2 * b);
 }
