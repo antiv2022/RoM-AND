@@ -14246,7 +14246,12 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible) const
 				return false;
 			}
 		}
-
+// 45deg & f1rpo: OverrideResourceBuilding - START
+		if (pCity != NULL && kUnit.getOverrideResourceBuilding() != NO_BUILDING && pCity->getNumActiveBuilding((BuildingTypes)kUnit.getOverrideResourceBuilding()) > 0)
+		{
+			return true;
+		}
+// 45deg & f1rpo: OverrideResourceBuilding - END
 		if (kUnit.getPrereqAndBonus() != NO_BONUS)
 		{
 			if (NULL == pCity)
@@ -14260,14 +14265,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible) const
 			{
 				if (!pCity->hasBonus((BonusTypes)kUnit.getPrereqAndBonus()))
 				{
-					//&& !pCity->getNumRealBuilding((BuildingTypes)kUnit.getOverrideResourceBuilding()) > 0)
-					// <f1rpo> Replacing the above b/c of "unsafe use of type bool" warning.
-					BuildingTypes eOverrideBuilding = (BuildingTypes)kUnit.getOverrideResourceBuilding();
-					if (eOverrideBuilding == NO_BUILDING ||
-						pCity->getNumRealBuilding(eOverrideBuilding) <= 0) // </f1rpo>
-					{
-						return false;
-					}
+					return false;
 				}
 			}
 		}

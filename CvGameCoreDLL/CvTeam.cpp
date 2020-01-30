@@ -7482,6 +7482,16 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 				gDLL->getInterfaceIFace()->setDirty(ResearchButtons_DIRTY_BIT, true);
 				gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
 			}
+//45deg: rev1086, workaround for multiple resources bug - START
+			for (int iJ = 0; iJ < GC.getNumTerrainInfos(); iJ++)
+			{
+				if ((GC.getTechInfo(eIndex).isTerrainTrade(iJ)) && (isHuman()))
+				{
+					GC.getGameINLINE().recalculateModifiers();
+					GC.getGameINLINE().logMsg("Warning, might cause OOS in MP!");
+				}
+			}
+//45deg: rev1086, workaround for multiple resources bug - END
 		}
 	}
 }
