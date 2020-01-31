@@ -43,6 +43,27 @@
 		<FlavorType>FLAVOR_OLIGARCHY</FlavorType>
 		<FlavorType>FLAVOR_DEMOCRACY</FlavorType>
 	</FlavorTypes>
+	<!-- f1rpo: start
+		 The upper-case strings can be changed arbitrarily so long as their
+		 uses in other other XML files are updated accordingly. The lists can
+		 also be extended or shortened. The first string in each list is the
+		 default value.
+		 Racism: The "race" names (suggested by Inthegrave) reflect the
+		 thinking of certain historical persons represented in the game. -->
+	<RaceTypes>
+		<Race>RACE_WHITE</Race>
+		<Race>RACE_BLACK</Race>
+		<Race>RACE_ASIAN</Race>
+		<Race>RACE_HISPANIC</Race>
+		<Race>RACE_INDIAN</Race>
+	</RaceTypes>
+	<!-- Sexism: Note that adding further gender types only makes sense if some
+		 leader will have have that gender. -->
+	<GenderTypes>
+		<Gender>GENDER_MALE</Gender>
+		<Gender>GENDER_FEMALE</Gender>
+	</GenderTypes>
+	<!-- f1rpo: end -->
 	<ArtStyleTypes>
 		<ArtStyleType>ARTSTYLE_AFRICA</ArtStyleType>
 		<ArtStyleType>ARTSTYLE_ANGLO_AMERICA</ArtStyleType>

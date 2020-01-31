@@ -5499,6 +5499,8 @@ public:
 	int getFavoriteCivic() const;																// Exposed to Python
 	int getFavoriteReligion() const;																// Exposed to Python
 	int getFreedomAppreciation() const;																// Exposed to Python
+	GenderTypes getGender() const { return m_eGender; } // f1rpo (Sexism)
+	RaceTypes getRace() const { return m_eRace; } // f1rpo (Racism)
 
 	const TCHAR* getArtDefineTag() const;				// Exposed to Python
 	void setArtDefineTag(const TCHAR* szVal);
@@ -5515,7 +5517,9 @@ public:
 	int getNoWarAttitudeProb(int i) const;				// Exposed to Python
 	int getUnitAIWeightModifier(int i) const;				// Exposed to Python
 	int getImprovementWeightModifier(int i) const;				// Exposed to Python
-	int getCivicAIWeight(CivicTypes eCivic) const; // f1rpo (Civic AI Weights) - Exposed to python
+	int getCivicAIWeight(CivicTypes eCivic) const; // f1rpo (Civic AI Weights) - Exposed to Python
+	int getSexistAttitudeChange(GenderTypes eGender) const; // f1rpo (Sexims) - Exposed to Python
+	int getRacistAttitudeChange(RaceTypes eRace) const; // f1rpo (Racism) - Exposed to Python
 
 	int getDiploPeaceIntroMusicScriptIds(int i) const;
 	int getDiploPeaceMusicScriptIds(int i) const;
@@ -5650,6 +5654,8 @@ protected:
 	int m_iFreedomAppreciation;
 	int m_iFavoriteCivic;
 	int m_iFavoriteReligion;
+	GenderTypes m_eGender; // f1rpo (Sexism)
+	RaceTypes m_eRace; // f1rpo (Racism)
 
 	CvString m_szArtDefineTag;
 
@@ -5665,7 +5671,9 @@ protected:
 	int* m_piNoWarAttitudeProb;
 	int* m_piUnitAIWeightModifier;
 	int* m_piImprovementWeightModifier;
-	int* m_piCivicAIWeights;
+	int* m_piCivicAIWeights; // f1rpo (Civic AI Weights)
+	int* m_piSexistAttitudeChanges; // f1rpo (Sexism)
+	int* m_piRacistAttitudeChanges; // f1rpo (Racism)
 	int* m_piDiploPeaceIntroMusicScriptIds;
 	int* m_piDiploPeaceMusicScriptIds;
 	int* m_piDiploWarIntroMusicScriptIds;
@@ -5675,6 +5683,8 @@ protected:
 	void friend CyInfoPythonInterface3();
 private:
 	int pyCivicAIWeight(int iCivic) const { return getCivicAIWeight((CivicTypes)iCivic); } // f1rpo (Civic AI Weights)
+	int pySexistAttitudeChange(int iGender) const { return getSexistAttitudeChange((GenderTypes)iGender); } // f1rpo (Sexism)
+	int pyRacistAttitudeChange(int iRace) const { return getRacistAttitudeChange((RaceTypes)iRace); } // f1rpo (Racism)
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

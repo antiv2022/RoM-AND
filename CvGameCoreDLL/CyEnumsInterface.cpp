@@ -610,6 +610,14 @@ void CyEnumsPythonInterface()
 	python::enum_<FlavorTypes>("FlavorTypes")
 		.value("NO_FLAVOR", NO_FLAVOR)
 		;
+	// <f1rpo> Sexism, Racism
+	python::enum_<GenderTypes>("GenderTypes")
+		.value("NO_GENDER", NO_GENDER)
+		;
+
+	python::enum_<RaceTypes>("RaceTypes")
+		.value("NO_RACE", NO_RACE)
+		; // </f1rpo>
 
 	python::enum_<EmphasizeTypes>("EmphasizeTypes")
 		.value("NO_EMPHASIZE", NO_EMPHASIZE)

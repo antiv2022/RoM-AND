@@ -185,6 +185,12 @@ m_paszEntityEventTypes(NULL),
 m_paszAnimationOperatorTypes(NULL),
 m_paszFunctionTypes(NULL),
 m_paszFlavorTypes(NULL),
+// f1rpo (Sexism, Racism)
+m_iNumGenderTypes(0),
+m_paszGenderTypes(NULL),
+m_iNumRaceTypes(0),
+m_paszRaceTypes(NULL),
+// </f1rpo>
 m_paszArtStyleTypes(NULL),
 m_paszCitySizeTypes(NULL),
 m_paszContactTypes(NULL),
@@ -3414,6 +3420,29 @@ CvString& cvInternalGlobals::getFlavorTypes(FlavorTypes e)
 	return m_paszFlavorTypes[e];
 }
 
+// <f1rpo> (Sexism, Racism)
+CvString*& cvInternalGlobals::getGenderTypes()
+{
+	return m_paszGenderTypes;
+}
+
+CvString& cvInternalGlobals::getGenderTypes(GenderTypes e)
+{
+	FAssertBounds(0, getNumGenderTypes(), e);
+	return m_paszGenderTypes[e];
+}
+
+CvString*& cvInternalGlobals::getRaceTypes()
+{
+	return m_paszRaceTypes;
+}
+
+CvString& cvInternalGlobals::getRaceTypes(RaceTypes e)
+{
+	FAssertBounds(0, getNumRaceTypes(), e);
+	return m_paszRaceTypes[e];
+} // </f1rpo>
+
 int& cvInternalGlobals::getNumArtStyleTypes()
 {
 	return m_iNumArtStyleTypes;
@@ -4909,6 +4938,8 @@ void cvInternalGlobals::deleteInfoArrays()
 	SAFE_DELETE_ARRAY(GC.getAnimationOperatorTypes());
 	SAFE_DELETE_ARRAY(GC.getFunctionTypes());
 	SAFE_DELETE_ARRAY(GC.getFlavorTypes());
+	SAFE_DELETE_ARRAY(GC.getGenderTypes()); // f1rpo (Sexism)
+	SAFE_DELETE_ARRAY(GC.getRaceTypes()); // f1rpo (Racism)
 	SAFE_DELETE_ARRAY(GC.getArtStyleTypes());
 	SAFE_DELETE_ARRAY(GC.getCitySizeTypes());
 	SAFE_DELETE_ARRAY(GC.getContactTypes());

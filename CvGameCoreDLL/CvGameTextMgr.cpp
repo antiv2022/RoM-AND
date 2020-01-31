@@ -21064,6 +21064,19 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 				szBuffer.append(NEWLINE);
 				szBuffer.append(szTempBuffer);
 			}
+			// <f1rpo> (Sexims, Racism)
+			{
+				int iAttChange = kPlayer.AI_getPrejudiceAttitude(eTargetPlayer, true);
+				if (iPass == 0 ? (iAttChange > 0) : (iAttChange < 0))
+				{
+					szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR(iAttChange > 0
+							? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), iAttChange > 0
+							? gDLL->getText("TXT_KEY_MISC_ATTITUDE_PREJUDICE_POSITIVE", iAttChange).GetCString()
+							: gDLL->getText("TXT_KEY_MISC_ATTITUDE_PREJUDICE_NEGATIVE", iAttChange).GetCString());
+					szBuffer.append(NEWLINE);
+					szBuffer.append(szTempBuffer);
+				}
+			} // </f1rpo>
 
 			// Afforess: Add more hidden attitudes
 			if (iPass == 0)

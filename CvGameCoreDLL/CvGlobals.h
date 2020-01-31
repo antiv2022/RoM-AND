@@ -964,6 +964,15 @@ public:
 	CvString*& getFlavorTypes();
 	CvString& getFlavorTypes(FlavorTypes e);
 
+	// <f1rpo> (Sexism, Racism)
+	int& getNumGenderTypes() { return m_iNumGenderTypes; }
+	CvString*& getGenderTypes();
+	CvString& getGenderTypes(GenderTypes e);
+
+	int& getNumRaceTypes() { return m_iNumRaceTypes; }
+	CvString*& getRaceTypes();
+	CvString& getRaceTypes(RaceTypes e); // </f1rpo>
+
 	int& getNumArtStyleTypes();
 	CvString*& getArtStyleTypes();
 	DllExport CvString& getArtStyleTypes(ArtStyleTypes e);
@@ -1612,6 +1621,12 @@ protected:
 
 	CvString* m_paszFlavorTypes;
 	int m_iNumFlavorTypes;
+	// <f1rpo>  (Sexism)
+	CvString* m_paszGenderTypes;
+	int m_iNumGenderTypes;
+	// (Racism)
+	CvString* m_paszRaceTypes;
+	int m_iNumRaceTypes; // </f1rpo>
 
 	CvString *m_paszArtStyleTypes;
 	int m_iNumArtStyleTypes;

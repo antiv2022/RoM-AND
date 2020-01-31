@@ -180,6 +180,12 @@ void CyGlobalContextPythonInterface4(python::class_<CyGlobalContext>& x)
 
 		.def("getNumFlavorTypes", &CyGlobalContext::getNumFlavorTypes, "int () - Returns number of FlavorTypes")
 		.def("getFlavorTypes", &CyGlobalContext::getFlavorTypes, "string () - Returns enum string")
+		// <f1rpo> (Sexism, Racism)
+		.def("getNumGenderTypes", &CyGlobalContext::getNumGenderTypes, "int ()")
+		.def("getGenderTypes", &CyGlobalContext::getGenderTypes, "string ()")
+
+		.def("getNumRaceTypes", &CyGlobalContext::getNumRaceTypes, "int ()")
+		.def("getRaceTypes", &CyGlobalContext::getRaceTypes, "string ()") // </f1rpo>
 
 		.def("getNumUnitArtStyleTypeInfos", &CyGlobalContext::getNumUnitArtStyleTypeInfos, "int () - Returns number of UnitArtStyleTypes")
 		.def("getUnitArtStyleTypeInfo", &CyGlobalContext::getUnitArtStyleTypeInfo, python::return_value_policy<python::reference_existing_object>(), "(UnitArtStyleTypeID) - CvInfo for UnitArtStyleTypeID")

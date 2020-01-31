@@ -19934,6 +19934,13 @@ m_iVassalPowerModifier(0),
 m_iFreedomAppreciation(0),
 m_iFavoriteCivic(NO_CIVIC),
 m_iFavoriteReligion(NO_RELIGION),
+// <f1rpo> (Sexism, Racism)
+m_eGender(DEFAULT_GENDER),
+m_eRace(DEFAULT_RACE),
+m_piSexistAttitudeChanges(NULL),
+m_piRacistAttitudeChanges(NULL),
+m_piCivicAIWeights(NULL), // (Civic AI Weights)
+// </f1rpo>
 m_pbTraits(NULL),
 m_piFlavorValue(NULL),
 m_piContactRand(NULL),
@@ -20486,14 +20493,32 @@ int CvLeaderHeadInfo::getImprovementWeightModifier(int i) const
 	return m_piImprovementWeightModifier ? m_piImprovementWeightModifier[i] : 0;
 }
 
-// <f1rpo> (Civic AI Weights)
-int CvLeaderHeadInfo::getCivicAIWeight(CivicTypes eCivic) const
+// <f1rpo>
+int CvLeaderHeadInfo::getCivicAIWeight(CivicTypes eCivic) const // Civic AI Weights
 {
 	FAssertBounds(0, GC.getNumCivicInfos(), eCivic);
 	if (m_piCivicAIWeights == NULL)
 		return 0;
 	int r = m_piCivicAIWeights[eCivic];
 	//FAssert(r >= -100); // Smaller values shouldn't be needed, but let's commit to that.
+	return r;
+}
+
+int CvLeaderHeadInfo::getSexistAttitudeChange(GenderTypes eGender) const // Sexism
+{
+	FAssertBounds(0, GC.getNumGenderTypes(), eGender);
+	if (m_piSexistAttitudeChanges == NULL)
+		return 0;
+	int r = m_piSexistAttitudeChanges[eGender];
+	return r;
+}
+
+int CvLeaderHeadInfo::getRacistAttitudeChange(RaceTypes eRace) const // Racism
+{
+	FAssertBounds(0, GC.getNumRaceTypes(), eRace);
+	if (m_piRacistAttitudeChanges == NULL)
+		return 0;
+	int r = m_piRacistAttitudeChanges[eRace];
 	return r;
 } // </f1rpo>
 
@@ -20694,15 +20719,34 @@ void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 
 	bool bPresent = false;
 
-	// <f1rpo> (Civic AI Weights) - probably moot, untested
+	// <f1rpo> probably moot, untested
 	if (uiFlag >= 2)
 	{
+		// Civic AI Weights
 		SAFE_DELETE_ARRAY(m_piCivicAIWeights);
 		stream->Read(&bPresent);
 		if (bPresent)
 		{
 			m_piCivicAIWeights = new int[GC.getNumCivicInfos()];
 			stream->Read(GC.getNumCivicInfos(), m_piCivicAIWeights);
+		}
+		// Sexism
+		stream->Read((int*)&m_eGender);
+		SAFE_DELETE_ARRAY(m_piSexistAttitudeChanges);
+		stream->Read(&bPresent);
+		if (bPresent)
+		{
+			m_piSexistAttitudeChanges = new int[GC.getNumGenderTypes()];
+			stream->Read(GC.getNumGenderTypes(), m_piSexistAttitudeChanges);
+		}
+		// Racism
+		stream->Read((int*)&m_eRace);
+		SAFE_DELETE_ARRAY(m_piRacistAttitudeChanges);
+		stream->Read(&bPresent);
+		if (bPresent)
+		{
+			m_piRacistAttitudeChanges = new int[GC.getNumRaceTypes()];
+			stream->Read(GC.getNumRaceTypes(), m_piRacistAttitudeChanges);
 		}
 	} // </f1rpo>
 
@@ -20922,13 +20966,31 @@ void CvLeaderHeadInfo::write(FDataStreamBase* stream)
 
 	// Arrays
 
-	// <f1rpo> (Civic AI Weights)
+	// <f1rpo>
+	// Civic AI Weights
 	if (m_piCivicAIWeights != NULL)
 	{
 		stream->Write(true); // bPresent
 		stream->Write(GC.getNumCivicInfos(), m_piCivicAIWeights);
 	}
-	else stream->Write(false); // </f1rpo>
+	else stream->Write(false);
+	// Sexism
+	stream->Write(m_eGender);
+	if (m_piSexistAttitudeChanges != NULL)
+	{
+		stream->Write(true); // bPresent
+		stream->Write(GC.getNumGenderTypes(), m_piSexistAttitudeChanges);
+	}
+	else stream->Write(false);
+	// Racism
+	stream->Write(m_eRace);
+	if (m_piRacistAttitudeChanges != NULL)
+	{
+		stream->Write(true); // bPresent
+		stream->Write(GC.getNumRaceTypes(), m_piRacistAttitudeChanges);
+	}
+	else stream->Write(false);
+	// </f1rpo>
 
 	if (m_pbTraits)
 	{
@@ -21157,6 +21219,8 @@ void CvLeaderHeadInfo::getCheckSum(unsigned int& iSum)
 	CheckSum(iSum, m_iFreedomAppreciation);
 	CheckSum(iSum, m_iFavoriteCivic);
 	CheckSum(iSum, m_iFavoriteReligion);
+	CheckSum(iSum, m_eGender); // f1rpo (Sexism)
+	CheckSum(iSum, m_eRace); // f1rpo (Racism)
 
 	// Arrays
 
@@ -21171,6 +21235,8 @@ void CvLeaderHeadInfo::getCheckSum(unsigned int& iSum)
 	CheckSumI(iSum, NUM_UNITAI_TYPES, m_piUnitAIWeightModifier);
 	CheckSumI(iSum, GC.getNumImprovementInfos(), m_piImprovementWeightModifier);
 	CheckSumI(iSum, GC.getNumCivicInfos(), m_piCivicAIWeights); // f1rpo (Civic AI Weights)
+	CheckSumI(iSum, GC.getNumGenderTypes(), m_piSexistAttitudeChanges); // f1rpo (Sexism)
+	CheckSumI(iSum, GC.getNumRaceTypes(), m_piRacistAttitudeChanges); // f1rpo (Racism)
 
 	CheckSum(iSum, m_iMilitaryUnitRefuseAttitudeThreshold);
 	CheckSum(iSum, m_iWorkerRefuseAttitudeThreshold);
@@ -21323,8 +21389,18 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 #endif
 	pXML->GetChildXmlValByName(szTextVal, "FavoriteReligion");
 	m_iFavoriteReligion = pXML->FindInInfoClass(szTextVal);
-
-	pXML->SetVariableListTagPair(&m_piCivicAIWeights, "CivicAIWeights", -1/*(unused)*/, GC.getNumCivicInfos()); // f1rpo
+	// <f1rpo>
+	pXML->SetVariableListTagPair(&m_piCivicAIWeights, "CivicAIWeights", -1/*(unused)*/, GC.getNumCivicInfos(), true); // (Civic AI Weights)
+	// Sexism, Racism
+	pXML->GetChildXmlValByName(szTextVal, "Gender");
+	if (!szTextVal.empty())
+		m_eGender = (GenderTypes)GC.getTypesEnum(szTextVal.GetCString());
+	pXML->SetVariableListTagPair(&m_piSexistAttitudeChanges, "SexistAttitudes", -1, GC.getNumGenderTypes(), true);
+	pXML->GetChildXmlValByName(szTextVal, "Race");
+	if (!szTextVal.empty())
+		m_eRace = (RaceTypes)GC.getTypesEnum(szTextVal.GetCString());
+	pXML->SetVariableListTagPair(&m_piRacistAttitudeChanges, "RacistAttitudes", -1, GC.getNumRaceTypes(), true);
+	// </f1rpo>
 
 	pXML->SetVariableListTagPair(&m_pbTraits, "Traits", sizeof(GC.getTraitInfo((TraitTypes)0)), GC.getNumTraitInfos());
 

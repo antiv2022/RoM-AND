@@ -198,6 +198,8 @@ public:
 	const char* getAnimationOperatorTypes(int i) const { return GC.getAnimationOperatorTypes((AnimationOperatorTypes) i); }
 	const char* getFunctionTypes(int i) const { return GC.getFunctionTypes((FunctionTypes) i); }
 	const char* getFlavorTypes(int i) const { return GC.getFlavorTypes((FlavorTypes) i); }
+	const char* getGenderTypes(int i) const { return GC.getGenderTypes((GenderTypes) i); } // f1rpo (Sexism)
+	const char* getRaceTypes(int i) const { return GC.getRaceTypes((RaceTypes) i); } // f1rpo (Racism)
 	const char* getArtStyleTypes(int i) const { return GC.getArtStyleTypes((ArtStyleTypes) i); }
 	const char* getCitySizeTypes(int i) const { return GC.getCitySizeTypes(i); }
 	const char* getContactTypes(int i) const { return GC.getContactTypes((ContactTypes) i); }
@@ -320,6 +322,8 @@ public:
 	int getNumAnimationOperatorTypes() const { return GC.getNumAnimationOperatorTypes(); }
 	int getNumArtStyleTypes() const { return GC.getNumArtStyleTypes(); }
 	int getNumFlavorTypes() const { return GC.getNumFlavorTypes(); }
+	int getNumGenderTypes() const { return GC.getNumGenderTypes(); } // f1rpo (Sexism)
+	int getNumRaceTypes() const { return GC.getNumRaceTypes(); } // f1rpo (Racism)
 	int getNumCitySizeTypes() const { return GC.getNumCitySizeTypes(); }
 	int getNumFootstepAudioTypes() const { return GC.getNumFootstepAudioTypes(); }
 

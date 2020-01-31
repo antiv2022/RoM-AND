@@ -8676,6 +8676,7 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 		iAttitude += (4 - abs(AI_getPeaceWeight() - GET_PLAYER(ePlayer).AI_getPeaceWeight()));
 		iAttitude += std::min(GC.getLeaderHeadInfo(getPersonalityType()).getWarmongerRespect(), GC.getLeaderHeadInfo(GET_PLAYER(ePlayer).getPersonalityType()).getWarmongerRespect());
 	}*/
+	iAttitude += AI_getPrejudiceAttitude(ePlayer, false); // f1rpo (Sexism, Racism)
 
 	iAttitude -= std::max(0, (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getNumMembers() - GET_TEAM(getTeam()).getNumMembers()));
 
@@ -8873,6 +8874,21 @@ int CvPlayerAI::AI_getFirstImpressionAttitude(PlayerTypes ePlayer, bool bAsync) 
 
     return ROUND_DIVIDE(iAttitude, 100);
 }
+
+// <f1rpo> (Sexism, Racism)
+int CvPlayerAI::AI_getPrejudiceAttitude(PlayerTypes ePlayer, bool bAsync) const
+{
+	if (GC.getGameINLINE().isOption(GAMEOPTION_START_AS_MINORS))
+		return 0;
+	if (bAsync && !isShowPersonalityModifiers())
+		return 0;
+	CvLeaderHeadInfo const& kOurPersonality
+			= GC.getLeaderHeadInfo(getPersonalityType());
+	CvLeaderHeadInfo const& kTheirLeader
+			= GC.getLeaderHeadInfo(GET_PLAYER(ePlayer).getLeaderType());
+	return kOurPersonality.getSexistAttitudeChange(kTheirLeader.getGender())
+			+ kOurPersonality.getRacistAttitudeChange(kTheirLeader.getRace());
+} // </f1rpo>
 
 
 int CvPlayerAI::AI_getTeamSizeAttitude(PlayerTypes ePlayer) const

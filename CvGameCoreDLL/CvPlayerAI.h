@@ -216,6 +216,7 @@ public:
 
     // BEGIN: Show Hidden Attitude Mod 01/22/2010
 	int AI_getFirstImpressionAttitude(PlayerTypes ePlayer, /* f1rpo: */ bool bAsync) const;
+	int AI_getPrejudiceAttitude(PlayerTypes ePlayer, bool bAsync) const; // f1rpo (Sexism, Racism)
 	int AI_getTeamSizeAttitude(PlayerTypes ePlayer) const;
 	int AI_getBetterRankDifferenceAttitude(PlayerTypes ePlayer) const;
 	int AI_getWorseRankDifferenceAttitude(PlayerTypes ePlayer) const;

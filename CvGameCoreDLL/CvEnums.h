@@ -837,15 +837,27 @@ enum CommerceTypes					// Exposed to Python
 #endif
 };
 
-enum AdvisorTypes						// Exposed to Python
+enum AdvisorTypes					// Exposed to Python
 {
 	NO_ADVISOR = -1
 };
 
-enum FlavorTypes						// Exposed to Python
+enum FlavorTypes					// Exposed to Python
 {
 	NO_FLAVOR = -1
 };
+// <f1rpo> Sexism, racism
+enum GenderTypes					// Exposed to Python
+{
+	NO_GENDER = -1,
+	DEFAULT_GENDER = 0
+};
+
+enum RaceTypes						// Exposed to Python
+{
+	NO_RACE = -1,
+	DEFAULT_RACE = 0
+}; // </f1rpo>
 
 enum EmphasizeTypes					// Exposed to Python
 {

@@ -322,6 +322,30 @@
 					<iAIWeight>-100</iAIWeight>
 				</CivicAIWeight>
 			</CivicAIWeights>
+			<!-- f1rpo (Sexism) - example -->
+			<Gender>GENDER_FEMALE</Gender>
+			<SexistAttitudes>
+				<SexistAttitude>
+					<Gender>GENDER_MALE</Gender>
+					<iAttitudeChange>-2</iAttitudeChange>
+				</SexistAttitude>
+				<SexistAttitude>
+					<Gender>GENDER_FEMALE</Gender>
+					<iAttitudeChange>1</iAttitudeChange>
+				</SexistAttitude>
+			</SexistAttitudes>
+			<!-- f1rpo (Racism) - example -->
+			<Race>RACE_BLACK</Race>
+			<RacistAttitudes>
+				<RacistAttitude>
+					<Race>RACE_ASIAN</Race>
+					<iAttitudeChange>-1</iAttitudeChange>
+				</RacistAttitude>
+				<RacistAttitude>
+					<Race>RACE_WHITE</Race>
+					<iAttitudeChange>1</iAttitudeChange>
+				</RacistAttitude>
+			</RacistAttitudes>
 			<Traits>
 				<Trait>
 					<TraitType>TRAIT_PHILOSOPHICAL</TraitType>

@@ -187,24 +187,35 @@
 	<ElementType name="iFreedomAppreciation" content="textOnly" dt:type="int"/>
 	<ElementType name="FavoriteCivic" content="textOnly"/>
 	<ElementType name="FavoriteReligion" content="textOnly"/>
-	<!-- f1rpo (AI Civic Weights): start
-		 Optional list of per-civic AI weights. -100 should be enough to
-		 prevent a civic from being adopted, but, if not, a smaller value
-		 (-10000?) should do the trick. The weights are applied as
-		 iValue += iAIWeight / 10;
-		 if (iValue > 0)
-			iValue = (iValue * (100 + iAIWeight)) / 100;
-		 at the end of the AI evaluation of a given civic.
-		 At iAIWeight <= -100, the AI will also refuse to adopt the civic
-		 for payment.
-		 Implemented at the request of Inthegrave. -->
+	<!-- f1rpo start -->
+	<!-- AI Civic Weights -->
 	<ElementType name="iAIWeight" content="textOnly" dt:type="int"/>
 	<ElementType name="CivicAIWeight" content="eltOnly">
 		<element type="CivicType"/>
 		<element type="iAIWeight"/>
 	</ElementType>
-	<ElementType name="CivicAIWeights" content="eltOnly" minOccurs="0">
+	<ElementType name="CivicAIWeights" content="eltOnly">
 		<element type="CivicAIWeight" minOccurs="0" maxOccurs="*"/>
+	</ElementType>
+	<!-- Sexism -->
+	<ElementType name="Gender" content="textOnly"/>
+	<ElementType name="iAttitudeChange" content="textOnly" dt:type="int"/>
+	<ElementType name="SexistAttitude" content="eltOnly">
+		<element type="Gender"/>
+		<element type="iAttitudeChange"/>
+	</ElementType>
+	<ElementType name="SexistAttitudes" content="eltOnly">
+		<element type="SexistAttitude" minOccurs="0" maxOccurs="*"/>
+	</ElementType>
+	<!-- Racism -->
+	<ElementType name="Race" content="textOnly"/>
+	<!-- (iAttitudeChange: as defined above) -->
+	<ElementType name="RacistAttitude" content="eltOnly">
+		<element type="Race"/>
+		<element type="iAttitudeChange"/>
+	</ElementType>
+	<ElementType name="RacistAttitudes" content="eltOnly">
+		<element type="RacistAttitude" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
 	<!-- f1rpo: end -->
 	<ElementType name="TraitType" content="textOnly"/>
@@ -398,6 +409,32 @@
 		<element type="iFreedomAppreciation" minOccurs="0"/>
 		<element type="FavoriteCivic" minOccurs="0"/>
 		<element type="FavoriteReligion" minOccurs="0"/>
+		<!-- f1rpo: start (implemented at the request of Inthegrave) -->
+		<!-- f1rpo (AI Civic Weights): start
+			 Optional list of per-civic AI weights. -100 should be enough to
+			 prevent a civic from being adopted, but, if not, a smaller value
+			 (-10000?) should do the trick. The weights are applied as
+			 iValue += iAIWeight / 10;
+			 if (iValue > 0)
+				iValue = (iValue * (100 + iAIWeight)) / 100;
+			 at the end of the AI evaluation of a given civic.
+			 At iAIWeight <= -100, the AI will also refuse to adopt the civic
+			 for payment. -->
+		<element type="CivicAIWeights" minOccurs="0"/>
+		<!-- Each leader has a gender. If this element is ommitted,
+			 the gender is set to the default defined in GlobalTypes.xml.
+			 All gender type strings are defined in that file. -->
+		<element type="Gender" minOccurs="0"/>
+		<!-- Optional list of per-gender attitude modifiers.
+			 The modifier can be positive or negative. It gets added
+			 to the total attitude value.
+			 Note that disliking one's own gender isn't explained well
+			 by the current help text for prejudice attitude. -->
+		<element type="SexistAttitudes" minOccurs="0"/>
+		<!-- Race/ racism - same rules as above for gender/ sexism. -->
+		<element type="Race" minOccurs="0"/>
+		<element type="RacistAttitudes" minOccurs="0"/>
+		<!-- f1rpo: end -->
 		<element type="Traits" minOccurs="0"/>
 		<element type="Flavors" minOccurs="0"/>
 		<element type="ContactRands" minOccurs="0"/>

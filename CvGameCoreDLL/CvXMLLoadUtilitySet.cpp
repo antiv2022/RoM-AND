@@ -664,6 +664,8 @@ bool CvXMLLoadUtility::SetGlobalTypes()
 		int iEnumVal = NUM_FUNC_TYPES;
 		SetGlobalStringArray(&GC.getFunctionTypes(), "Civ4Types/FunctionTypes/FunctionType", &iEnumVal, true);
 		SetGlobalStringArray(&GC.getFlavorTypes(), "Civ4Types/FlavorTypes/FlavorType", &GC.getNumFlavorTypes());
+		SetGlobalStringArray(&GC.getGenderTypes(), "Civ4Types/GenderTypes/Gender", &GC.getNumGenderTypes()); // f1rpo (Sexism)
+		SetGlobalStringArray(&GC.getRaceTypes(), "Civ4Types/RaceTypes/Race", &GC.getNumRaceTypes()); // f1rpo (Racism)
 		SetGlobalStringArray(&GC.getArtStyleTypes(), "Civ4Types/ArtStyleTypes/ArtStyleType", &GC.getNumArtStyleTypes());
 		SetGlobalStringArray(&GC.getCitySizeTypes(), "Civ4Types/CitySizeTypes/CitySizeType", &GC.getNumCitySizeTypes());
 		iEnumVal = NUM_CONTACT_TYPES;
