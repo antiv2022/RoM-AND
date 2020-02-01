@@ -21390,16 +21390,17 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(szTextVal, "FavoriteReligion");
 	m_iFavoriteReligion = pXML->FindInInfoClass(szTextVal);
 	// <f1rpo>
-	pXML->SetVariableListTagPair(&m_piCivicAIWeights, "CivicAIWeights", -1/*(unused)*/, GC.getNumCivicInfos(), true); // (Civic AI Weights)
+	// Civic AI Weights
+	pXML->SetVariableListTagPair(&m_piCivicAIWeights, "CivicAIWeights", -1/*(unused)*/, GC.getNumCivicInfos(), 0, true);
 	// Sexism, Racism
 	pXML->GetChildXmlValByName(szTextVal, "Gender");
 	if (!szTextVal.empty())
 		m_eGender = (GenderTypes)GC.getTypesEnum(szTextVal.GetCString());
-	pXML->SetVariableListTagPair(&m_piSexistAttitudeChanges, "SexistAttitudes", -1, GC.getNumGenderTypes(), true);
+	pXML->SetVariableListTagPair(&m_piSexistAttitudeChanges, "SexistAttitudes", -1, GC.getNumGenderTypes(), 0, true);
 	pXML->GetChildXmlValByName(szTextVal, "Race");
 	if (!szTextVal.empty())
 		m_eRace = (RaceTypes)GC.getTypesEnum(szTextVal.GetCString());
-	pXML->SetVariableListTagPair(&m_piRacistAttitudeChanges, "RacistAttitudes", -1, GC.getNumRaceTypes(), true);
+	pXML->SetVariableListTagPair(&m_piRacistAttitudeChanges, "RacistAttitudes", -1, GC.getNumRaceTypes(), 0, true);
 	// </f1rpo>
 
 	pXML->SetVariableListTagPair(&m_pbTraits, "Traits", sizeof(GC.getTraitInfo((TraitTypes)0)), GC.getNumTraitInfos());
