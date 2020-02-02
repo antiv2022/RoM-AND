@@ -20509,8 +20509,7 @@ int CvLeaderHeadInfo::getSexistAttitudeChange(GenderTypes eGender) const // Sexi
 	FAssertBounds(0, GC.getNumGenderTypes(), eGender);
 	if (m_piSexistAttitudeChanges == NULL)
 		return 0;
-	int r = m_piSexistAttitudeChanges[eGender];
-	return r;
+	return m_piSexistAttitudeChanges[eGender];
 }
 
 int CvLeaderHeadInfo::getRacistAttitudeChange(RaceTypes eRace) const // Racism
@@ -20518,8 +20517,7 @@ int CvLeaderHeadInfo::getRacistAttitudeChange(RaceTypes eRace) const // Racism
 	FAssertBounds(0, GC.getNumRaceTypes(), eRace);
 	if (m_piRacistAttitudeChanges == NULL)
 		return 0;
-	int r = m_piRacistAttitudeChanges[eRace];
-	return r;
+	return m_piRacistAttitudeChanges[eRace];
 } // </f1rpo>
 
 int CvLeaderHeadInfo::getDiploPeaceIntroMusicScriptIds(int i) const
@@ -21537,6 +21535,44 @@ void CvLeaderHeadInfo::copyNonDefaults(CvLeaderHeadInfo* pClassInfo, CvXMLLoadUt
 	if (getVassalRefuseAttitudeThreshold() == iTextDefault) m_iVassalRefuseAttitudeThreshold = pClassInfo->getVassalRefuseAttitudeThreshold();
 	if (getFavoriteCivic() == iTextDefault) m_iFavoriteCivic = pClassInfo->getFavoriteCivic();
 	if (getFavoriteReligion() == iTextDefault) m_iFavoriteReligion = pClassInfo->getFavoriteReligion();
+	// <f1rpo>
+	// Civic AI Weights
+	FOR_EACH_INFO(eCivic, Civic)
+	{
+		if (getCivicAIWeight(eCivic) == iDefault &&
+			pClassInfo->getCivicAIWeight(eCivic) != iDefault)
+		{
+			if (m_piCivicAIWeights == NULL)
+				CvXMLLoadUtility::InitList(&m_piCivicAIWeights, GC.getNumCivicInfos(), iDefault);
+			m_piCivicAIWeights[eCivic] = pClassInfo->getCivicAIWeight(eCivic);
+		}
+	}
+	// Sexism
+	if (getGender() == iDefault)
+		m_eGender = pClassInfo->getGender();
+	FOR_EACH_ENUM(eGender, Gender)
+	{
+		if (getSexistAttitudeChange(eGender) == iDefault &&
+			pClassInfo->getSexistAttitudeChange(eGender) != iDefault)
+		{
+			if (m_piSexistAttitudeChanges == NULL)
+				CvXMLLoadUtility::InitList(&m_piSexistAttitudeChanges, GC.getNumGenderTypes(), iDefault);
+			m_piSexistAttitudeChanges[eGender] = pClassInfo->getSexistAttitudeChange(eGender);
+		}
+	}
+	// Racism
+	if (getRace() == iDefault)
+		m_eRace = pClassInfo->getRace();
+	FOR_EACH_ENUM(eRace, Race)
+	{
+		if (getRacistAttitudeChange(eRace) == iDefault &&
+			pClassInfo->getRacistAttitudeChange(eRace) != iDefault)
+		{
+			if (m_piRacistAttitudeChanges == NULL)
+				CvXMLLoadUtility::InitList(&m_piRacistAttitudeChanges, GC.getNumRaceTypes(), iDefault);
+			m_piRacistAttitudeChanges[eRace] = pClassInfo->getRacistAttitudeChange(eRace);
+		}
+	} // </f1rpo>
 	
 	for ( int j = 0; j < GC.getNumTraitInfos(); j++)
 	{

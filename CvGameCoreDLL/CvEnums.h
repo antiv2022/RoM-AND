@@ -3649,4 +3649,18 @@ enum DiplomacyRequestAction
 	NUM_DIPLOMACY_REQUEST_ACTIONS
 };
 
+/*	<f1rpo> From AdvCiv (change id advc.003s). No overloaded getEnumLength function
+	here though. Hence separate macros for info enum types and enum types that don't
+	correspond to CvInfo classes. Not a great solution. */
+#define FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, iEnumLength) \
+	for (EnumNamePrefix##Types eVar = (EnumNamePrefix##Types)0; \
+		eVar < iEnumLength; eVar = (EnumNamePrefix##Types)(eVar + 1))
+#define FOR_EACH_INFO(eVar, EnumNamePrefix) \
+	FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, GC.getNum##EnumNamePrefix##Infos())
+#define FOR_EACH_ENUM(eVar, EnumNamePrefix) \
+	FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, GC.getNum##EnumNamePrefix##Types())
+#define FOR_EACH_STATIC_ENUM(eVar, EnumNamePrefix) \
+	FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, NUM_##EnumNamePrefix##_TYPES)
+// </f1rpo>
+
 #endif	// CVENUMS_h

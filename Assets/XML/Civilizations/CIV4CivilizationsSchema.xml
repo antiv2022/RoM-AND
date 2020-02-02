@@ -187,7 +187,9 @@
 	<ElementType name="iFreedomAppreciation" content="textOnly" dt:type="int"/>
 	<ElementType name="FavoriteCivic" content="textOnly"/>
 	<ElementType name="FavoriteReligion" content="textOnly"/>
-	<!-- f1rpo start -->
+	<!-- f1rpo start (Note: I'm not sure if including optional elements in the
+		 schema file has any benefit beyond documentation. In any case, none of
+		 these seem to be needed.) -->
 	<!-- AI Civic Weights -->
 	<ElementType name="iAIWeight" content="textOnly" dt:type="int"/>
 	<ElementType name="CivicAIWeight" content="eltOnly">
