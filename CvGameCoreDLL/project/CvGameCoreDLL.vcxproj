@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\cpp.hint" />
     <None Include="..\FVariableSystem.inl" />
     <None Include="..\interfaceDirtyBits.inl" />
     <None Include="Makefile" />
