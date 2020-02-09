@@ -15820,7 +15820,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 /************************************************************************************************/
 /* Afforess                                END                                                  */
 /************************************************************************************************/
-	CvCivicInfo& kCivic = GC.getCivicInfo(eCivic);
+	CvCivicInfo const& kCivic = GC.getCivicInfo(eCivic);
+	CvCivilizationInfo const& kCivilization = GC.getCivilizationInfo(getCivilizationType()); // f1rpo.opt
 
 	bWarPlan = (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0);
 	if( bWarPlan )
@@ -16692,20 +16693,27 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 	}
 	iValue += iTempValue;
 	
-	iTempValue = 0;
-	for (iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	
+	if (kCivic.isAnyBuildingClassProductionModifier()) // f1rpo.opt
 	{
-		int iLoop = 0;
-		for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+		iTempValue = 0;
+		for (iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 		{
-			BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(pLoopCity->getCivilizationType()).getCivilizationBuildings(iI);
-			if (pLoopCity->canConstruct(eBuilding, true, false))
+			// <f1rpo.opt> Moved out of the inner loop
+			BuildingTypes eBuilding = (BuildingTypes)kCivilization.getCivilizationBuildings(iI);
+			if (eBuilding == NO_BUILDING || kCivic.getBuildingClassProductionModifier(iI) == 0)
+				continue; // </f1rpo.opt>
+			int iLoop = 0;
+			for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 			{
-				iTempValue += pLoopCity->getBaseYieldRate(YIELD_PRODUCTION) * kCivic.getBuildingClassProductionModifier(iI);
+				if (pLoopCity->canConstruct(eBuilding, true, false))
+				{
+					iTempValue += pLoopCity->getBaseYieldRate(YIELD_PRODUCTION) * kCivic.getBuildingClassProductionModifier(iI);
+				}
 			}
 		}
+		iTempValue /= 100;
 	}
-	iTempValue /= 100;
 	if ( gPlayerLogLevel > 2 && iTempValue != 0 )
 	{
 		logBBAI("Player %d (%S) Civic %S building class production modifier value %d",
@@ -16716,35 +16724,41 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 	}
 	iValue += iTempValue;
 
-	iTempValue = 0;
-	for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
+	if (kCivic.isAnyBonusMintedPercent()) // f1rpo.opt
 	{
-		iTempValue += kCivic.getBonusMintedPercent(iI) * getNumAvailableBonuses((BonusTypes)iI) * getNumCities() * 2;
+		iTempValue = 0;
+		for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
+		{
+			iTempValue += kCivic.getBonusMintedPercent(iI) * getNumAvailableBonuses((BonusTypes)iI) * getNumCities() * 2;
+		}
+		if ( gPlayerLogLevel > 2 && iTempValue != 0 )
+		{
+			logBBAI("Player %d (%S) Civic %S bonus minting  value %d",
+				getID(),
+				getCivilizationDescription(0),
+				kCivic.getDescription(),
+				iTempValue);
+		}
+		iValue += iTempValue;
 	}
-	if ( gPlayerLogLevel > 2 && iTempValue != 0 )
+
+	if (kCivic.isAnyUnitClassProductionModifier()) // f1rpo.opt
 	{
-		logBBAI("Player %d (%S) Civic %S bonus minting  value %d",
-			getID(),
-			getCivilizationDescription(0),
-			kCivic.getDescription(),
-			iTempValue);
+		iTempValue = 0;
+		for (iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+		{
+			iValue += (kCivic.getUnitClassProductionModifier(iI) * 2) / 5;
+		}
+		if ( gPlayerLogLevel > 2 && iTempValue != 0 )
+		{
+			logBBAI("Player %d (%S) Civic %S unitclass production modifier value %d",
+				getID(),
+				getCivilizationDescription(0),
+				kCivic.getDescription(),
+				iTempValue);
+		}
+		iValue += iTempValue;
 	}
-	iValue += iTempValue;
-	
-	iTempValue = 0;
-	for (iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
-	{
-		iValue += (kCivic.getUnitClassProductionModifier(iI) * 2) / 5;
-	}
-	if ( gPlayerLogLevel > 2 && iTempValue != 0 )
-	{
-		logBBAI("Player %d (%S) Civic %S unitclass production modifier value %d",
-			getID(),
-			getCivilizationDescription(0),
-			kCivic.getDescription(),
-			iTempValue);
-	}
-	iValue += iTempValue;
 
 	iTempValue = kCivic.isEnablesMAD() ? 5 * getNumNukeUnits() : 0;
 	if ( gPlayerLogLevel > 2 && iTempValue != 0 )
@@ -16930,14 +16944,18 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 		iValue += iTempValue;
 	}
 
-	iTempValue = 0;
-	for (iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
+	if (kCivic.isAnyFreeSpecialist()) // f1rpo.opt
 	{
-		if (kCivic.getFreeSpecialistCount(iI) > 0)
+		iTempValue = 0;
+		for (iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
 		{
-			iTempValue += getNumCities() * kCivic.getFreeSpecialistCount(iI) * 12;
+			if (kCivic.getFreeSpecialistCount(iI) > 0)
+			{
+				iTempValue += getNumCities() * kCivic.getFreeSpecialistCount(iI) * 12;
+			}
 		}
 	}
+
 	if ( gPlayerLogLevel > 2 && iTempValue != 0 )
 	{
 		logBBAI("Player %d (%S) Civic %S free specialist count value %d",
@@ -16950,14 +16968,14 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 
  	if (pCapital != NULL)
 	{
+		PROFILE("AI_CivicValue.enabledBuildings") // f1rpo.opt
 		//	Warm up the can train cache for the capital
 		pCapital->populateCanTrainCache(false);
 
-		CivicTypes eCurrentCivic = getCivics((CivicOptionTypes)kCivic.getCivicOptionType());
-
+		CivicTypes const eCurrentCivic = getCivics((CivicOptionTypes)kCivic.getCivicOptionType());
 		for (iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 		{
-			BuildingTypes eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)));
+			BuildingTypes eLoopBuilding = (BuildingTypes)kCivilization.getCivilizationBuildings(iI);
 			bool bValidCivicsWith = true;
 			bool bValidCivicsWithout = true;
 			bool bCivicIsEnabler = false;
@@ -17128,7 +17146,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 	iTempValue = 0;
 	for (iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 	{
-		BuildingTypes eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)));
+		BuildingTypes eLoopBuilding = (BuildingTypes)kCivilization.getCivilizationBuildings(iI);
 		if (eLoopBuilding != NO_BUILDING)
 		{
 			for (iJ = 0; iJ < NUM_COMMERCE_TYPES; iJ++)
@@ -17157,10 +17175,19 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 	iValue += iTempValue;
 	
 	iTempValue = 0;
-	for (iJ = 0; iJ < GC.getNumImprovementInfos(); iJ++)
+	if (kCivic.isAnyImprovementHappinessChanges()) // f1rpo.opt
 	{
-		iTempValue += (8 * (kCivic.getImprovementHappinessChanges(iJ) * (getImprovementCount((ImprovementTypes)iJ) + getNumCities())));
-		iTempValue += ((8 * (kCivic.getImprovementHealthPercentChanges(iJ) * (getImprovementCount((ImprovementTypes)iJ) + getNumCities()))) / 100);
+		for (iJ = 0; iJ < GC.getNumImprovementInfos(); iJ++)
+		{
+			iTempValue += (8 * (kCivic.getImprovementHappinessChanges(iJ) * (getImprovementCount((ImprovementTypes)iJ) + getNumCities())));
+		}
+	}
+	if (kCivic.isAnyImprovementHealthPercentChanges()) // f1rpo.opt
+	{
+		for (iJ = 0; iJ < GC.getNumImprovementInfos(); iJ++)
+		{
+			iTempValue += ((8 * (kCivic.getImprovementHealthPercentChanges(iJ) * (getImprovementCount((ImprovementTypes)iJ) + getNumCities()))) / 100);
+		}
 	}
 	if ( gPlayerLogLevel > 2 && iTempValue != 0 )
 	{
@@ -17197,9 +17224,11 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 	iTempValue = 0;
 	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
 	{
+		// f1rpo.opt: Moved out of the inner loop
+		int const iMult = AI_averageYieldMultiplier((YieldTypes)iI) * (NUM_CITY_PLOTS + getNumCities()/2);
 		for (iJ = 0; iJ < GC.getNumTerrainInfos(); iJ++)
 		{
-			iTempValue += (AI_averageYieldMultiplier((YieldTypes)iI) * (kCivic.getTerrainYieldChanges(iJ, iI) * (NUM_CITY_PLOTS + getNumCities()/2))) / 100;
+			iTempValue += (iMult * kCivic.getTerrainYieldChanges(iJ, iI)) / 100;
 		}
 	}
 	if ( gPlayerLogLevel > 2 && iTempValue != 0 )
@@ -17230,63 +17259,71 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 		iValue += iTempValue;
 	}
 	
-	iTempValue = 0;
-	CivicTypes eTargetCivic;
-	CivicTypes eCurrentCivic = getCivics((CivicOptionTypes)GC.getCivicInfo(eCivic).getCivicOptionType());
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	CivicTypes eCurrentCivic = getCivics((CivicOptionTypes)kCivic.getCivicOptionType());
+	// <f1rpo.opt>
+	if (kCivic.isAnyCivicAttitudeChanges()
+		|| (eCurrentCivic != NO_CIVIC && GC.getCivicInfo(eCurrentCivic).isAnyCivicAttitudeChanges())) // </f1rpo.opt>
 	{
-		int iOurPower = std::max(1, GET_TEAM(getTeam()).getPower(true));
-		int iTheirPower = std::max(1, GET_TEAM(GET_PLAYER((PlayerTypes)iI).getTeam()).getDefensivePower());
-		
-		if (!GET_PLAYER((PlayerTypes)iI).isHuman() && GET_PLAYER((PlayerTypes)iI).isAlive() && (GET_PLAYER((PlayerTypes)iI).getTeam() != getTeam()) && (!GET_PLAYER((PlayerTypes)iI).isBarbarian()))
+		iTempValue = 0;
+		for (iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			int iPlayerValue = 0;
-			for (int iJ = 0; iJ < GC.getNumCivicOptionInfos(); iJ++)
+			if (!GET_PLAYER((PlayerTypes)iI).isHuman() && GET_PLAYER((PlayerTypes)iI).isAlive()
+				&& (GET_PLAYER((PlayerTypes)iI).getTeam() != getTeam()) && (!GET_PLAYER((PlayerTypes)iI).isBarbarian()))
 			{
-				eTargetCivic = GET_PLAYER((PlayerTypes)iI).getCivics((CivicOptionTypes)iJ);
-				int iAttitudeChange = (eTargetCivic != NO_CIVIC ? (GC.getCivicInfo(eCivic).getCivicAttitudeChange(eTargetCivic) - (eCurrentCivic != NO_CIVIC ? GC.getCivicInfo(eCurrentCivic).getCivicAttitudeChange(eTargetCivic) : 0)) : 0);
-				//New Civic Attitude minus old civic attitude
-				int iCurrentAttitude = AI_getAttitudeVal((PlayerTypes)iI);
-				//We are close friends
-				if (iCurrentAttitude > 5)
-				{//Positive Changes are welcome, negative ones, not so much
-					iPlayerValue += iAttitudeChange * 3;
-				}
-				//we aren't friends
-				else
-				{//if we aren't gearing up for a war yet...
-					if (GET_TEAM(getTeam()).AI_getWarPlan((TeamTypes)iI) != NO_WARPLAN)
-					{//Then we would welcome some diplomatic improvements
+				// f1rpo.opt: Moved down
+				int iOurPower = std::max(1, GET_TEAM(getTeam()).getPower(true));
+				int iTheirPower = std::max(1, GET_TEAM(GET_PLAYER((PlayerTypes)iI).getTeam()).getDefensivePower());
+				int iPlayerValue = 0;
+				for (int iJ = 0; iJ < GC.getNumCivicOptionInfos(); iJ++)
+				{
+					CivicTypes eTargetCivic = GET_PLAYER((PlayerTypes)iI).getCivics((CivicOptionTypes)iJ);
+					int iAttitudeChange = (eTargetCivic == NO_CIVIC ? 0
+							: (kCivic.getCivicAttitudeChange(eTargetCivic)
+							- (eCurrentCivic == NO_CIVIC ? 0
+							: GC.getCivicInfo(eCurrentCivic).getCivicAttitudeChange(eTargetCivic))));
+					//New Civic Attitude minus old civic attitude
+					int iCurrentAttitude = AI_getAttitudeVal((PlayerTypes)iI);
+					//We are close friends
+					if (iCurrentAttitude > 5)
+					{//Positive Changes are welcome, negative ones, not so much
 						iPlayerValue += iAttitudeChange * 3;
-						iPlayerValue /= 2;
 					}
+					//we aren't friends
 					else
-					{
-						//We are going to war, screw diplomacy
+					{//if we aren't gearing up for a war yet...
+						if (GET_TEAM(getTeam()).AI_getWarPlan((TeamTypes)iI) != NO_WARPLAN)
+						{//Then we would welcome some diplomatic improvements
+							iPlayerValue += iAttitudeChange * 3;
+							iPlayerValue /= 2;
+						}
+						else
+						{
+							//We are going to war, screw diplomacy
+						}
 					}
 				}
+				if (GET_TEAM(getTeam()).isVassal(GET_PLAYER((PlayerTypes)iI).getTeam()))
+				{//Who cares about vassals?
+					iPlayerValue /= 5;
+				}
+				float fPowerRatio = ((float)iTheirPower)/((float)iOurPower);
+				iTempValue += (int)((float)iPlayerValue * fPowerRatio);
 			}
-			if (GET_TEAM(getTeam()).isVassal(GET_PLAYER((PlayerTypes)iI).getTeam()))
-			{//Who cares about vassals?
-				iPlayerValue /= 5;
-			}
-			float fPowerRatio = ((float)iTheirPower)/((float)iOurPower);
-			iTempValue += (int)((float)iPlayerValue * fPowerRatio);
 		}
+		if (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI))
+		{
+			iTempValue /= 10;
+		}
+		if ( gPlayerLogLevel > 2 && iTempValue != 0 )
+		{
+			logBBAI("Player %d (%S) Civic %S attitude value %d",
+				getID(),
+				getCivilizationDescription(0),
+				kCivic.getDescription(),
+				iTempValue);
+		}
+		iValue += iTempValue;
 	}
-	if (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI))
-	{
-		iTempValue /= 10;
-	}
-	if ( gPlayerLogLevel > 2 && iTempValue != 0 )
-	{
-		logBBAI("Player %d (%S) Civic %S attitude value %d",
-			getID(),
-			getCivilizationDescription(0),
-			kCivic.getDescription(),
-			iTempValue);
-	}
-	iValue += iTempValue;
 	
 	int iCorpMaintenanceMod;
 	if (GC.getGameINLINE().isOption(GAMEOPTION_REALISTIC_CORPORATIONS))

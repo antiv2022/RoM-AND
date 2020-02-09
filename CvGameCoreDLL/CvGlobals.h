@@ -753,7 +753,10 @@ public:
 	std::vector<CvInfoBase*>& getMemoryInfo();
 	CvInfoBase& getMemoryInfo(MemoryTypes eMemoryNum);
 
-	int getNumGameOptionInfos();
+	inline int getNumGameOptionInfos()
+	{
+		return (int)m_paGameOptionInfos.size(); // f1rpo.opt: inline
+	}
 	std::vector<CvGameOptionInfo*>& getGameOptionInfo();
 	CvGameOptionInfo& getGameOptionInfo(GameOptionTypes eGameOptionNum);
 
@@ -817,13 +820,17 @@ public:
 	std::vector<CvProjectInfo*>& getProjectInfo();
 	CvProjectInfo& getProjectInfo(ProjectTypes e);
 
-	int getNumBuildingClassInfos();
+	inline int getNumBuildingClassInfos() { return (int)m_paBuildingClassInfo.size(); } // f1rpo.opt: inline
 	std::vector<CvBuildingClassInfo*>& getBuildingClassInfo();
 	CvBuildingClassInfo& getBuildingClassInfo(BuildingClassTypes eBuildingClassNum);
 
 	int getNumBuildingInfos();
 	std::vector<CvBuildingInfo*>& getBuildingInfo();
-	CvBuildingInfo& getBuildingInfo(BuildingTypes eBuildingNum);
+	CvBuildingInfo& getBuildingInfo(BuildingTypes eBuildingNum)
+	{	// f1rpo.opt: Moved to header for inlining
+		FAssertBounds(0, GC.getNumBuildingInfos(), eBuildingNum);
+		return *m_paBuildingInfo[eBuildingNum];
+	}
 
 	int getNumSpecialBuildingInfos();
 	std::vector<CvSpecialBuildingInfo*>& getSpecialBuildingInfo();

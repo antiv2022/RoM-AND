@@ -13798,12 +13798,6 @@ TeamTypes CvCity::getTeam() const
 }
 
 
-CultureLevelTypes CvCity::getCultureLevel() const
-{
-	return m_eCultureLevel;
-}
-
-
 int CvCity::getCultureThreshold() const
 {
 	return getCultureThreshold(getCultureLevel());
@@ -24614,36 +24608,40 @@ Checks the cities culture level and if it meets the criteria specified in the Cu
 NUM_CITY_PLOTS is the largest city size, a radius of 3, NUM_CITY_PLOTS_2 is the standard BTS city size ( a radius of 2), and NUM_CITY_PLOTS_3
 is a city size of 1.
 */
+/*	f1rpo (note): At least in the early game, this function seems to get called very frequently.
+	I've made some optimizations. Perhaps eCapitalAdminBuilding should just be cached. */
 int CvCity::getNumCityPlots() const
 {
 //45deg - START - temporary hack to allow Capital Administration radius to work properly even if the city has Metropolitan Administration
 //		there's probably a better way to do it but this one works for now
 	bool bCapitalAdministration = false;
-	BuildingTypes eLoopBuilding;
-	BuildingTypes CapitalAdminBuilding;	
-	if (isCapital()) //45deg: improving turn times, checking only on Capital since it's the only city that can build Capital Administration
+	BuildingTypes eCapitalAdminBuilding /*f1rpo: */  = NO_BUILDING;
+	// f1rpo.opt: As far as I can tell, bCapitalAdministration implies WorkableRadiusOverride!=0.
+	if (getWorkableRadiusOverride() != 0)
 	{
-		for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+		if (isCapital()) //45deg: improving turn times, checking only on Capital since it's the only city that can build Capital Administration
 		{
-			eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)));
-
-			if (eLoopBuilding != NO_BUILDING)
+			PROFILE("CvCity::getNumCityPlots.isCapital"); // f1rpo
+			CvCivilizationInfo const& kCivilization = GC.getCivilizationInfo(getCivilizationType()); // f1rpo.opt
+			for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 			{
-				if ((GC.getBuildingInfo(eLoopBuilding).getWorkableRadius() > 0) && (isNationalWonderClass((BuildingClassTypes)(GC.getBuildingInfo(eLoopBuilding).getBuildingClassType()))))
+				BuildingTypes eLoopBuilding = (BuildingTypes)kCivilization.getCivilizationBuildings(iI);
+				if (eLoopBuilding != NO_BUILDING
+					&& GC.getBuildingInfo(eLoopBuilding).getWorkableRadius() > 0
+					&& isNationalWonderClass((BuildingClassTypes)/*GC.getBuildingInfo(eLoopBuilding).getBuildingClassType()*/
+					iI) // f1rpo.opt (replacing the above)
+					&& getNumBuilding(eLoopBuilding) > 0)
 				{
-					if (getNumBuilding(eLoopBuilding) > 0)
-					{
-						bCapitalAdministration = true;
-						CapitalAdminBuilding = eLoopBuilding;
-					}	
+					bCapitalAdministration = true;
+					eCapitalAdminBuilding = eLoopBuilding;
 				}
 			}
-		}		
-	}	
-//45deg - END	
-	if (getWorkableRadiusOverride() == 0)
-	{
-		if (!GC.getGameINLINE().isOption(GAMEOPTION_LARGER_CITIES) && !(bCapitalAdministration))
+		}
+//45deg - END
+	}
+	else
+	{	// firpo.opt:
+		if (/*!bCapitalAdministration &&*/ !GC.getGameINLINE().isOption(GAMEOPTION_LARGER_CITIES))
 		{
 			return NUM_CITY_PLOTS_2;
 		}
@@ -24662,10 +24660,10 @@ int CvCity::getNumCityPlots() const
 	{
 		iRadius = getWorkableRadiusOverride();
 	}
-//45deg - START
-	if (isCapital() && bCapitalAdministration && (NO_BUILDING !=CapitalAdminBuilding)) 
+//45deg - START  (f1rpo.opt: conditions reordered)
+	if (bCapitalAdministration && NO_BUILDING != eCapitalAdminBuilding && isCapital()) 
 	{
-		iRadius = GC.getBuildingInfo(CapitalAdminBuilding).getWorkableRadius();
+		iRadius = GC.getBuildingInfo(eCapitalAdminBuilding).getWorkableRadius();
 	}
 //45deg - END
     switch (iRadius)
@@ -26629,11 +26627,6 @@ int CvCity::getAdjacentDamagePercent() const
 void CvCity::changeAdjacentDamagePercent(int iChange)
 {
 	m_iAdjacentDamagePercent += iChange;
-}
-
-int CvCity::getWorkableRadiusOverride() const
-{
-	return m_iWorkableRadiusOverride;
 }
 
 void CvCity::setWorkableRadiusOverride(int iNewVal)

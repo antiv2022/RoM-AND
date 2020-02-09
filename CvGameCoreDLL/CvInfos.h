@@ -2279,6 +2279,15 @@ public:
 	int getUnitCombatProductionModifier(int i) const;
 	int getUnitClassProductionModifier(int i) const;
 	int getBuildingClassProductionModifier(int i) const;
+	// <f1rpo.opt>
+	bool isAnyUnitClassProductionModifier() const
+	{
+		return (m_piUnitClassProductionModifier != NULL);
+	}
+	bool isAnyBuildingClassProductionModifier() const
+	{
+		return (m_paiBuildingClassProductionModifier != NULL);
+	} // </firpo.opt>
 	int getTerrainYieldChanges(int i, int j) const;	
 	int getBuildingCommerceModifier(int i, int j) const;
 	int getBuildingClassCommerceChange(int i, int j) const;
@@ -2304,7 +2313,11 @@ public:
 	int getDistantUnitSupportCostModifier() const;
 	int getExtraCityDefense() const;
 	int getCivicAttitudeChange(int i) const;
-	int* getCivicAttitudeChanges() const;
+	// <f1rpo.opt> Replacing unused array getter
+	bool isAnyCivicAttitudeChanges() const
+	{
+		return (m_piCivicAttitudeChanges != NULL);
+	} // </f1rpo.opt>
 	CvString getCivicAttitudeReason(int i) const;
 	int getCivicAttitudeVectorSize();
 	CvString getCivicAttitudeNamesVectorElement(int i);
@@ -2317,6 +2330,11 @@ public:
 	CvString getCivicAttitudeReasonValuesVectorElement(int i);	
 	bool readPass3();
 	int getBonusMintedPercent(int i) const;
+	// f1rpo.opt>
+	bool isAnyBonusMintedPercent() const
+	{
+		return (m_piBonusMintedPercent != NULL);
+	} // </f1rpo.opt>
 	int getInflationModifier() const;
 	int getHurryInflationModifier() const;
 	int getHurryCostModifier() const;
@@ -2324,10 +2342,24 @@ public:
 	int getLandmarkYieldChanges(int i) const;
 	int* getLandmarkYieldChangesArray() const;
 	int getFreeSpecialistCount(int i) const;
+	// f1rpo.opt>
+	bool isAnyFreeSpecialist() const
+	{
+		return (m_piFreeSpecialistCount != NULL);
+	} // </f1rpo.opt>
 	int getCorporationSpreadRate() const;
 	int getRealCorporationMaintenanceModifier() const;
 	int getImprovementHappinessChanges(int i) const;
 	int getImprovementHealthPercentChanges(int i) const;
+	// <f1rpo.opt>
+	bool isAnyImprovementHappinessChanges() const
+	{
+		return (m_piImprovementHappinessChanges != NULL);
+	}
+	bool isAnyImprovementHealthPercentChanges() const
+	{
+		return (m_piImprovementHealthPercentChanges != NULL);
+	} // </f1rpo.opt>
 	int getSpecialistYieldPercentChanges(int i, int j) const;	
 	int getSpecialistCommercePercentChanges(int i, int j) const;	
 	bool m_bAnySpecialistCommerceChanges;
@@ -2986,7 +3018,7 @@ public:
 	int getPrereqPopulation() const;
 	int getProductionContinueBuildingClass() const;
 	int getPrereqCultureLevel() const;
-	int getWorkableRadius() const;
+	inline int getWorkableRadius() const { return m_iWorkableRadius; } // f1rpo.opt: inline
 	int getPrereqAnyoneBuildingClass() const;
 	int getExtendsBuildingClass() const;
 	int getOccupationTimeModifier() const;
@@ -3728,7 +3760,11 @@ public:
 	DllExport void setArtDefineTag(const TCHAR* szVal);
 	// Arrays
 
-	DllExport int getCivilizationBuildings(int i) const;				// Exposed to Python
+	DllExport int getCivilizationBuildings(int i) const				// Exposed to Python
+	{	// f1rpo.opt: Moved to header for inlining. And I don't see how the array could be NULL.
+		FAssertBounds(0, GC.getNumBuildingClassInfos(), i);
+		return /*m_piCivilizationBuildings ? */m_piCivilizationBuildings[i]/* : -1*/;
+	}
 	DllExport int getCivilizationUnits(int i) const;				// Exposed to Python
 	DllExport int getCivilizationFreeUnitsClass(int i) const;				// Exposed to Python
 	DllExport int getCivilizationInitialCivics(int i) const;				// Exposed to Python

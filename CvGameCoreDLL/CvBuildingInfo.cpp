@@ -1949,11 +1949,6 @@ int CvBuildingInfo::getPrereqCultureLevel() const
 	return m_iPrereqCultureLevel;
 }
 
-int CvBuildingInfo::getWorkableRadius() const
-{
-	return m_iWorkableRadius;
-}
-
 int CvBuildingInfo::getPrereqAnyoneBuildingClass() const
 {
 	return m_iPrereqAnyoneBuildingClass;

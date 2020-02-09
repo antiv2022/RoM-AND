@@ -7784,11 +7784,6 @@ int CvCivicInfo::getFlavorValue(int i) const
 	return m_piFlavorValue ? m_piFlavorValue[i] : 0;
 }
 
-int* CvCivicInfo::getCivicAttitudeChanges() const
-{
-	return m_piCivicAttitudeChanges;
-}
-
 int CvCivicInfo::getCivicAttitudeChange(int i) const
 {
 	FAssertMsg(i < GC.getNumCivicInfos(), "Index out of bounds");
@@ -9542,17 +9537,23 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bCanNotCeaseRelations, "bCanNotCeaseRelations");
 	pXML->GetChildXmlValByName(&m_bForcesOpenTradeRoutesWithWeakerPlayers, "bForcesOpenTradeRoutesWithWeakerPlayers");
 
-	pXML->SetVariableListTagPair(&m_piBonusMintedPercent, "BonusMintedPercents", sizeof(GC.getBonusInfo((BonusTypes)0)), GC.getNumBonusInfos());
+	pXML->SetVariableListTagPair(&m_piBonusMintedPercent, "BonusMintedPercents",
+			-1, GC.getNumBonusInfos(), 0, true); // f1rpo.opt
 	
-	pXML->SetVariableListTagPair(&m_piImprovementHappinessChanges, "ImprovementHappinessChanges", sizeof(GC.getImprovementInfo((ImprovementTypes)0)), GC.getNumImprovementInfos());
-	pXML->SetVariableListTagPair(&m_piImprovementHealthPercentChanges, "ImprovementHealthPercentChanges", sizeof(GC.getImprovementInfo((ImprovementTypes)0)), GC.getNumImprovementInfos());
+	pXML->SetVariableListTagPair(&m_piImprovementHappinessChanges, "ImprovementHappinessChanges",
+			-1, GC.getNumImprovementInfos(), 0, true); // f1rpo.opt
+	pXML->SetVariableListTagPair(&m_piImprovementHealthPercentChanges, "ImprovementHealthPercentChanges",
+			-1, GC.getNumImprovementInfos(), 0, true); // f1rpo.opt
 	
 	pXML->SetVariableListTagPair(&m_paiUnitCombatProductionModifier, "UnitCombatProductionModifiers", sizeof(GC.getUnitCombatInfo((UnitCombatTypes)0)), GC.getNumUnitCombatInfos());
-	pXML->SetVariableListTagPair(&m_paiBuildingClassProductionModifier, "BuildingClassProductionModifiers", sizeof(GC.getBuildingClassInfo((BuildingClassTypes)0)), GC.getNumBuildingClassInfos());
-	pXML->SetVariableListTagPair(&m_piUnitClassProductionModifier, "UnitClassProductionModifiers", sizeof(GC.getUnitClassInfo((UnitClassTypes)0)), GC.getNumUnitClassInfos());
+	pXML->SetVariableListTagPair(&m_paiBuildingClassProductionModifier, "BuildingClassProductionModifiers",
+			-1, GC.getNumBuildingClassInfos(), 0, true); // f1rpo.opt
+	pXML->SetVariableListTagPair(&m_piUnitClassProductionModifier, "UnitClassProductionModifiers",
+			-1, GC.getNumUnitClassInfos(), 0, true); // f1rpo.opt
 
 	pXML->SetVariableListTagPair(&m_piFlavorValue, "Flavors", GC.getFlavorTypes(), GC.getNumFlavorTypes());
-	pXML->SetVariableListTagPair(&m_piFreeSpecialistCount, "FreeSpecialistCounts", sizeof(GC.getSpecialistInfo((SpecialistTypes)0)), GC.getNumSpecialistInfos());
+	pXML->SetVariableListTagPair(&m_piFreeSpecialistCount, "FreeSpecialistCounts",
+			-1, GC.getNumSpecialistInfos(), 0, true); // f1rpo.opt
 	pXML->GetChildXmlValByName(&m_iEnslavementChance, "iEnslavementChance");
 	
 	if (GETXML->SetToChildByTagName(pXML->GetXML(),"LandmarkYieldChanges"))
@@ -9916,6 +9917,7 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 bool CvCivicInfo::readPass3()
 {
 	m_piCivicAttitudeChanges = new int[GC.getNumCivicInfos()];
+	bool bAnyCivicAttitudeChanges = false; // f1rpo.opt
 	m_pszCivicAttitudeReason = new CvString[GC.getNumCivicInfos()];
 	for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
 	{
@@ -9929,10 +9931,16 @@ bool CvCivicInfo::readPass3()
 		{
 			int iTempIndex = GC.getInfoTypeForString(m_aszCivicAttitudeforPass3[iI]);
 			if (iTempIndex >= 0 && iTempIndex < GC.getNumCivicInfos())
+			{
 				m_piCivicAttitudeChanges[iTempIndex] = m_aiCivicAttitudeforPass3[iI];
+				bAnyCivicAttitudeChanges = true; // f1rpo.opt
+			}
 		}
 		m_aszCivicAttitudeforPass3.clear();
 		m_aiCivicAttitudeforPass3.clear();
+		// <f1rpo.opt>
+		if (!bAnyCivicAttitudeChanges)
+			SAFE_DELETE_ARRAY(m_piCivicAttitudeChanges); // </f1rpo.opt>
 	}
 	if (!m_aszCivicAttitudeReasonValueforPass3.empty() && !m_aszCivicAttitudeReasonforPass3.empty())
 	{
@@ -12051,13 +12059,6 @@ void CvCivilizationInfo::setArtDefineTag(const TCHAR* szVal)
 }
 
 // Arrays
-
-int CvCivilizationInfo::getCivilizationBuildings(int i) const		
-{
-	FAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCivilizationBuildings ? m_piCivilizationBuildings[i] : -1;
-}
 
 int CvCivilizationInfo::getCivilizationUnits(int i) const
 {

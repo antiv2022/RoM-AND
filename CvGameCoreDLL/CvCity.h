@@ -942,7 +942,10 @@ public:
 	PlayerTypes getOriginalOwner() const;																	// Exposed to Python
 	void setOriginalOwner(PlayerTypes eNewValue);
 
-	CultureLevelTypes getCultureLevel() const;														// Exposed to Python
+	inline CultureLevelTypes getCultureLevel() const														// Exposed to Python
+	{
+		return m_eCultureLevel; // f1rpo.opt: inline
+	}
 	int getCultureThreshold() const;																	// Exposed to Python
 	int getCultureThreshold(CultureLevelTypes eLevel) const;
 	void setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups);
@@ -1417,7 +1420,10 @@ public:
 	int getAdjacentDamagePercent() const;
 	void changeAdjacentDamagePercent(int iChange);
 	
-	int getWorkableRadiusOverride() const;
+	inline int getWorkableRadiusOverride() const
+	{
+		return m_iWorkableRadiusOverride; // f1rpo.opt: inline
+	}
 	void setWorkableRadiusOverride(int iNewVal);
 	
 	int getProtectedCultureCount() const;

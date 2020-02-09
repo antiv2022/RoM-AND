@@ -473,7 +473,10 @@ public:
 	DllExport CvPlot* getStartingPlot() const;																																			// Exposed to Python
 	DllExport void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist);												// Exposed to Python
 
-	DllExport int getTotalPopulation() const;																															// Exposed to Python
+	DllExport int getTotalPopulation() const																															// Exposed to Python
+	{
+		return m_iTotalPopulation; // f1rpo.opt: inline
+	}
 	int getAveragePopulation() const;																																			// Exposed to Python
 	void changeTotalPopulation(int iChange);
 	long getRealPopulation() const;																																				// Exposed to Python

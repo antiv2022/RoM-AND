@@ -2622,12 +2622,6 @@ CvInfoBase& cvInternalGlobals::getMemoryInfo(MemoryTypes eMemoryNum)
 	return *(m_paMemoryInfos[eMemoryNum]);
 }
 
-
-int cvInternalGlobals::getNumGameOptionInfos()
-{
-	return (int)m_paGameOptionInfos.size();
-}
-
 std::vector<CvGameOptionInfo*>& cvInternalGlobals::getGameOptionInfo()
 {
 	return m_paGameOptionInfos;
@@ -2894,11 +2888,6 @@ CvProjectInfo& cvInternalGlobals::getProjectInfo(ProjectTypes e)
 	return *(m_paProjectInfo[e]);
 }
 
-int cvInternalGlobals::getNumBuildingClassInfos()
-{
-	return (int)m_paBuildingClassInfo.size();
-}
-
 std::vector<CvBuildingClassInfo*>& cvInternalGlobals::getBuildingClassInfo()	// For Moose - XML Load Util, CvInfos
 {
 	return m_paBuildingClassInfo;
@@ -2919,13 +2908,6 @@ int cvInternalGlobals::getNumBuildingInfos()
 std::vector<CvBuildingInfo*>& cvInternalGlobals::getBuildingInfo()	// For Moose - XML Load Util, CvInfos, CvCacheObject
 {
 	return m_paBuildingInfo;
-}
-
-CvBuildingInfo& cvInternalGlobals::getBuildingInfo(BuildingTypes eBuildingNum)
-{
-	FAssert(eBuildingNum > -1);
-	FAssert(eBuildingNum < GC.getNumBuildingInfos());
-	return *(m_paBuildingInfo[eBuildingNum]);
 }
 
 int cvInternalGlobals::getNumSpecialBuildingInfos()

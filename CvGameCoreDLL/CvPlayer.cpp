@@ -13907,12 +13907,6 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 }
 
 
-int CvPlayer::getTotalPopulation() const
-{
-	return m_iTotalPopulation;
-}
-
-
 int CvPlayer::getAveragePopulation() const
 {
 	if (getNumCities() == 0)
@@ -17340,7 +17334,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 
 			if (bDoTurn)
 			{
-				PROFILE("CvPlayer::setTurnActive.SetInactive.doTurn");
+				PROFILE("CvPlayer::setTurnActive.SetInactive.doTurn"); // f1rpo (note): I think this includes a recursive call
 
 				if (!GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 				{
@@ -19422,6 +19416,7 @@ CivicTypes CvPlayer::getCivics(CivicOptionTypes eIndex) const
 
 int CvPlayer::getSingleCivicUpkeep(CivicTypes eCivic, bool bIgnoreAnarchy) const
 {
+	PROFILE_FUNC(); // f1rpo
 	int iUpkeep;
 
 	if (eCivic == NO_CIVIC)
@@ -24826,11 +24821,11 @@ void CvPlayer::doWarnings()
 
 		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
-		if (pLoopPlot->isAdjacentPlayer(getID()))
+		if (pLoopPlot->isVisible(getTeam(), false)) // f1rpo.opt: Moved up
 		{
-			if (!(pLoopPlot->isCity()))
+			if (pLoopPlot->isAdjacentPlayer(getID()))
 			{
-				if (pLoopPlot->isVisible(getTeam(), false))
+				if (!(pLoopPlot->isCity()))
 				{
 					CvUnit *pUnit = pLoopPlot->getVisibleEnemyDefender(getID());
 					if (pUnit != NULL)
