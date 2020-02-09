@@ -109,8 +109,7 @@ private:
 //---------------------------------------------------------------------------------------------------------------------
 
 // Main Interface for Profile
-#ifdef FP_PROFILE_ENABLE				// Turn Profiling On or Off .. 
-#ifdef USE_INTERNAL_PROFILER
+#ifdef USE_INTERNAL_PROFILER // f1rpo: Don't require FP_PROFILE_ENABLE in addition
 #define PROFILE_THREAD(name)	\
 	static ProfileSample __rootSample(name);\
 	IFPProfileThread();\
@@ -164,6 +163,8 @@ private:
 	IFPSetCount(&sample__##name##,value);
 
 #else
+#ifdef FP_PROFILE_ENABLE
+
 #define PROFILE_SET_COUNT(name,value)	;
 #define PROFILE(name)\
 	static ProfileSample sample(name);\
@@ -186,7 +187,8 @@ private:
 
 #define PROFILE_STACK_DUMP ;
 #endif
-#else
+#ifndef USE_INTERNAL_PROFILER
+#ifndef FP_PROFILE_ENABLE
 // Remove profiling code
 #define PROFILE_THREAD(name)
 #define PROFILE(name)				
@@ -198,7 +200,8 @@ private:
 #define PROFILE_FUNC()
 #define PROFILE_STACK_DUMP ;
 #endif
-
+#endif
+#endif
 
 #endif //__PROFILE_H__
 

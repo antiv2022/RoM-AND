@@ -752,6 +752,10 @@ void cvInternalGlobals::init()
 	m_iniInitCore = new CvInitCore;
 
 	gDLL->initGlobals();	// some globals need to be allocated outside the dll
+	// <f1rpo> I guess the EXE is supposed to set this, but it seems that it doesn't do so.
+#ifdef USE_INTERNAL_PROFILER
+	enableDLLProfiler(true);
+#endif // </f1rpo>
 
 	m_game = new CvGameAI;
 	

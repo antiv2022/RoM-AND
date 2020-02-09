@@ -743,8 +743,8 @@ bool IFPPythonCall(const char* callerFn, const char* moduleName, const char* fxn
 	}
 #endif
 
-#ifdef FP_PROFILE_ENABLE				// Turn Profiling On or Off .. 
-#ifdef USE_INTERNAL_PROFILER
+// f1rpo: Instead of requiring FP_PROFILE_ENABLE && USE_INTERNAL_PROFILER
+#if defined(FP_PROFILE_ENABLE) || defined(USE_INTERNAL_PROFILER)	// Turn Profiling On or Off .. 
 	static	std::map<int,ProfileSample*>*	g_pythonProfiles = NULL;
 
 	if ( g_pythonProfiles == NULL )
@@ -781,8 +781,7 @@ bool IFPPythonCall(const char* callerFn, const char* moduleName, const char* fxn
 		pSample = itr->second;
 	}
 
-	CProfileScope detailedScope(pSample);		
-#endif
+	CProfileScope detailedScope(pSample);
 #endif
 
 	//OutputDebugString(CvString::format("Python call to %s::%s [%d]\n", moduleName, fxnName, pythonDepth++).c_str());
