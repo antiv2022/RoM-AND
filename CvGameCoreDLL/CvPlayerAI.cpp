@@ -4312,6 +4312,18 @@ bool CvPlayerAI::AI_isPrimaryArea(CvArea* pArea) const
 	}
 
 	return false;
+// f1rpo (advc.107): from K-Mod
+bool CvPlayerAI::AI_isLandWar(CvArea const* pArea) const
+{
+	switch(pArea->getAreaAIType(getTeam()))
+	{
+	case AREAAI_OFFENSIVE:
+	case AREAAI_MASSING:
+	case AREAAI_DEFENSIVE:
+		return true;
+	default:
+		return false;
+	}
 }
 
 

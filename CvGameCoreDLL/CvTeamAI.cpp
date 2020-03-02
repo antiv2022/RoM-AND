@@ -4521,10 +4521,19 @@ bool CvTeamAI::AI_isChosenWar(TeamTypes eIndex) const
 	return false;
 }
 
-
 bool CvTeamAI::AI_isSneakAttackPreparing(TeamTypes eIndex) const
 {
-	return ((AI_getWarPlan(eIndex) == WARPLAN_PREPARING_LIMITED) || (AI_getWarPlan(eIndex) == WARPLAN_PREPARING_TOTAL));
+	if (eIndex != NO_TEAM) // f1rpo
+	{
+		WarPlanTypes eWarPlan = AI_getWarPlan(eIndex);
+		return (eWarPlan == WARPLAN_PREPARING_LIMITED || eWarPlan == WARPLAN_PREPARING_TOTAL);
+	}  // <f1rpo> Any sneak attack preparing?
+	for (int i = 0; i < MAX_CIV_TEAMS; i++)
+	{
+		if (AI_isSneakAttackPreparing((TeamTypes)i))
+			return true;
+	}
+	return false; // </f1rpo>
 }
 
 
@@ -6189,20 +6198,28 @@ void CvTeamAI::AI_doWar()
 //returns true if war is veto'd by rolls.
 bool CvTeamAI::AI_performNoWarRolls(TeamTypes eTeam)
 {
-	
+
 	if (GC.getGameINLINE().getSorenRandNum(100, "AI Declare War 1") > GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIDeclareWarProb())
 	{
 		return true;
 	}
-	
+
 	if (GC.getGameINLINE().getSorenRandNum(100, "AI No War") <= AI_noWarAttitudeProb(AI_getAttitude(eTeam)))
 	{
-		return true;		
+		return true;
 	}
-	
-	
-	
+
 	return false;	
+}
+
+// f1rpo (from AdvCiv):
+bool CvTeamAI::AI_isAvoidWar(TeamTypes eOther, bool bPersonalityKnown) const
+{
+	if (isHuman() || GC.getGameINLINE().isOption(GAMEOPTION_RUTHLESS_AI))
+		return false;
+	if (!bPersonalityKnown && GC.getGameINLINE().isOption(GAMEOPTION_RANDOM_PERSONALITIES))
+		return (AI_getAttitude(eOther) == ATTITUDE_FRIENDLY);
+	return (AI_noWarAttitudeProb(AI_getAttitude(eOther)) >= 100);
 }
 
 int CvTeamAI::AI_getAttitudeWeight(TeamTypes eTeam)

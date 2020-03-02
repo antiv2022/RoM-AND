@@ -205,22 +205,23 @@ public:
 
 	WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const;
 	bool AI_isChosenWar(TeamTypes eIndex) const;
-	bool AI_isSneakAttackPreparing(TeamTypes eIndex) const;
+	bool AI_isSneakAttackPreparing(TeamTypes eIndex /* f1rpo: */ = NO_TEAM) const;
 	bool AI_isSneakAttackReady(TeamTypes eIndex) const;
 	void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true);
 
 	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = -1) const;
-	
+
 	bool AI_performNoWarRolls(TeamTypes eTeam);
-	
+	bool AI_isAvoidWar(TeamTypes eOther, bool bPersonalityKnown = false) const; // f1rpo
+
 	int AI_getAttitudeWeight(TeamTypes eTeam);
-	
+
 	int AI_getLowestVictoryCountdown() const;
 
 	int AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const;
-	
+
 	bool AI_isWaterAreaRelevant(CvArea* pArea);
-	
+
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 /************************************************************************************************/
@@ -232,7 +233,7 @@ public:
 	int AI_LimitedBordersTradeVal(TeamTypes eTeam) const;
 	int AI_FreeTradeAgreementVal(TeamTypes eTeam) const;
     int AI_contactTradeVal(TeamTypes eContactTeam, TeamTypes eTeam) const;
-	
+
 	DenialTypes AI_embassyTrade(TeamTypes eTeam) const;
 	DenialTypes AI_LimitedBordersTrade(TeamTypes eTeam) const;
 	DenialTypes AI_contactTrade(TeamTypes eContactTeam, TeamTypes eTeam) const;

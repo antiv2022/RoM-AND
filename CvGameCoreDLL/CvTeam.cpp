@@ -3524,6 +3524,21 @@ int CvTeam::countNumCitiesByArea(CvArea* pArea) const
 	return iCount;
 }
 
+// f1rpo (advc.107) from K-Mod
+int CvTeam::countEnemyCitiesByArea(CvArea const* pArea) const
+{
+	int iCount = 0;
+	for (int i = 0; i < MAX_PLAYERS; i++)
+	{
+		CvPlayer const& kEnemy = GET_PLAYER((PlayerTypes)i);
+		if (!kEnemy.isAlive())
+			continue;
+		if (AI_getWarPlan(kEnemy.getTeam()) != NO_WARPLAN)
+			iCount += pArea->getCitiesPerPlayer(kEnemy.getID());
+	}
+	return iCount;
+}
+
 
 int CvTeam::countTotalPopulationByArea(CvArea* pArea) const
 {

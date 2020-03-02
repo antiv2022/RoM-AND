@@ -140,6 +140,7 @@ public:
 
 	int countNumUnitsByArea(CvArea* pArea) const;																				// Exposed to Python
 	int countNumCitiesByArea(CvArea* pArea) const;																			// Exposed to Python
+	int countEnemyCitiesByArea(CvArea const* pArea) const; // f1rpo
 	int countTotalPopulationByArea(CvArea* pArea) const;																// Exposed to Python
 	int countPowerByArea(CvArea* pArea) const;																					// Exposed to Python
 	int countEnemyPowerByArea(CvArea* pArea) const;																			// Exposed to Python
