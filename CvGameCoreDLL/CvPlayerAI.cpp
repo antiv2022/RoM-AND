@@ -31506,17 +31506,23 @@ int CvPlayerAI::AI_getStrategyHash() const
 							iCrushValue += 2;
 						}
 					}
-
+					int iCrushValFromWarplanType = 0; // f1rpo (advc.018): New temp variable
 					if (GET_TEAM(getTeam()).AI_getWarPlan((TeamTypes)iI) == WARPLAN_PREPARING_TOTAL)
 					{
-						iCrushValue += 6;					
+						iCrushValFromWarplanType += 6;					
 					}
-					else if ((GET_TEAM(getTeam()).AI_getWarPlan((TeamTypes)iI) == WARPLAN_TOTAL) && (GET_TEAM(getTeam()).AI_getWarPlanStateCounter((TeamTypes)iI) < 20))
+					else if ((GET_TEAM(getTeam()).AI_getWarPlan((TeamTypes)iI) == WARPLAN_TOTAL)
+						//&& (GET_TEAM(getTeam()).AI_getWarPlanStateCounter((TeamTypes)iI) < 20))
+						/*  f1rpo (bugfix?): Was AI_getWarPlanStateCounter, which includes
+							preparation time. Probably war duration was intended.  */
+						&& GET_TEAM(getTeam()).AI_getAtWarCounter((TeamTypes)iI) < 20)
 					{
-						iCrushValue += 6;						
+						iCrushValFromWarplanType += 6;						
 					}
 					
-					if ((GET_TEAM(getTeam()).AI_getWarPlan((TeamTypes)iI) == WARPLAN_DOGPILE) && (GET_TEAM(getTeam()).AI_getWarPlanStateCounter((TeamTypes)iI) < 20))
+					if ((GET_TEAM(getTeam()).AI_getWarPlan((TeamTypes)iI) == WARPLAN_DOGPILE)
+						//&& (GET_TEAM(getTeam()).AI_getWarPlanStateCounter((TeamTypes)iI) < 20))
+						&& GET_TEAM(getTeam()).AI_getAtWarCounter((TeamTypes)iI) < 20) // f1rpo (bugfix?)
 					{
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       02/14/10                             jdog5000         */
@@ -31537,11 +31543,12 @@ int CvPlayerAI::AI_getStrategyHash() const
 							{
 								if ((atWar((TeamTypes)iI, (TeamTypes)iJ)) && !GET_TEAM((TeamTypes)iI).isAVassal())
 								{
-									iCrushValue += 4;
+									iCrushValFromWarplanType += 4;
 								}
 							}
 						}
-					}
+					}  // f1rpo (advc.018): Halve the impact
+					iCrushValue += iCrushValFromWarplanType / 2;
 /************************************************************************************************/
 /* REVOLUTION_MOD                         05/18/08                                jdog5000      */
 /*                                                                                              */
