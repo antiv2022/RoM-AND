@@ -2055,18 +2055,20 @@ void CvCityAI::AI_chooseProduction()
 					
 					if ( iLocalNavy < 2 )	//	If there are a few local appropriate AI units already assume they will deal
 					{
-						if (AI_chooseUnit("minimal navy", UNITAI_ATTACK_SEA))
-						{
+						/*if (AI_chooseUnit("minimal navy", UNITAI_ATTACK_SEA))
 							return;
-						}
 						if (AI_chooseUnit("minimal navy", UNITAI_PIRATE_SEA))
-						{
 							return;
-						}
 						if (AI_chooseUnit("minimal navy", UNITAI_RESERVE_SEA))
-						{
+							return;*/
+						// <f1rpo> Don't prioritize those ships quite as much (advc.017)
+						int iOdds = 60;
+						if(bLandWar && iWarSuccessRatio < 0)
+							iOdds += 2 * iWarSuccessRatio;
+						// Fallback on other AI types shouldn't be needed (and would increase the effective odds)
+						if (AI_chooseUnit("minimal navy", UNITAI_ATTACK_SEA, iOdds))
 							return;
-						}
+						// </f1rpo>
 					}
 				}
 			}
