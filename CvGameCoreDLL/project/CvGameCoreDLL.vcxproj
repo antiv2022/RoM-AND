@@ -324,6 +324,7 @@
     <ClInclude Include="..\FFreeListArrayBase.h" />
     <ClInclude Include="..\FFreeListTrashArray.h" />
     <ClInclude Include="..\FInputDevice.h" />
+    <ClInclude Include="..\FixedPointPowTables.h" />
     <ClInclude Include="..\FLinedDataIOStream.h" />
     <ClInclude Include="..\FProfiler.h" />
     <ClInclude Include="..\FVariableSystem.h" />
@@ -334,7 +335,9 @@
     <ClInclude Include="..\rapidxml\rapidxml_iterators.hpp" />
     <ClInclude Include="..\rapidxml\rapidxml_print.hpp" />
     <ClInclude Include="..\rapidxml\rapidxml_utils.hpp" />
+    <ClInclude Include="..\ScaledNum.h" />
     <ClInclude Include="..\stdint.h" />
+    <ClInclude Include="..\TypeChoice.h" />
     <ClInclude Include="..\UTF8Support.h" />
     <ClInclude Include="..\version.h" />
   </ItemGroup>

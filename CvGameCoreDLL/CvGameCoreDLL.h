@@ -264,6 +264,24 @@ namespace python = boost::python;
 #include "CvEnums.h"
 #include "CvStructs.h"
 #include "CvDLLUtilityIFaceBase.h"
+// <f1rpo>
+#include "CvRandom.h"
+#include "ScaledNum.h"
+#include "CvGameCoreUtils.h" // Includes CvGlobals.h, CvMap.h
+// These rarely change; might as well precompile them. (Copied from AdvCiv.)
+#include "FProfiler.h"
+#include "CyGlobalContext.h" // Includes CvArtFileMgr.h
+#include "CyCity.h"
+#include "CvDLLEntityIFaceBase.h"
+#include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLFAStarIFaceBase.h"
+#include "CvDLLEngineIFaceBase.h"
+#include "CvInitCore.h"
+#include "CvEventReporter.h" // Includes CvStatistics.h and CvDllPythonEvents.h
+#include "CyArgsList.h"
+#include "CyPlot.h"
+#include "CyUnit.h"
+// </f1rpo>
 
 //jason tests
 //#include "CvPlayerAI.h"
@@ -274,12 +292,11 @@ namespace python = boost::python;
 //#include "CvUnit.h"
 //#include "CvGlobals.h"
 //#include "CvCity.h"
-#include "FProfiler.h"
+//#include "FProfiler.h"
 //#include "CyCity.h"
 //#include "CvInfos.h"
 //#include "CvTeamAI.h"
 //#include "CvDLLPythonIFaceBase.h"
-//#include "CvRandom.h"
 //#include "CvArea.h"
 //#include "CvDllEntity.h"
 //#include "CvDeal.h"
