@@ -16045,7 +16045,7 @@ bool CvPlot::isAtMaxLandMilitaryUnitsPerTiles() const
 		return false;
 	}
 	if (this->isCity()){
-		if (this->getNumMilitaryLandUnits(this->getOwner()) >= (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getDefineINT("UNITS_PER_TILES_CITY_FACTOR", 3))){
+		if (this->getNumMilitaryLandUnits(this->getOwner()) >= (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getUNITS_PER_TILES_CITY_FACTOR())){
 			return true;
 		}
 	}
@@ -16068,7 +16068,7 @@ bool CvPlot::isAtMaxNavalMilitaryUnitsPerTiles() const
 		return false;
 	}
 	if (this->isCity()){
-		if (this->getNumMilitaryNavalUnits(this->getOwner()) >= (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getDefineINT("UNITS_PER_TILES_CITY_FACTOR", 3))){
+		if (this->getNumMilitaryNavalUnits(this->getOwner()) >= (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getUNITS_PER_TILES_CITY_FACTOR())){
 			return true;
 		}
 	}
@@ -16091,7 +16091,7 @@ bool CvPlot::isAtMaxAirMilitaryUnitsPerTiles() const
 		return false;
 	}
 	if (this->isCity()){
-		if (this->getNumMilitaryAirUnits(this->getOwner()) >= (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getDefineINT("UNITS_PER_TILES_CITY_FACTOR", 3))){
+		if (this->getNumMilitaryAirUnits(this->getOwner()) >= (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getUNITS_PER_TILES_CITY_FACTOR())){
 			return true;
 		}
 	}
@@ -16114,12 +16114,12 @@ bool CvPlot::isAtMaxCivilianUnitsPerTiles() const
 		return false;
 	}
 	if (this->isCity()){ // Apply city factor on city tiles
-		if ((this->getNumCivilianLandUnits(this->getOwner()) + this->getNumCivilianAirUnits(this->getOwner()) + this->getNumCivilianNavalUnits(this->getOwner())) >= (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getDefineINT("UNITS_PER_TILES_CITY_FACTOR", 3))){
+		if ((this->getNumCivilianLandUnits(this->getOwner()) + this->getNumCivilianAirUnits(this->getOwner()) + this->getNumCivilianNavalUnits(this->getOwner())) >= (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getUNITS_PER_TILES_CITY_FACTOR())){
 			return true;
 		}
 	}
 	else{ // Apply standard factor + an optional non-combat factor
-		if ((this->getNumCivilianLandUnits(this->getOwner()) + this->getNumCivilianAirUnits(this->getOwner()) + this->getNumCivilianNavalUnits(this->getOwner())) >= (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getDefineINT("UNITS_PER_TILES_NON_COMBAT_FACTOR", 1))){
+		if ((this->getNumCivilianLandUnits(this->getOwner()) + this->getNumCivilianAirUnits(this->getOwner()) + this->getNumCivilianNavalUnits(this->getOwner())) >= (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getUNITS_PER_TILES_NON_COMBAT_FACTOR())){
 			return true;
 		}
 	}
@@ -16134,7 +16134,7 @@ int CvPlot::getUnitsPerTilesLimit(bool isCombatUnit) const
 { // xUPT: return the units-per-tiles limit on the according tile, depending on if it's a military or a civilian unit. (dbkblk, 2015-02)
 	if (isCombatUnit){
 		if (this->isCity()){
-			return GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getDefineINT("UNITS_PER_TILES_CITY_FACTOR", 1);
+			return GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getUNITS_PER_TILES_CITY_FACTOR();
 		}
 		else{
 			return GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES);
@@ -16142,10 +16142,10 @@ int CvPlot::getUnitsPerTilesLimit(bool isCombatUnit) const
 	}
 	else{
 		if (this->isCity()){
-			return GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getDefineINT("UNITS_PER_TILES_CITY_FACTOR", 1);
+			return GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getUNITS_PER_TILES_CITY_FACTOR();
 		}
 		else{
-			return GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getDefineINT("UNITS_PER_TILES_NON_COMBAT_FACTOR", 1);
+			return GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getUNITS_PER_TILES_NON_COMBAT_FACTOR();
 		}
 	}
 }

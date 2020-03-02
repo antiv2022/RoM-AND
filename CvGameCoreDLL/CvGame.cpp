@@ -14393,20 +14393,6 @@ void CvGame::setPreviousRequest(PlayerTypes ePlayer, bool bNewValue)
 	m_abPreviousRequest[ePlayer] = bNewValue;
 }
 
-bool CvGame::isModderGameOption(ModderGameOptionTypes eIndex) const
-{
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < NUM_MODDERGAMEOPTION_TYPES, "eIndex is expected to be within maximum bounds (invalid Index)");
-	return m_aiModderGameOption[eIndex] > 0;
-}
-
-int CvGame::getModderGameOption(ModderGameOptionTypes eIndex) const
-{
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < NUM_MODDERGAMEOPTION_TYPES, "eIndex is expected to be within maximum bounds (invalid Index)");
-	return m_aiModderGameOption[eIndex];
-}
-
 void CvGame::setModderGameOption(ModderGameOptionTypes eIndex, int iNewValue)
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");

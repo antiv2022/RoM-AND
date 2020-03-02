@@ -828,7 +828,7 @@ public:
 	std::vector<CvBuildingInfo*>& getBuildingInfo();
 	CvBuildingInfo& getBuildingInfo(BuildingTypes eBuildingNum)
 	{	// f1rpo.opt: Moved to header for inlining
-		FAssertBounds(0, GC.getNumBuildingInfos(), eBuildingNum);
+		FAssertBounds(0, getNumBuildingInfos(), eBuildingNum);
 		return *m_paBuildingInfo[eBuildingNum];
 	}
 
@@ -1084,7 +1084,16 @@ public:
 	int getCITY_FREE_CULTURE_GROWTH_FACTOR();
 	int getMAX_TRADE_ROUTES();
 	bool isDISABLE_INFLATION();
-	bool isENABLE_RESYNC_CODE();	
+	bool isENABLE_RESYNC_CODE();
+	// <f1rpo.opt>
+	int getUNITS_PER_TILES_CITY_FACTOR()
+	{
+		return m_iUNITS_PER_TILES_CITY_FACTOR;
+	}
+	int getUNITS_PER_TILES_NON_COMBAT_FACTOR()
+	{
+		return m_iUNITS_PER_TILES_NON_COMBAT_FACTOR;
+	} // </f1rpo.opt>
 /************************************************************************************************/
 /* Mod Globals                        END                                           phungus420  */
 /************************************************************************************************/
@@ -1767,7 +1776,10 @@ protected:
 	int m_iCITY_FREE_CULTURE_GROWTH_FACTOR;
 	int m_iMAX_TRADE_ROUTES;
 	bool m_bDISABLE_INFLATION;
-	bool m_bENABLE_RESYNC_CODE;	
+	bool m_bENABLE_RESYNC_CODE;
+
+	int m_iUNITS_PER_TILES_CITY_FACTOR; // f1rpo.opt
+	int m_iUNITS_PER_TILES_NON_COMBAT_FACTOR; // f1rpo.opt
 	
 	TeamTypes m_eActiveTeamTurn;
 /************************************************************************************************/

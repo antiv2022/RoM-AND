@@ -9131,9 +9131,11 @@ void CvCityAI::AI_doDraft(bool bForce)
 
 	FAssert(!isHuman());
 	if (isBarbarian())
-	{
 		return;
-	}
+
+	// xUPT: Do not conscript if area is full (dbkblk, 2015-02)
+	if (m_bAreaSaturatedOfLandMilitaryUnits)
+		return; // f1rpo: Moved up (no functional change)
 
 	if (canConscript())
 	{
@@ -9216,10 +9218,6 @@ void CvCityAI::AI_doDraft(bool bForce)
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-				if (m_bAreaSaturatedOfLandMilitaryUnits){ // xUPT: Do not conscript if area is full (dbkblk, 2015-02)
-					bWait = true;
-				}
-
                 if (!bWait)
                 {
                     conscript();

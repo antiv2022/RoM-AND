@@ -412,8 +412,18 @@ public:
 	void setPreviousRequest(PlayerTypes ePlayer, bool bNewValue);
 	bool isPreviousRequest(PlayerTypes ePlayer) const;
 	
-	int getModderGameOption(ModderGameOptionTypes eIndex) const;										// Exposed to Python
-	bool isModderGameOption(ModderGameOptionTypes eIndex) const;										// Exposed to Python
+	inline int getModderGameOption(ModderGameOptionTypes eIndex) const								// Exposed to Python
+	{	// f1rpo.opt: inline
+		FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
+		FAssertMsg(eIndex < NUM_MODDERGAMEOPTION_TYPES, "eIndex is expected to be within maximum bounds (invalid Index)");
+		return m_aiModderGameOption[eIndex];
+	}
+	inline bool isModderGameOption(ModderGameOptionTypes eIndex) const								// Exposed to Python
+	{	// f1rpo.opt: inline
+		FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
+		FAssertMsg(eIndex < NUM_MODDERGAMEOPTION_TYPES, "eIndex is expected to be within maximum bounds (invalid Index)");
+		return m_aiModderGameOption[eIndex] > 0;
+	}
 	void setModderGameOption(ModderGameOptionTypes eIndex, bool bNewValue);										// Exposed to Python
 	void setModderGameOption(ModderGameOptionTypes eIndex, int iNewValue);										// Exposed to Python
 	

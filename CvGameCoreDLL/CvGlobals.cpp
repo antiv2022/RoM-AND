@@ -249,6 +249,8 @@ m_iCITY_FREE_CULTURE_GROWTH_FACTOR(22),
 m_iMAX_TRADE_ROUTES(0),
 m_bDISABLE_INFLATION(false),
 m_bENABLE_RESYNC_CODE(false),
+m_iUNITS_PER_TILES_CITY_FACTOR(3), // f1rpo.opt
+m_iUNITS_PER_TILES_NON_COMBAT_FACTOR(1), //f1rpo.opt
 /************************************************************************************************/
 /* Mod Globals                        END                                           phungus420  */
 /************************************************************************************************/
@@ -3707,7 +3709,9 @@ void cvInternalGlobals::cacheGlobals()
 	m_iCITY_FREE_CULTURE_GROWTH_FACTOR = getDefineINT("CITY_FREE_CULTURE_GROWTH_FACTOR", 22);
 	m_iMAX_TRADE_ROUTES = getDefineINT("MAX_TRADE_ROUTES");
 	m_bDISABLE_INFLATION = getDefineINT("DISABLE_INFLATION") != 0;
-	m_bENABLE_RESYNC_CODE = getDefineINT("ENABLE_RESYNC_CODE") != 0;	
+	m_bENABLE_RESYNC_CODE = getDefineINT("ENABLE_RESYNC_CODE") != 0;
+	m_iUNITS_PER_TILES_CITY_FACTOR = getDefineINT("UNITS_PER_TILES_CITY_FACTOR"); // f1rpo.opt
+	m_iUNITS_PER_TILES_NON_COMBAT_FACTOR = getDefineINT("UNITS_PER_TILES_NON_COMBAT_FACTOR"); // f1rpo.opt
 /************************************************************************************************/
 /* Mod Globals                        END                                           phungus420  */
 /************************************************************************************************/

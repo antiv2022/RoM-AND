@@ -28427,7 +28427,7 @@ void CvCity::distributeUnitsOverFreeTiles()
 		CvUnit* pLoopUnit;
 
 		// Initialize variables
-		int iCityLimit = GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getDefineINT("UNITS_PER_TILES_CITY_FACTOR", 3);
+		int iCityLimit = GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getUNITS_PER_TILES_CITY_FACTOR();
 		int iMilitaryLandUnits = this->plot()->getNumMilitaryLandUnits(this->getOwner());
 		int iMilitaryAirUnits = this->plot()->getNumMilitaryAirUnits(this->getOwner());
 		int iMilitaryNavalUnits = this->plot()->getNumMilitaryNavalUnits(this->getOwner());
