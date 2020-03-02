@@ -20684,12 +20684,15 @@ void CvPlayerAI::AI_doMilitary()
 	{
 		if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) == 0)
 		{
+			int iDisbandCount = 0; // f1rpo
 			for (int iPass = 0; iPass < 4; iPass++)
 			{
 				int iFundedPercent = AI_costAsPercentIncome();
 				int iSafePercent = AI_safeCostAsPercentIncome();
 				int iSafeBuffer = (1 + iPass) * 5; // this prevents the AI from disbanding their elite units unless the financial trouble is very severe
-				while ((iFundedPercent < (iSafePercent - iSafeBuffer)) && (calculateUnitCost() > 0))
+				while ((iFundedPercent < (iSafePercent - iSafeBuffer)) && (calculateUnitCost() > 0)
+					// f1rpo (advc.110): Per-turn limit on the number of units to disband
+					&& (iDisbandCount < std::max<int>(1, getCurrentEra()) || isStrike()))
 				{
 					int iExperienceThreshold;
 					switch (iPass)
@@ -20703,6 +20706,7 @@ void CvPlayerAI::AI_doMilitary()
 					{
 						break;
 					}
+					iDisbandCount++; // f1rpo
 					//Recalculate funding
 					iFundedPercent = AI_costAsPercentIncome();
 				}
@@ -29708,6 +29712,57 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 								FAssert(false);
 								break;
 							}
+							//<f1rpo> Take into account mission AI too (from K-Mod/ advc.110)
+							MissionAITypes const eMissionAI = pLoopUnit->getGroup()->AI_getMissionAIType();
+							switch (eMissionAI)
+							{
+							case MISSIONAI_GUARD_CITY:
+							{
+								CvPlot* pCityPlot = pLoopUnit->plot();
+								CvCity* pCity = pCityPlot->getPlotCity();
+								if (pCity == NULL)
+								{
+									pCityPlot = pLoopUnit->getGroup()->AI_getMissionAIPlot();
+									pCity = (pCityPlot != NULL ? pCityPlot->getPlotCity() : NULL);
+								}
+								if (pCity != NULL && pCity->getOwner() == getID())
+								{
+									int const iExtra = (pCity->plot()->plotCount(
+											PUF_canDefendGroupHead, -1, -1, pCity->getOwner(),
+											NO_TEAM, PUF_isCityAIType) -
+									pCity->AI_neededDefenders());
+									if (iExtra == 0)
+										iValue *= 2;
+									else if (iExtra < 0)
+										iValue *= 3;
+									if (AI_getAnyPlotDanger(pCityPlot, 2, false))
+										iValue = (iValue * fixp(2.5)).round();
+								}
+								break;
+							}
+							case MISSIONAI_PICKUP:
+							case MISSIONAI_FOUND:
+							case MISSIONAI_SPREAD:
+								iValue *= 3; // high value
+								break;
+							case MISSIONAI_ASSAULT:
+							{
+								CvPlot const* pMissionAIPlot = pLoopUnit->getGroup()->AI_getMissionAIPlot();
+								if (pMissionAIPlot != NULL && pMissionAIPlot->isOwned() &&
+									pLoopUnit->isPotentialEnemy(pMissionAIPlot->getTeam(), pMissionAIPlot))
+								{
+									iValue *= 5;
+								}
+								break;
+							}
+							case MISSIONAI_GUARD_BONUS:
+							case MISSIONAI_GUARD_TRADE_NET:
+							case MISSIONAI_GUARD_SPY:
+							case NO_MISSIONAI:
+								break; // low value
+							default:
+								iValue *= 2; // medium
+							} // f1rpo>
 
 							if (pLoopUnit->getUnitInfo().getExtraCost() > 0)
 							{
