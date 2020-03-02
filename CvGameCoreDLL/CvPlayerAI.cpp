@@ -32496,132 +32496,92 @@ int CvPlayerAI::AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bT
 	return iCount;
 }
 
-//this doesn't include the minimal one or two garrison units in each city.
+// f1rpo (advc.107): Replaced with AdvCiv code based on BBAI/K-Mod
 int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 {
 	PROFILE_FUNC();
-	int iDefenders;
-	int iCurrentEra = getCurrentEra();
-	int iAreaCities = pArea->getCitiesPerPlayer(getID());
-	
-	iCurrentEra = std::max(0, iCurrentEra - GC.getGame().getStartEra() / 2);
-	
-	iDefenders = 1 + ((iCurrentEra + ((GC.getGameINLINE().getMaxCityElimination() > 0) ? 3 : 2)) * iAreaCities);
-	iDefenders /= 3;
-	iDefenders += pArea->getPopulationPerPlayer(getID()) / 7;
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      04/01/10                                jdog5000      */
-/*                                                                                              */
-/* War strategy AI, Victory Strategy AI                                                         */
-/************************************************************************************************/
-	if( pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE || pArea->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE || pArea->getAreaAIType(getTeam()) == AREAAI_MASSING )
-	{
-		if( !pArea->isHomeArea(getID()) && iAreaCities <= std::min(4, pArea->getNumCities()/3) )
-		{
-			// Land war here, as floating defenders are based on cities/population need to make sure
-			// AI defends its footholds in new continents well.
-			iDefenders += GET_TEAM(getTeam()).countEnemyPopulationByArea(pArea) / 14;
-		}
-	}
+	FAssert(!isBarbarian());
+	CvGame const& kGame = GC.getGameINLINE();
+	AreaAITypes const eAreaAI = pArea->getAreaAIType(getTeam());
 
-	if (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE)
+	scaled const rCityFactor = scaled(pArea->getCitiesPerPlayer(getID())).pow(fixp(0.85));
+
+	scaled rDefenders = rCityFactor;
+	rDefenders += (1 + AI_totalAreaUnitAIs(pArea, UNITAI_SETTLE));
+	rDefenders += scaled(pArea->getPopulationPerPlayer(getID()), 8);
+	if (AI_isLandWar(pArea) && AI_isFocusWar(pArea))
 	{
-		iDefenders *= 2;
+		scaled rEnemyCityFactor = GET_TEAM(getTeam()).countEnemyCitiesByArea(pArea);
+		rEnemyCityFactor = scaled::min(rEnemyCityFactor, rCityFactor * fixp(2/3.));
+		rDefenders += 1 +
+				/*  Want to focus on aggressive build-up while preparing.
+					Can still train some extra defenders once war is imminent. */
+				((!GET_TEAM(getTeam()).AI_isSneakAttackPreparing() ? 0 : 2) +
+				rEnemyCityFactor) / 3;
 	}
-	else 
 	{
-		if( AI_isDoStrategy(AI_STRATEGY_ALERT2) )
+		int const iEra = std::max(0, getCurrentEra() - kGame.getStartEra() / 2);
+		rDefenders.mulDiv(iEra + (kGame.getMaxCityElimination() > 0 ? 5 : 4), 6);
+	}
+	if (eAreaAI == AREAAI_DEFENSIVE)
+		rDefenders *= fixp(1.5);
+	else
+	{
+		if (AI_isDoStrategy(AI_STRATEGY_ALERT2))
+			rDefenders *= fixp(5/3.);
+		else if (AI_isDoStrategy(AI_STRATEGY_ALERT1))
+			rDefenders *= fixp(1.5);
+		if (eAreaAI == AREAAI_OFFENSIVE)
+			rDefenders *= fixp(2/3.);
+		else if (eAreaAI == AREAAI_MASSING)
 		{
-			iDefenders *= 2;
-		}
-		else if( AI_isDoStrategy(AI_STRATEGY_ALERT1) )
-		{
-			iDefenders *= 3;
-			iDefenders /= 2;
-		}
-		else if (pArea->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE)
-		{
-			iDefenders *= 2;
-			iDefenders /= 3;
-		}
-		else if (pArea->getAreaAIType(getTeam()) == AREAAI_MASSING)
-		{
-			if( GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true) < (10 + GC.getLeaderHeadInfo(getPersonalityType()).getMaxWarNearbyPowerRatio()) )
+			if (GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true) <
+				10 + GC.getLeaderHeadInfo(getPersonalityType()).
+				getMaxWarNearbyPowerRatio())
 			{
-				iDefenders *= 2;
-				iDefenders /= 3;
+				rDefenders *= fixp(2/3.);
 			}
 		}
 	}
-	
-	if (AI_getTotalAreaCityThreat(pArea) == 0)
-	{
-		iDefenders /= 2;
-	}
-	
-	if (!GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI))
-	{
-		iDefenders *= 2;
-		iDefenders /= 3;
-	}
-
+	if (AI_feelsSafe())
+		rDefenders *= fixp(0.4);
+	if (!kGame.isOption(GAMEOPTION_AGGRESSIVE_AI))
+		rDefenders *= fixp(2/3.);
 	// Afforess - check finances
 	if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) == 0 && AI_isFinancialTrouble())
-	{
-		iDefenders = std::max(1, iDefenders / 2);
-	}
-
-	// Removed AI_STRATEGY_GET_BETTER_UNITS reduction, it was reducing defenses twice
-	
+		rDefenders *= fixp(2/3.); // (was /=2 in Afforess' code)
 	if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 	{
-		iDefenders += 2 * iAreaCities;
-		if (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE)
+		rDefenders += fixp(1.5) * rCityFactor;
+		if (eAreaAI == AREAAI_DEFENSIVE &&
+			AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
 		{
-			iDefenders *= 2; //go crazy
+			rDefenders *= 2;
 		}
 	}
-	
-	iDefenders *= 60;
-	iDefenders /= std::max(30, (GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAITrainPercent() - 20));
-	
-	if ((iCurrentEra < 3) && (GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS)))
+	rDefenders.mulDiv(60, std::max(30,
+			GC.getHandicapInfo(kGame.getHandicapType()).getAITrainPercent() - 20));
+	if (kGame.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
+		!GC.getEraInfo(getCurrentEra()).isNoBarbUnits())
 	{
-		iDefenders += 2;
+		int iStartEra = kGame.getStartEra();
+		if (kGame.getCurrentEra() <= 1 + iStartEra)
+			rDefenders += 1 + iStartEra;
 	}
-	
-	if (getCapitalCity() != NULL)
+	if (getCapitalCity() != NULL && getCapitalCity()->area() != pArea)
 	{
-		if (getCapitalCity()->area() != pArea)
-		{
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       01/23/09                                jdog5000      */
-/*                                                                                              */
-/* Bugfix, War tactics AI                                                                       */
-/************************************************************************************************/
-/* original BTS code
-			//Defend offshore islands only lightly.
-			iDefenders = std::min(iDefenders, iAreaCities * iAreaCities - 1);
-*/
-			// Lessen defensive requirements only if not being attacked locally
-			if( pArea->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE )
-			{
-				// This may be our first city captured on a large enemy continent, need defenses to scale up based
-				// on total number of area cities not just ours
-				iDefenders = std::min(iDefenders, iAreaCities * iAreaCities + pArea->getNumCities() - iAreaCities - 1);
-			}
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
-		}
+		scaled rUpperBound = rCityFactor * rCityFactor - 1;
+		// Do we have plans to expand our presence?
+		if (eAreaAI == AREAAI_OFFENSIVE || eAreaAI == AREAAI_MASSING)
+			rUpperBound += pArea->getNumCities() - pArea->getCitiesPerPlayer(getID());
+		if (eAreaAI == AREAAI_DEFENSIVE)
+			rUpperBound += fixp(0.5) * pArea->getNumCities();
+		rDefenders.decreaseTo(scaled::max(rUpperBound, 0));
 	}
-	
-	return iDefenders;
+	return rDefenders.round();
 }
+
 
 int CvPlayerAI::AI_getTotalFloatingDefenders(CvArea* pArea) const
 {

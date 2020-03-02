@@ -6578,7 +6578,7 @@ int CvCityAI::AI_neededDefenders()
 	{
 		if( isCapital() || isProductionProject())
 		{
-			iDefenders += 4;
+			iDefenders += 2; // f1rpo (advc.107): was +=4
 
 			if( bDefenseWar )
 			{
@@ -6696,16 +6696,22 @@ int CvCityAI::AI_minDefenders()
 {
 	int iDefenders = 1;
 	int iEra = GET_PLAYER(getOwnerINLINE()).getCurrentEra();
-	if (iEra > 0)
+	if (iEra >= 3) // f1rpo (advc.107): was >0
 	{
 		iDefenders++;
-		iDefenders += std::min(3, (iEra / 2));
+		//iDefenders += std::min(3, (iEra / 2));
+		/*	<f1rpo> 4 defenders in any backwater by the Industrial era?
+			From AdvCiv (advc.107): */
+		if (iEra > GC.getGameINLINE().getStartEra() && iEra >= 3 &&
+			isCoastal(2 * GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+		{
+			iDefenders++;
+		} // </f1rpo>
 	}
-
 	// Cap the iDefenders to the number a city tile can accept
 	int iMaxUnitsPerTile = GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES);
-	if (iMaxUnitsPerTile > 0 && iDefenders > ((iMaxUnitsPerTile * GC.getDefineINT("UNITS_PER_TILES_CITY_FACTOR", 3)) - 1)) {
-		iDefenders = ((iMaxUnitsPerTile * GC.getDefineINT("UNITS_PER_TILES_CITY_FACTOR", 3)) - 1);
+	if (iMaxUnitsPerTile > 0 && iDefenders > ((iMaxUnitsPerTile * GC.getUNITS_PER_TILES_CITY_FACTOR()) - 1)) {
+		iDefenders = ((iMaxUnitsPerTile * GC.getUNITS_PER_TILES_CITY_FACTOR()) - 1);
 	}
 
 	return std::max(1, iDefenders);
