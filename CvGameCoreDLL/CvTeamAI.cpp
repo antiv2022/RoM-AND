@@ -535,30 +535,29 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 /*                                                                                              */
 /* War strategy AI                                                                              */
 /************************************************************************************************/
-		if( bTargets )
+		/*if(bTargets && iAreaCities > 0 && getAtWarCount(true) > 0) {
+			int iPower = countPowerByArea(pArea);
+			int iEnemyPower = countEnemyPowerByArea(pArea);
+			if( AI_isPrimaryArea(pArea) && AI_getWarSuccessCapitulationRatio() < -50 ) {
+				// Use defensive stance if enemy has strong presence, we've been losing badly
+				if( iPower < iEnemyPower )
+					return AREAAI_DEFENSIVE;
+			} // Use defensive area AI right after invasions, to force vulnerable captured cities to be better defended
+			else if( 2*iPower < iEnemyPower )
+				return AREAAI_DEFENSIVE;
+		} }*/
+		// <f1rpo> (advc.107) Based on K-Mod code that was based on the BBAI code above
+		if (bTargets && iAreaCities > 0 && getAtWarCount(true) > 0)
 		{
-			if(iAreaCities > 0 && getAtWarCount(true) > 0) 
-			{
-				int iPower = countPowerByArea(pArea);
-				int iEnemyPower = countEnemyPowerByArea(pArea);
-				if( AI_isPrimaryArea(pArea) && AI_getWarSuccessCapitulationRatio() < -50 )
-				{
-					// Use defensive stance if enemy has strong presence, we've been losing badly
-					if( iPower < iEnemyPower )
-					{
-						return AREAAI_DEFENSIVE;
-					}
-				}
-				else
-				{
-					// Use defensive area AI right after invasions, to force vulnerable captured cities to be better defended
-					if( 2*iPower < iEnemyPower )
-					{
-						return AREAAI_DEFENSIVE;
-					}
-				}
-			}
-		}
+			int iPower = countPowerByArea(pArea);
+			int iEnemyPower = countEnemyPowerByArea(pArea);
+			iPower *= AI_limitedWarPowerRatio()
+					+ AI_getWarSuccessCapitulationRatio()
+					+ (bChosenTargets || !bRecentAttack ? 100 : 70);
+			iEnemyPower *= 100;
+			if (iPower < iEnemyPower)
+				return AREAAI_DEFENSIVE;
+		} // </f1rpo>
 
 		if (bDeclaredTargets)
 		{
@@ -656,7 +655,8 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 
 		if (iAreaCities > 0)
 		{
-			if (countEnemyDangerByArea(pArea) > iAreaCities)
+			if (countEnemyDangerByArea(pArea) > iAreaCities
+				* 2) // f1rpo (advc.107; from MNAI mod)
 			{
 				return AREAAI_DEFENSIVE;
 			}
