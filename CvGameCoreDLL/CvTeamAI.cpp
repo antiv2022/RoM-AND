@@ -3376,8 +3376,8 @@ void CvTeamAI::AI_getWarThresholds( int &iTotalWarThreshold, int &iLimitedWarThr
 	// BBAI TODO: Current UU, up aggression?
 
 	iHighUnitSpendingPercent /= std::max(1, getNumMembers());
-
-	iTotalWarThreshold = iHighUnitSpendingPercent * (bAggressive ? 3 : 2);
+	// f1rpo (advc.019): The '+=bAggressive?1:0' below should be enough aggro
+	iTotalWarThreshold = iHighUnitSpendingPercent * (/*bAggressive ? 3 :*/ 2);
 	if( bDom3 )
 	{
 		iTotalWarThreshold *= 3;
