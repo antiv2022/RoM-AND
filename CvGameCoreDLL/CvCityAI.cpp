@@ -9204,9 +9204,16 @@ void CvCityAI::AI_doDraft(bool bForce)
 					// Non-critical, only burn population if population is not worth much
 					if ((getConscriptAngerTimer() == 0) && ((AI_countWorkedPoorTiles() + std::max(0,(visiblePopulation() - AI_countGoodSpecialists(true)))) >= iConscriptPop))
 					{
-						if( (getPopulation() >= std::max(5, getHighestPopulation() - 1)) )
+						if( (getPopulation() >= std::max(5, getHighestPopulation() - 2)) ) // f1rpo: was ...-1
 						{
-							bWait = false;
+							// <f1rpo> Don't just draft for no particular reason (advc.017)
+							if ((bDanger || GET_PLAYER(getOwnerINLINE()).AI_isFocusWar()) &&
+								// And even when there is a reason, do it only probabilistically.
+								per100(AI_buildUnitProb(true)).bernoulliSuccess(
+								GC.getGame().getSorenRand(), "advc.017")) // </f1rpo>
+							{
+								bWait = false;
+							}
 						}
 					}
 				}
@@ -11897,43 +11904,60 @@ int CvCityAI::AI_experienceWeight()
 }
 
 
-int CvCityAI::AI_buildUnitProb()
+int CvCityAI::AI_buildUnitProb(/* f1rpo: */ bool bDraft)
 {
-	int iProb;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      05/29/10                                jdog5000      */
 /*                                                                                              */
 /* City AI, Barbarian AI                                                                        */
 /************************************************************************************************/
-	iProb = (GC.getLeaderHeadInfo(getPersonalityType()).getBuildUnitProb() + AI_experienceWeight());
-
-	if (!isBarbarian() && GET_PLAYER(getOwnerINLINE()).AI_isFinancialTrouble())
+	scaled r = per100( // f1rpo: Was int iProb. Use ScaledNum to reduce rounding artifacts.
+			GC.getLeaderHeadInfo(getPersonalityType()).getBuildUnitProb()/* + AI_experienceWeight()*/);
+	// <f1rpo> Count XP weight only half when drafting (advc.017)
 	{
-		iProb /= 2;
+		int iXPWeight = AI_experienceWeight();
+		if (bDraft)
+			iXPWeight /= 2;
+		r += per100(iXPWeight);
 	}
-	else if( GET_TEAM(getTeam()).getHasMetCivCount(false) == 0 )
+	bool bGreatlyReduced = false;
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	// </f1rpo>
+	if (!isBarbarian() && kOwner.AI_isFinancialTrouble())
 	{
-		iProb /= 2;
+		r /= 2;
+		bGreatlyReduced = true; // f1rpo
 	}
+	/*else if( GET_TEAM(getTeam()).getHasMetCivCount(false) == 0 )
+		r /= 2;*/
+	// <f1rpo> Replacing the above. The ECONOMY_FOCUS check is from K-Mod.
+	else if (kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS)
+		|| kOwner.getNumCities() <= 1)
+	{
+		r /= 2;
+		bGreatlyReduced = true;
+	}
+	//else // </f1rpo>
 	// more units from cities with military production bonuses
-	else
-	{
-		iProb += std::min(15,getMilitaryProductionModifier()/4);
-	}
+	r += scaled::min(fixp(0.15), per100(getMilitaryProductionModifier()) / 4);
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
+	// <f1rpo> From K-Mod; GET_BETTER_UNITS guard from AdvCiv (advc.017).
+	CvGame const& kGame = GC.getGameINLINE();
+	if (kOwner.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
+	{
+		int const iEraDiff = kGame.getCurrentEra() - kOwner.getCurrentEra();
+		if (iEraDiff > 0)
+			r *= per100(std::max(40, 100 - 20 * iEraDiff));
+	} // <f1rpo>
 /************************************************************************************************/
 /* REVOLUTION_MOD                         11/08/08                                jdog5000      */
 /*                                                                                              */
 /*                                                                                              */
 /************************************************************************************************/
-	if( GET_PLAYER(getOwnerINLINE()).isRebel() )
-	{
-		iProb *= 4;
-		iProb /= 3;
-	}
-
+	if(kOwner.isRebel())
+		r *= fixp(4/3.);
 /************************************************************************************************/
 /* REVOLUTION_MOD                          END                                                  */
 /************************************************************************************************/
@@ -11943,23 +11967,65 @@ int CvCityAI::AI_buildUnitProb()
 /*                                                                                              */
 /************************************************************************************************/
 	if (AI_isMilitaryProductionCity())
-	{
-		iProb *= 4;
-		iProb /= 3;
-	}
-	else if (GET_PLAYER(getOwnerINLINE()).AI_getMilitaryProductionCityCount() > 0)
-	{
-		iProb *= 3;
-		iProb /= 4;
-	}
+		r *= fixp(4/3.);
+	else if (kOwner.AI_getMilitaryProductionCityCount() > 0)
+		r *= fixp(3/4.);
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
-	if (isBarbarian() && GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS))
+	if (isBarbarian() && kGame.isOption(GAMEOPTION_RAGING_BARBARIANS))
 	{
-		iProb = 95; // Increased unit building for barbarians when raging is on. dbkblk, 2015-09
+		//iProb = 95; // Increased unit building for barbarians when raging is on. dbkblk, 2015-09
+		r *= fixp(1.6); // f1rpo: ^That seems very crude. NB: Barbarian BuildUnitProb is 50 in XML.
 	}
-	return iProb;
+	/*	<f1rpo> Throttle unit production when already far more powerful
+		than potential enemies (advc.017) */
+	if (!isBarbarian())
+	{
+		int const iCities = kOwner.getNumCities();
+		if (iCities > 1)
+		{
+			CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
+			int iHighestRivalPow = 1;
+			for (int i = 0; i < MAX_CIV_TEAMS; i++)
+			{
+				if (i == kOurTeam.getID())
+					continue;
+				CvTeamAI const& kRival = GET_TEAM((TeamTypes)i);
+				if (!kRival.isAlive() || kRival.isAVassal() || !kOurTeam.isHasMet(kRival.getID()))
+					continue;
+				if (kOurTeam.AI_getWarPlan(kRival.getID()) != NO_WARPLAN
+					|| !kOurTeam.AI_isAvoidWar(kRival.getID(), true)
+					|| !kRival.AI_isAvoidWar(kOurTeam.getID()))
+				{
+					iHighestRivalPow = std::max(kRival.getPower(true), iHighestRivalPow);
+				}
+			}
+			scaled rPowRatio(kOurTeam.getPower(false), iHighestRivalPow);
+			if (rPowRatio > 1)
+			{
+				scaled rAdvantage = rPowRatio - 1;
+				if(rAdvantage >= fixp(1.5))
+				{
+					//r /= 4;
+					// Decrease to less than one quarter (as requested by Inthegarev)
+					r /= scaled(16,9) * rAdvantage * rAdvantage;
+					bGreatlyReduced = true;
+				}
+				else r *= 1 - rAdvantage / 2;
+			}
+		}
+		/*  Can't afford to specialize one city entirely on military production
+			until we've expanded a bit */
+		r.decreaseTo(fixp(0.2) * (1 + iCities));
+		/*  Don't get too careless in the early game when most cities have
+			negative AI_experienceWeight */
+		if (!bGreatlyReduced)
+			r.increaseTo(per100(25 - 2 * iCities));
+	} // </f1rpo>
+
+	r.decreaseTo(1); // f1rpo (from K-Mod)
+	return r.getPercent(); // f1rpo: Caller expects percent scale
 }
 
 

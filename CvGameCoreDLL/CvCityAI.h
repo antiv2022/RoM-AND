@@ -399,7 +399,7 @@ protected:
 	int AI_plotValue(CvPlot* pPlot, bool bAvoidGrowth, bool bRemove, bool bIgnoreFood = false, bool bIgnoreGrowth = false, bool bIgnoreStarvation = false);
 
 	int AI_experienceWeight();
-	int AI_buildUnitProb();
+	int AI_buildUnitProb(/* f1rpo: */ bool bDraft = false);
 
 	void AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peBestBuild, int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop, int iHappyAdjust, int iHealthAdjust, int iFoodChange);
 /************************************************************************************************/
