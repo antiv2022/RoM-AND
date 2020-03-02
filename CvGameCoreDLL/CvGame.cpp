@@ -877,6 +877,10 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	//m_bNukesValid = false;
 
 	m_eHandicap = eHandicap;
+	// <f1rpo.autoplay>
+	m_eAIHandicap = (bConstructorCall ? NO_HANDICAP
+			// (XML not loaded when constructor called)
+			: (HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP")); // </f1rpo.autoplay>
 	m_ePausePlayer = NO_PLAYER;
 	m_eBestLandUnit = NO_UNIT;
 	m_eWinner = NO_TEAM;
@@ -1242,9 +1246,11 @@ void CvGame::initFreeState()
 
 void CvGame::initFreeUnits()
 {
-	int iI;
+	/*	f1rpo.autoplay: initFreeUnits is one of the few init functions that
+		doesn't get skipped in scenarios */
+	initAIHandicap();
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -1254,6 +1260,26 @@ void CvGame::initFreeUnits()
 			}
 		}
 	}
+}
+
+
+// f1rpo.autoplay:
+void CvGame::initAIHandicap()
+{
+	// Set m_eAIHandicap to the average of AI handicaps
+	int iHandicapSum = 0;
+	int iDiv = 0;
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
+		CvPlayer const& kAIPlayer = GET_PLAYER((PlayerTypes)i);
+		if(kAIPlayer.isAlive() && !kAIPlayer.isHuman() && !kAIPlayer.isMinorCiv())
+		{
+			iHandicapSum += kAIPlayer.getHandicapType();
+			iDiv++;
+		}
+	}
+	if(iDiv > 0) // Leaves it at STANDARD_HANDICAP in all-human games
+		m_eAIHandicap = (HandicapTypes)ROUND_DIVIDE(iHandicapSum, iDiv);
 }
 
 
@@ -10919,6 +10945,7 @@ void CvGame::read(FDataStreamBase* pStream)
 	WRAPPER_SKIP_ELEMENT(wrapper,"CvGame",&m_bNukesValid, SAVE_VALUE_ANY);
 
 	WRAPPER_READ(wrapper,"CvGame",(int*)&m_eHandicap);
+	WRAPPER_READ(wrapper,"CvGame",(int*)&m_eAIHandicap); // f1rpo.autoplay
 	WRAPPER_READ(wrapper,"CvGame",(int*)&m_ePausePlayer);
 
 	m_eBestLandUnit = NO_UNIT;
@@ -11306,6 +11333,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	// WRAPPER_WRITE(wrapper, "CvGame", m_bNukesValid);
 
 	WRAPPER_WRITE(wrapper, "CvGame", m_eHandicap);
+	WRAPPER_WRITE(wrapper, "CvGame", m_eAIHandicap); // f1rpo.autoplay
 	WRAPPER_WRITE(wrapper, "CvGame", m_ePausePlayer);
 	WRAPPER_WRITE_CLASS_ENUM(wrapper, "CvGame", REMAPPED_CLASS_TYPE_UNITS, m_eBestLandUnit);
 	WRAPPER_WRITE(wrapper, "CvGame", m_eWinner);
@@ -15652,6 +15680,7 @@ void CvGame::resync(bool bWrite, ByteBuffer *pBuffer)
 	RESYNC_BOOL(bWrite, pBuffer, m_bFinalInitialized);
 	RESYNC_BOOL(bWrite, pBuffer, m_bHotPbemBetweenTurns);
 	RESYNC_INT_WITH_CAST(bWrite, pBuffer, m_eHandicap, HandicapTypes);
+	RESYNC_INT_WITH_CAST(bWrite, pBuffer, m_eAIHandicap, HandicapTypes); // f1rpo.autoplay
 	RESYNC_INT_WITH_CAST(bWrite, pBuffer, m_ePausePlayer, PlayerTypes);
 	RESYNC_INT_WITH_CAST(bWrite, pBuffer, m_eBestLandUnit, UnitTypes);
 	RESYNC_INT_WITH_CAST(bWrite, pBuffer, m_eWinner, TeamTypes);

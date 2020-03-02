@@ -543,6 +543,7 @@ public:
 
 	DllExport HandicapTypes getHandicapType() const;
 	DllExport void setHandicapType(HandicapTypes eHandicap);
+	HandicapTypes getAIHandicap() const { return m_eAIHandicap; } // f1rpo.autoplay
 
 	DllExport PlayerTypes getPausePlayer() const;																			// Exposed to Python
 	DllExport bool isPaused() const;																									// Exposed to Python
@@ -940,6 +941,7 @@ protected:
 	TeamTypes m_circumnavigatingTeam;
 
 	HandicapTypes m_eHandicap;
+	HandicapTypes m_eAIHandicap; // f1rpo
 	PlayerTypes m_ePausePlayer;
 	mutable UnitTypes m_eBestLandUnit;
 	TeamTypes m_eWinner;
@@ -1020,6 +1022,8 @@ protected:
 
 	bool	m_plotGroupHashesInitialized;
 	bool	m_bRecalculatingModifiers;
+
+	void initAIHandicap(); // f1rpo.autoplay
 
 	void doTurn();
 	void doDeals();

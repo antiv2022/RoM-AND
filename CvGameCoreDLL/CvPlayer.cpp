@@ -17611,13 +17611,15 @@ PlayerTypes CvPlayer::getID() const
 }
 
 
-HandicapTypes CvPlayer::getHandicapType() const																
-{
+HandicapTypes CvPlayer::getHandicapType() const
+{	// <f1rpo.autoplay> Use AI handicap during AI Auto Play (advc.127)
+	if (isHumanDisabled())
+		return GC.getGame().getAIHandicap(); // </f1rpo.autoplay>
 	return GC.getInitCore().getHandicap(getID());
 }
 
 
-CivilizationTypes CvPlayer::getCivilizationType() const														
+CivilizationTypes CvPlayer::getCivilizationType() const
 {
 	return GC.getInitCore().getCiv(getID());
 }
