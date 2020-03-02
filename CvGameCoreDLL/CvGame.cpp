@@ -7140,7 +7140,8 @@ void CvGame::doTurn()
 
 	EraTypes eStartEra = getStartEra();
 	EraTypes eEndEra = (EraTypes)(isOption(GAMEOPTION_NO_FUTURE) ? GC.getInfoTypeForString("ERA_MODERN") : GC.getNumEraInfos() - 1);
-	int iEraCount = eEndEra - eStartEra;
+	int iEraCount = /* f1rpo: bugfix: */ std::max(1,
+			eEndEra - eStartEra);
 	//Assuming we divide turns evenly per era
 	float fExpectedEra = (float)((getElapsedGameTurns() / (float)(iEstimateEndTurn / iEraCount)) + eStartEra);
 
