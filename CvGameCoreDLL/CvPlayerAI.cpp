@@ -4312,6 +4312,104 @@ bool CvPlayerAI::AI_isPrimaryArea(CvArea* pArea) const
 	}
 
 	return false;
+}
+
+// f1rpo (advc.109): Akin to AI_getTotalAreaCityThreat, but much coarser.
+bool CvPlayerAI::AI_feelsSafe() const
+{
+	if (getNumCities() <= 1)
+		return false; // Don't mess with early-game strategy
+	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
+	if (kOurTeam.getAnyWarPlanCount(true) > 0)
+		return false;
+	CvGame const& kGame = GC.getGameINLINE();
+	CvCity const* pCapital = getCapitalCity();
+	EraTypes const iGameEra = kGame.getCurrentEra();
+	/*  >=3: Anyone could attack across the sea, and can't fully trust friends
+		anymore either as the game progresses */
+	if (pCapital == NULL || iGameEra >= 3 || AI_isThreatFromMinorCiv())
+		return false;
+	// Akin to AI_isDefenseFocusOnBarbarians
+	if (!pCapital->area()->isBorderObstacle(getTeam())
+		&& !kGame.isOption(GAMEOPTION_NO_BARBARIANS) &&
+		((((iGameEra <= 2 && iGameEra > 0)
+		|| (iGameEra > 2 && iGameEra == kGame.getStartEra()))
+		&& kGame.isOption(GAMEOPTION_RAGING_BARBARIANS))
+		|| 3 * GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pCapital->area())
+		> getNumCities()))
+	{
+		return false;
+	}
+	for (int i = 0; i < MAX_CIV_TEAMS; i++)
+	{
+		if (i == getTeam())
+			continue;
+		CvTeamAI const& kRival = GET_TEAM((TeamTypes)i);
+		if (!kRival.isAlive() || kRival.isMinorCiv() || !kOurTeam.isHasMet(kRival.getID()))
+			continue;
+		if(kRival.isHuman())
+			return false;
+		if(!kRival.AI_isAvoidWar(getTeam())
+			&& 3 * kRival.getPower(true) > 2 * kOurTeam.getPower(false)
+			&& (GET_PLAYER(kRival.getLeaderID()).getCurrentEra() >= 3 // seafaring
+			|| kRival.AI_isPrimaryArea(pCapital->area())))
+			// Check this instead? Might be a bit slow ...
+			// kOurTeam.AI_hasCitiesInPrimaryArea(kRival.getID())
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+// f1rpo (advc.109): Helper function for AI_feelsSafe
+bool CvPlayerAI::AI_isThreatFromMinorCiv() const
+{
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
+		if (i == getTeam())
+			continue;
+		CvPlayerAI const& kMinor = GET_PLAYER((PlayerTypes)i);
+		if (!kMinor.isAlive() || !kMinor.isMinorCiv()
+			|| !GET_TEAM(getTeam()).isHasMet(kMinor.getTeam()))
+		{
+			continue;
+		}
+		if(2 * kMinor.getPower() > getPower() &&
+			(getCapitalCity() == NULL || kMinor.AI_isPrimaryArea(getCapitalCity()->area())))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+/*  f1rpo (advc.105): Akin to CvTeam::getAnyWarPlanCount, but, sometimes,
+	a war is a phony war that the AI shouldn't get distracted by. */
+bool CvPlayerAI::AI_isFocusWar(CvArea const* pArea) const
+{
+	CvCity const* pCapital = getCapitalCity();
+	if(pCapital == NULL)
+		return false;
+	if(pArea == NULL)
+		pArea = pCapital->area();
+	/*  Chosen wars (ongoing or in preparation) are always worth focusing on;
+		others only when on the defensive. (In CvTeamAI::AI_calculateAreaAIType,
+		bTargets and bDeclaredTargets are computed in a similar way .) */
+	if (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE
+		|| AI_isDoStrategy(AI_STRATEGY_ALERT2))
+	{
+		return true;
+	}
+	for (int i = 0; i < MAX_CIV_TEAMS; i++)
+	{
+		CvTeam const& kEnemy = GET_TEAM((TeamTypes)i);
+		if (kEnemy.isAlive() && GET_TEAM(getTeam()).AI_isChosenWar(kEnemy.getID()))
+			return true;
+	}
+	return false;
+}
+
 // f1rpo (advc.107): from K-Mod
 bool CvPlayerAI::AI_isLandWar(CvArea const* pArea) const
 {
@@ -31175,8 +31273,9 @@ int CvPlayerAI::AI_getStrategyHash() const
 	}
 
 	// Economic focus (K-Mod) - Note: this strategy is a gambit. The goal is catch up in tech by avoiding building units.
-	if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) == 0 &&
-		(100 * iAverageEnemyUnit >= 150 * iTypicalAttack && 100 * iAverageEnemyUnit >= 180 * iTypicalDefence))
+	if (//GET_TEAM(getTeam()).getAnyWarPlanCount(true) == 0 &&
+		!AI_isFocusWar() && (AI_feelsSafe() || // f1rpo (advc.109)
+		(100 * iAverageEnemyUnit >= 150 * iTypicalAttack && 100 * iAverageEnemyUnit >= 180 * iTypicalDefence)))
 	{
 		m_iStrategyHash |= AI_STRATEGY_ECONOMY_FOCUS;
 	}

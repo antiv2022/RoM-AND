@@ -136,7 +136,10 @@ public:
 	bool AI_isAreaAlone(CvArea* pArea) const;
 	bool AI_isCapitalAreaAlone() const;
 	bool AI_isPrimaryArea(CvArea* pArea) const;
-
+	// <f1rpo>
+	bool AI_feelsSafe() const;
+	bool AI_isFocusWar(CvArea const* pArea = NULL) const;
+	bool AI_isLandWar(CvArea const* kArea) const; // </f1rpo>
 	int AI_militaryWeight(CvArea* pArea) const;
 
 	int AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreAttackers = false) const;
@@ -735,6 +738,7 @@ protected:
 	int AI_getStrategyHash() const;
 	void AI_calculateAverages() const;
 
+	bool AI_isThreatFromMinorCiv() const; // f1rpo
 /********************************************************************************/
 /* 	New Civic AI						02.08.2010				Fuyu			*/
 /********************************************************************************/
