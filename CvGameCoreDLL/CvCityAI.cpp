@@ -9178,7 +9178,8 @@ void CvCityAI::AI_doDraft(bool bForce)
 			// Large cities want a little spare happiness
 			int iHappyDiff = GC.getDefineINT("CONSCRIPT_POP_ANGER") - iConscriptPop + getPopulation()/10;
 
-            if (bLandWar && (0 == angryPopulation(iHappyDiff)))
+            if (bLandWar && (0 == angryPopulation(iHappyDiff))
+				&& (bDanger || GET_PLAYER(getOwnerINLINE()).AI_isFocusWar())) // f1rpo (advc.017)
             {
                 bool bWait = true;
 
@@ -9213,11 +9214,8 @@ void CvCityAI::AI_doDraft(bool bForce)
 					if ((getConscriptAngerTimer() == 0) && ((AI_countWorkedPoorTiles() + std::max(0,(visiblePopulation() - AI_countGoodSpecialists(true)))) >= iConscriptPop))
 					{
 						if( (getPopulation() >= std::max(5, getHighestPopulation() - 2)) ) // f1rpo: was ...-1
-						{
-							// <f1rpo> Don't just draft for no particular reason (advc.017)
-							if ((bDanger || GET_PLAYER(getOwnerINLINE()).AI_isFocusWar()) &&
-								// And even when there is a reason, do it only probabilistically.
-								per100(AI_buildUnitProb(true)).bernoulliSuccess(
+						{	// <f1rpo> Tie it to AI_buildUnitProb
+							if (per100(AI_buildUnitProb(true)).bernoulliSuccess(
 								GC.getGame().getSorenRand(), "advc.017")) // </f1rpo>
 							{
 								bWait = false;
