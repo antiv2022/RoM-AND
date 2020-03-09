@@ -378,7 +378,7 @@ bool CvUnitAI::AI_update()
 		case AUTOMATE_CANCEL_UPGRADING:
 		case AUTOMATE_PROMOTIONS:
 		case AUTOMATE_CANCEL_PROMOTIONS:
-			FAssertMsg(false, "SelectionGroup Should Not be Using These Automations!")
+			FAssertMsg(false, "SelectionGroup Should Not be Using These Automations!");
 			break;
 		case AUTOMATE_SHADOW:
 			//	If we've lost the unit qwe should be shadowing (not sure how this can happen but empirically

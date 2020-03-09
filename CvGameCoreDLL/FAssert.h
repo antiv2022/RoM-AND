@@ -66,9 +66,9 @@ bool FAssertDlg( const char*, const char*, const char*, unsigned int, bool& );
 
 #else
 // FASSERT_ENABLE not defined
-#define FAssert( expr )
-#define FAssertMsg( expr, msg )
-#define FASSERT_BOUNDS(lower,upper,index,fnString) void(0) // f1rpo (forces semicolon)
+#define FAssert( expr ) void(0) // f1rpo (forces semicolon)
+#define FAssertMsg( expr, msg ) void(0) // f1rpo
+#define FASSERT_BOUNDS(lower,upper,index,fnString) void(0) // f1rpo
 #endif
 
 /*	f1rpo: The fnString is pretty unnecessary; we get __FILE__ and __LINE__ anyway.

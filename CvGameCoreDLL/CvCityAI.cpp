@@ -15338,7 +15338,7 @@ public:
 
 	void AccumulateTo(int iFocusIndex, int value)
 	{
-		FAssertMsg( iFocusIndex < NUM_ALL_BUILDINGFOCUS_FLAGS, "iFocusIndex out of range" )
+		FAssertMsg( iFocusIndex < NUM_ALL_BUILDINGFOCUS_FLAGS, "iFocusIndex out of range" );
 		m_focusValues[iFocusIndex] += value;
 	}
 

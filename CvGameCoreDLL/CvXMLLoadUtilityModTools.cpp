@@ -622,7 +622,7 @@ CvString CvXMLLoadUtilityModTools::deleteFileName(const char* szDirName, const c
 	}
 	else
 	{
-		FAssertMsg(false, "Couldn't find the directory slash")
+		FAssertMsg(false, "Couldn't find the directory slash");
 	}
 
 	return szDirNameStrip;

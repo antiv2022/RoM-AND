@@ -4864,7 +4864,7 @@ void CvGame::changeAIAutoPlay(PlayerTypes iPlayer, int iChange)
 
 bool CvGame::isForcedAIAutoPlay(PlayerTypes iPlayer)
 {
-	FAssert(getForcedAIAutoPlay(iPlayer) >=0)
+	FAssert(getForcedAIAutoPlay(iPlayer) >=0);
 
 	if(getForcedAIAutoPlay(iPlayer) > 0)
 	{

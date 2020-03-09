@@ -3632,7 +3632,7 @@ CvString& cvInternalGlobals::getFootstepAudioTags(int i)
 	{
 		emptyString = new CvString("");
 	}
-	FAssertMsg(i < GC.getNumFootstepAudioTypes(), "Index out of bounds")
+	FAssertMsg(i < GC.getNumFootstepAudioTypes(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
 	return m_paszFootstepAudioTags ? m_paszFootstepAudioTags[i] : *emptyString;
 }
