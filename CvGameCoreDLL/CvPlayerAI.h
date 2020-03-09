@@ -165,7 +165,8 @@ public:
 
 	bool AI_avoidScience() const;
 	bool AI_isFinancialTrouble() const;
-	int AI_costAsPercentIncome(int iExtraCost = 0) const;
+	int AI_costAsPercentIncome(int iExtraCost = 0,
+		int* piNetCommerce = NULL) const; // f1rpo
 	int AI_safeCostAsPercentIncome() const;
 	int AI_goldTarget() const;
 	int AI_goldValueAssessmentModifier() const;

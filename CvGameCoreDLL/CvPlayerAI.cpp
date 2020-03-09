@@ -5378,13 +5378,17 @@ int CvPlayerAI::AI_safeCostAsPercentIncome() const
 	return iSafePercent;
 }
 
-int CvPlayerAI::AI_costAsPercentIncome(int iExtraCost) const
+int CvPlayerAI::AI_costAsPercentIncome(int iExtraCost,
+	int* piNetCommerce) const // f1rpo
 {
 	PROFILE_FUNC();
 
 	int iTotalCommerce = calculateTotalYield(YIELD_COMMERCE);
 	int iBaseNetCommerce = 1 + getCommerceRate(COMMERCE_GOLD) + std::max(0, getGoldPerTurn());
 	int iNetCommerce = iBaseNetCommerce + ((100-getCommercePercent(COMMERCE_GOLD))*iTotalCommerce)/100;
+	// <f1rpo>
+	if (piNetCommerce != NULL)
+		*piNetCommerce = iNetCommerce; // </f1rpo>
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       06/11/09                       jdog5000 & DanF5771    */
 /*                                                                                              */
@@ -20687,10 +20691,15 @@ void CvPlayerAI::AI_doMilitary()
 			int iDisbandCount = 0; // f1rpo
 			for (int iPass = 0; iPass < 4; iPass++)
 			{
-				int iFundedPercent = AI_costAsPercentIncome();
+				int iNetCommerce=NULL; // f1rpo
+				int iFundedPercent = AI_costAsPercentIncome(0, /* f1rpo: */ &iNetCommerce);
 				int iSafePercent = AI_safeCostAsPercentIncome();
 				int iSafeBuffer = (1 + iPass) * 5; // this prevents the AI from disbanding their elite units unless the financial trouble is very severe
-				while ((iFundedPercent < (iSafePercent - iSafeBuffer)) && (calculateUnitCost() > 0)
+				while ((iFundedPercent < (iSafePercent - iSafeBuffer)) //&& (calculateUnitCost() > 0)
+					/*	f1rpo: At least with Chronicles, the AI apparently can't be trusted
+						to choose affordable civics. At least stop it from disbanding down
+						to 0 unit cost. */
+					&& (calculateUnitCost() * 100) > 4 * iNetCommerce
 					// f1rpo (advc.110): Per-turn limit on the number of units to disband
 					&& (iDisbandCount < std::max<int>(1, getCurrentEra()) || isStrike()))
 				{
@@ -29509,16 +29518,10 @@ void CvPlayerAI::AI_doCheckFinancialTrouble()
 
 bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 {
-	CvUnit* pLoopUnit;
-	CvUnit* pBestUnit;
-	int iValue;
-	int iBestValue;
+	scaled rBestValue = scaled::MAX();
+	CvUnit* pBestUnit = NULL;
 	int iLoop = 0;
-
-	iBestValue = MAX_INT;
-	pBestUnit = NULL;
-
-	for(pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	for(CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
 		if (!(pLoopUnit->hasCargo()))
 		{
@@ -29535,25 +29538,16 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 /*                                                                                              */
 /* Gold AI                                                                                      */
 /************************************************************************************************/
-							iValue = (10000 + GC.getGameINLINE().getSorenRandNum(1000, "Disband Unit"));
-
-							iValue *= 100 + (pLoopUnit->getUnitInfo().getProductionCost() * 3);
-							iValue /= 100;
-
-							iValue *= 100 + (pLoopUnit->getExperience() * 10);
-							iValue /= 100;
-							
-							iValue *= 100 + (pLoopUnit->getLevel() * 25);
-							iValue /= 100;
-
+							// f1rpo: Use ScaledNum to avoid overflow
+							scaled rValue = per1000(10000 + GC.getGameINLINE().getSorenRandNum(1000, "Disband Unit"));
+							rValue *= per100(100 + (pLoopUnit->getUnitInfo().getProductionCost() * 3));
+							rValue *= per100(100 + (pLoopUnit->getExperience() * 10));
+							rValue *= per100(100 + (pLoopUnit->getLevel() * 25));
 							if (pLoopUnit->plot()->getTeam() == pLoopUnit->getTeam())
 							{
-								iValue *= 3;
-
+								rValue *= 3;
 								if (pLoopUnit->canDefend() && pLoopUnit->plot()->isCity())
-								{
-									iValue *= 2;
-								}
+									rValue *= 2;
 							}
 
 							// Multiplying by higher number means unit has higher priority, less likely to be disbanded
@@ -29567,7 +29561,7 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 								//	For now make them less valuable the more you have (strictly this should depend
 								//	on what you need in terms of their buildable buildings, but start with an
 								//	approximation that is better than nothing
-								iValue *= std::min(0, getNumCities()*2 - AI_getNumAIUnits(UNITAI_SUBDUED_ANIMAL))/std::min(1,getNumCities());
+								rValue *= std::min(0, getNumCities()*2 - AI_getNumAIUnits(UNITAI_SUBDUED_ANIMAL))/std::min(1,getNumCities());
 								break;
 
 							case UNITAI_HUNTER:
@@ -29575,16 +29569,16 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 								if ((GC.getGame().getGameTurn() - pLoopUnit->getGameTurnCreated()) < 10 
 									|| pLoopUnit->plot()->getTeam() != getTeam())
 								{
-									iValue *= 10;
+									rValue *= 10;
 								}
 								else
 								{
-									iValue *= 2;
+									rValue *= 2;
 								}
 								break;
 
 							case UNITAI_SETTLE:
-								iValue *= 20;
+								rValue *= 20;
 								break;
 
 							case UNITAI_WORKER:
@@ -29594,7 +29588,7 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 									{
 										if (pLoopUnit->plot()->getPlotCity()->AI_getWorkersNeeded() == 0)
 										{
-											iValue *= 10;
+											rValue *= 10;
 										}
 									}
 								}
@@ -29607,25 +29601,25 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 							case UNITAI_RESERVE:
 							case UNITAI_COUNTER:
 							case UNITAI_PILLAGE_COUNTER:
-								iValue *= 2;
+								rValue *= 2;
 								break;
 
 							case UNITAI_CITY_DEFENSE:
 							case UNITAI_CITY_COUNTER:
 							case UNITAI_CITY_SPECIAL:
 							case UNITAI_PARADROP:
-								iValue *= 6;
+								rValue *= 6;
 								break;
 
 							case UNITAI_EXPLORE:
 								if ((GC.getGame().getGameTurn() - pLoopUnit->getGameTurnCreated()) < 10 
 									|| pLoopUnit->plot()->getTeam() != getTeam())
 								{
-									iValue *= 15;
+									rValue *= 15;
 								}
 								else
 								{
-									iValue *= 2;
+									rValue *= 2;
 								}
 								break;
 
@@ -29633,7 +29627,7 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 								if ((GC.getGame().getGameTurn() - pLoopUnit->getGameTurnCreated()) < 10 
 									|| pLoopUnit->plot()->getTeam() != getTeam())
 								{
-									iValue *= 8;
+									rValue *= 8;
 								}
 								break;
 
@@ -29643,19 +29637,19 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 							case UNITAI_GENERAL:
 							case UNITAI_MERCHANT:
 							case UNITAI_ENGINEER:
-								iValue *= 20;
+								rValue *= 20;
 								break;
 
 							case UNITAI_SPY:
-								iValue *= 12;
+								rValue *= 12;
 								break;
 
 							case UNITAI_ICBM:
-								iValue *= 4;
+								rValue *= 4;
 								break;
 
 							case UNITAI_WORKER_SEA:
-								iValue *= 18;
+								rValue *= 18;
 								break;
 
 							case UNITAI_ATTACK_SEA:
@@ -29667,27 +29661,27 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 								if ((GC.getGame().getGameTurn() - pLoopUnit->getGameTurnCreated()) < 10 
 									|| pLoopUnit->plot()->getTeam() != getTeam())
 								{
-									iValue *= 12;
+									rValue *= 12;
 								}
 								break;
 
 							case UNITAI_SETTLER_SEA:
-								iValue *= 6;
+								rValue *= 6;
 
 							case UNITAI_MISSIONARY_SEA:
 							case UNITAI_SPY_SEA:
-								iValue *= 4;
+								rValue *= 4;
 
 							case UNITAI_ASSAULT_SEA:
 							case UNITAI_CARRIER_SEA:
 							case UNITAI_MISSILE_CARRIER_SEA:
 								if( GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0 )
 								{
-									iValue *= 5;
+									rValue *= 5;
 								}
 								else
 								{
-									iValue *= 2;
+									rValue *= 2;
 								}
 								break;
 
@@ -29700,11 +29694,11 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 							case UNITAI_MISSILE_AIR:
 								if( GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0 )
 								{
-									iValue *= 5;
+									rValue *= 5;
 								}
 								else
 								{
-									iValue *= 3;
+									rValue *= 3;
 								}
 								break;
 
@@ -29725,25 +29719,25 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 									pCityPlot = pLoopUnit->getGroup()->AI_getMissionAIPlot();
 									pCity = (pCityPlot != NULL ? pCityPlot->getPlotCity() : NULL);
 								}
-								if (pCity != NULL && pCity->getOwner() == getID())
+								if (pCity != NULL && pCity->getOwnerINLINE() == getID())
 								{
 									int const iExtra = (pCity->plot()->plotCount(
-											PUF_canDefendGroupHead, -1, -1, pCity->getOwner(),
+											PUF_canDefendGroupHead, -1, -1, pCity->getOwnerINLINE(),
 											NO_TEAM, PUF_isCityAIType) -
-									pCity->AI_neededDefenders());
+											pCity->AI_neededDefenders());
 									if (iExtra == 0)
-										iValue *= 2;
+										rValue *= 2;
 									else if (iExtra < 0)
-										iValue *= 3;
+										rValue *= 3;
 									if (AI_getAnyPlotDanger(pCityPlot, 2, false))
-										iValue = (iValue * fixp(2.5)).round();
+										rValue *= fixp(2.5);
 								}
 								break;
 							}
 							case MISSIONAI_PICKUP:
 							case MISSIONAI_FOUND:
 							case MISSIONAI_SPREAD:
-								iValue *= 3; // high value
+								rValue *= 3; // high value
 								break;
 							case MISSIONAI_ASSAULT:
 							{
@@ -29751,7 +29745,7 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 								if (pMissionAIPlot != NULL && pMissionAIPlot->isOwned() &&
 									pLoopUnit->isPotentialEnemy(pMissionAIPlot->getTeam(), pMissionAIPlot))
 								{
-									iValue *= 5;
+									rValue *= 5;
 								}
 								break;
 							}
@@ -29761,17 +29755,17 @@ bool CvPlayerAI::AI_disbandUnit(int iExpThreshold, bool bObsolete)
 							case NO_MISSIONAI:
 								break; // low value
 							default:
-								iValue *= 2; // medium
+								rValue *= 2; // medium
 							} // f1rpo>
 
 							if (pLoopUnit->getUnitInfo().getExtraCost() > 0)
 							{
-								iValue /= (pLoopUnit->getUnitInfo().getExtraCost() + 1);
+								rValue /= (pLoopUnit->getUnitInfo().getExtraCost() + 1);
 							}
 
-							if (iValue < iBestValue)
+							if (rValue < rBestValue)
 							{
-								iBestValue = iValue;
+								rBestValue = rValue;
 								pBestUnit = pLoopUnit;
 							}
 /************************************************************************************************/

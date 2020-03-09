@@ -149,7 +149,8 @@ public:
 	__forceinline ScaledNum(int i) : m_i(static_cast<IntType>(SCALE * i))
 	{
 		// (Not sure if this assertion should be kept permanently)
-		FAssertBounds(INTMIN / SCALE, INTMAX / SCALE + 1, i);
+		FAssert(static_cast<IntType>(i) >= INTMIN / SCALE);
+		FAssert(static_cast<IntType>(i) <= INTMAX / SCALE);
 	}
 	__forceinline ScaledNum(uint u) : m_i(static_cast<IntType>(SCALE * u))
 	{
