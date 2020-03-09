@@ -17613,8 +17613,12 @@ PlayerTypes CvPlayer::getID() const
 
 HandicapTypes CvPlayer::getHandicapType() const
 {	// <f1rpo.autoplay> Use AI handicap during AI Auto Play (advc.127)
-	if (isHumanDisabled())
-		return GC.getGame().getAIHandicap(); // </f1rpo.autoplay>
+	if (isHumanDisabled() &&
+		!isModderOption(MODDEROPTION_FLEXIBLE_DIFFICULTY) &&
+		!GC.getGameINLINE().isModderGameOption(MODDERGAMEOPTION_AI_USE_FLEXIBLE_DIFFICULTY))
+	{
+		return GC.getGame().getAIHandicap();
+	} // </f1rpo.autoplay>
 	return GC.getInitCore().getHandicap(getID());
 }
 
@@ -25508,6 +25512,7 @@ void CvPlayer::read(FDataStreamBase* pStream)
 		/*                                                                                              */
 		/************************************************************************************************/
 		WRAPPER_READ(wrapper, "CvPlayer", &m_bDisableHuman);
+		m_bDisableHuman = false; // f1rpo.autoplay: Auto Play is always off after loading
 		/************************************************************************************************/
 		/* AI_AUTO_PLAY                            END                                                  */
 		/************************************************************************************************/
