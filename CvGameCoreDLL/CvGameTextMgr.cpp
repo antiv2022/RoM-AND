@@ -17022,7 +17022,6 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 	FeatureTypes eFeature;
 	int iHealth;
 	int iI;
-
 	if (city.goodHealth() > 0)
 	{
 		iHealth = city.getFreshWaterGoodHealth();
@@ -17031,16 +17030,13 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HEALTH_FROM_FRESH_WATER", iHealth));
 			szBuffer.append(NEWLINE);
 		}
-
 		iHealth = city.getFeatureGoodHealth();
 		if (iHealth > 0)
 		{
 			eFeature = NO_FEATURE;
-
 			for (iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 			{
 				pLoopPlot = plotCity(city.getX_INLINE(), city.getY_INLINE(), iI);
-
 				if (pLoopPlot != NULL)
 				{
 					if (pLoopPlot->getFeatureType() != NO_FEATURE)
@@ -17060,11 +17056,9 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 					}
 				}
 			}
-
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_FEAT_GOOD_HEALTH", iHealth, ((eFeature == NO_FEATURE) ? L"TXT_KEY_MISC_FEATURES" : GC.getFeatureInfo(eFeature).getTextKeyWide())));
 			szBuffer.append(NEWLINE);
 		}
-
 /************************************************************************************************/
 /* JOOYO_ADDON, Added by Jooyo, 06/19/09                                                        */
 /*                                                                                              */
@@ -17078,13 +17072,12 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 			for (int iI = 0; iI < GC.getNumImprovementInfos(); iI++)
 			{
 				int iImprovementHealth = 0;
-
 				if (GC.getImprovementInfo((ImprovementTypes)iI).getHealthPercent() > 0)
 				{
+					const int iNumCityPlots = city.getNumCityPlots();
 					for (int iJ = 0; iJ < city.getNumCityPlots(); ++iJ)
 					{
 						pLoopPlot = plotCity(city.getX_INLINE(), city.getY_INLINE(), iJ);
-
 						if (pLoopPlot != NULL)
 						{
 							if (pLoopPlot->getImprovementType() == iI)
@@ -17119,7 +17112,6 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 /************************************************************************************************/
 /* JOOYO_ADDON                          END                                                     */
 /************************************************************************************************/
-
 /************************************************************************************************/
 /* Specialists Enhancements, by Supercheese 10/9/09                                                   */
 /*                                                                                              */
@@ -17134,38 +17126,37 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 /************************************************************************************************/
 /* Specialists Enhancements                          END                                              */
 /************************************************************************************************/
-
 		iHealth = city.getPowerGoodHealth();
 		if (iHealth > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_GOOD_HEALTH_FROM_POWER", iHealth));
 			szBuffer.append(NEWLINE);
 		}
-
 		iHealth = city.getBonusGoodHealth();
 		if (iHealth > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_GOOD_HEALTH_FROM_BONUSES", iHealth));
 			szBuffer.append(NEWLINE);
 		}
-
 		iHealth = city.totalGoodBuildingHealth();
 		if (iHealth > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_GOOD_HEALTH_FROM_BUILDINGS", iHealth));
 			szBuffer.append(NEWLINE);
 		}
-		iHealth = GET_PLAYER(city.getOwnerINLINE()).getStateReligionHealth();
-		if (city.isHasReligion(GET_PLAYER(city.getOwnerINLINE()).getStateReligion()))
+		// Erik: Check that the city actually has a religion
+		ReligionTypes eReligion = GET_PLAYER(city.getOwnerINLINE()).getStateReligion();
+		if (eReligion != NO_RELIGION && city.isHasReligion(eReligion))
 		{
+			iHealth = GET_PLAYER(city.getOwnerINLINE()).getStateReligionHealth();
 			if (iHealth > 0)
 			{
 				szBuffer.append(gDLL->getText("TXT_KEY_HEALTH_STATE_RELIGION", iHealth));
 				szBuffer.append(NEWLINE);
-			}		
-		}	
+			}  
+		}  
 /************************************************************************************************/
-/* Afforess	                  Start		 01/29/10                                               */
+/* Afforess                      Start        01/29/10                                               */
 /*                                                                                              */
 /*   Traits Were displaying Civic Health too                                                    */
 /************************************************************************************************/
@@ -17177,29 +17168,26 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		}
 		iHealth = GET_PLAYER(city.getOwnerINLINE()).getCivilizationHealth();
 /************************************************************************************************/
-/* Afforess	                     END                                                            */
+/* Afforess                         END                                                            */
 /************************************************************************************************/
 		if (iHealth > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_GOOD_HEALTH_FROM_CIV", iHealth));
 			szBuffer.append(NEWLINE);
 		}
-
-		//	Koshling - event health
+		//    Koshling - event health
 		iHealth = GET_PLAYER(city.getOwnerINLINE()).getExtraHealth() - GET_PLAYER(city.getOwnerINLINE()).getCivicHealth();
 		if (iHealth > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_GOOD_HEALTH_FROM_EVENTS", iHealth));
 			szBuffer.append(NEWLINE);
 		}
-
 		iHealth = city.getExtraHealth();
 		if (iHealth > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HEALTH_EXTRA", iHealth));
 			szBuffer.append(NEWLINE);
 		}
-
 		if ( GC.getGame().getHandicapType() != NO_HANDICAP )
 		{
 			iHealth = GC.getHandicapInfo(city.getHandicapType()).getHealthBonus();
@@ -17209,9 +17197,8 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 				szBuffer.append(NEWLINE);
 			}
 		}
-		
 /************************************************************************************************/
-/* Afforess	                  Start		 01/03/10                                               */
+/* Afforess                      Start        01/03/10                                               */
 /*                                                                                              */
 /*                                                                                              */
 /************************************************************************************************/
@@ -17221,14 +17208,14 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_GOOD_HEALTH_FROM_WORLD_PROJECT", iHealth));
 			szBuffer.append(NEWLINE);
 		}
-		
+	  
 		iHealth = (GET_PLAYER(city.getOwnerINLINE()).getProjectHealth());
 		if (iHealth > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_GOOD_HEALTH_FROM_PROJECT", iHealth));
 			szBuffer.append(NEWLINE);
 		}
-		
+
 		iHealth = city.calculateCorporationHealth();
 		if (iHealth > 0)
 		{
@@ -17236,11 +17223,9 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 			szBuffer.append(NEWLINE);
 		}
 /************************************************************************************************/
-/* Afforess	                     END                                                            */
+/* Afforess                         END                                                            */
 /************************************************************************************************/
-
 		szBuffer.append(L"-----------------------\n");
-
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_TOTAL_HEALTHY", city.goodHealth()));
 	}
 }
@@ -23093,6 +23078,8 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 	int iDomesticConnectednessCommerce = eYieldType == YIELD_COMMERCE ? city.getDomesticConnectednessCommerce() : 0;
 	int iForeignConnectednessCommerce = eYieldType == YIELD_COMMERCE ? city.getForeignConnectednessCommerce() : 0;
 	int iSeizedConnectednessCommerceTimes100 = eYieldType == YIELD_COMMERCE ? city.getTotalSeizedForeignConnectednessTimes100() : 0;
+	int iDomesticConnectednessModifier = 100;
+	int iForeignConnectednessModifier = 100;
 
 	//Added back later
 	iBaseProduction -= iExtraCapitalCommerce;
@@ -23122,7 +23109,12 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 /*                                                                                              */
 /************************************************************************************************/
 				iBuildingMod += GET_TEAM(city.getTeam()).getBuildingYieldModifier((BuildingTypes)i, eYieldType);
-				iBaseProduction += GET_TEAM(city.getTeam()).getBuildingYieldChange((BuildingTypes)i, eYieldType);
+				// valergrad bugfix (YIELD_COMMERCE commerce from buildings already included in iBaseProduction) - START
+				if (eYieldType != YIELD_COMMERCE)
+				{
+					iBaseProduction += GET_TEAM(city.getTeam()).getBuildingYieldChange((BuildingTypes)i, eYieldType);
+				}
+				// valergrad bugfix - END
 /************************************************************************************************/
 /* Afforess	                         END                                                        */
 /************************************************************************************************/
@@ -23157,11 +23149,8 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 		CivicTypes eCivic = GET_PLAYER(city.getOwnerINLINE()).getCivics((CivicOptionTypes)iCivicOption);
 		if (eCivic != NO_CIVIC)
 		{
-			iDomesticConnectednessCommerce *= 100;
-			iDomesticConnectednessCommerce /= (100 + GC.getCivicInfo(eCivic).getDomesticConnectednessModifier());
-
-			iForeignConnectednessCommerce *= 100;
-			iForeignConnectednessCommerce /= (100 + GC.getCivicInfo(eCivic).getForeignConnectednessModifier());
+			iDomesticConnectednessModifier += GC.getCivicInfo(eCivic).getDomesticConnectednessModifier();
+			iForeignConnectednessModifier += GC.getCivicInfo(eCivic).getForeignConnectednessModifier();
 		}
 	}
 
@@ -23170,10 +23159,14 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 	{
 		if (GET_PLAYER(city.getOwnerINLINE()).hasTrait((TraitTypes)iTrait))
 		{
-			iDomesticConnectednessCommerce *= 100;
-			iDomesticConnectednessCommerce /= (100 + (GC.getTraitInfo((TraitTypes)iTrait).getTradeYieldModifier(YIELD_COMMERCE) * 15));
+			iDomesticConnectednessModifier += GC.getTraitInfo((TraitTypes)iTrait).getTradeYieldModifier(YIELD_COMMERCE) * 15;
 		}
 	}
+	iDomesticConnectednessCommerce *= 100;
+	iDomesticConnectednessCommerce = (int)ceil( (double)iDomesticConnectednessCommerce / iDomesticConnectednessModifier);
+
+	iForeignConnectednessCommerce *= 100;
+	iForeignConnectednessCommerce = (int)ceil ( (double)iForeignConnectednessCommerce / iForeignConnectednessModifier) ;
 
 	if (0 != iExtraCapitalCommerce)
 	{
@@ -23186,7 +23179,7 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_EXTRA_FOREIGN_CAPITAL_COMMERCE_HELP", iExtraForeignCapitalCommerce));
 		szBuffer.append(NEWLINE);
-		iBaseProduction += iExtraCapitalCommerce;
+		iBaseProduction += iExtraForeignCapitalCommerce;
 	}
 
 	if (0 != iDomesticConnectednessCommerce)
@@ -23203,45 +23196,51 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 		iBaseProduction += iForeignConnectednessCommerce;
 	}
 
-	for (int iCivicOption = 0; iCivicOption < GC.getNumCivicOptionInfos(); iCivicOption++)
+	if (0 != iDomesticConnectednessCommerce)
 	{
-		CivicTypes eCivic = GET_PLAYER(city.getOwnerINLINE()).getCivics((CivicOptionTypes)iCivicOption);
-		if (eCivic != NO_CIVIC && GC.getCivicInfo(eCivic).getDomesticConnectednessModifier() != 0)
+		for (int iCivicOption = 0; iCivicOption < GC.getNumCivicOptionInfos(); iCivicOption++)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_CIVIC_DOMESTIC_CONNECTED_COMMERCE_MODIFIER_CITY_HELP", GC.getCivicInfo(eCivic).getDomesticConnectednessModifier(), GC.getCivicInfo(eCivic).getDescription()));
-			szBuffer.append(NEWLINE);
-
-			iDomesticConnectednessCommerce *= (100 + GC.getCivicInfo(eCivic).getDomesticConnectednessModifier());
-			iDomesticConnectednessCommerce /= 100;
+			CivicTypes eCivic = GET_PLAYER(city.getOwnerINLINE()).getCivics((CivicOptionTypes)iCivicOption);
+			if (eCivic != NO_CIVIC && GC.getCivicInfo(eCivic).getDomesticConnectednessModifier() != 0)
+			{
+				int iCivicExtra = iDomesticConnectednessCommerce * GC.getCivicInfo(eCivic).getDomesticConnectednessModifier() / 100;
+				szBuffer.append(gDLL->getText("TXT_KEY_CIVIC_DOMESTIC_CONNECTED_COMMERCE_MODIFIER_CITY_HELP", GC.getCivicInfo(eCivic).getDomesticConnectednessModifier(), GC.getCivicInfo(eCivic).getDescription(), iCivicExtra));
+				szBuffer.append(NEWLINE);
+				iBaseProduction += iCivicExtra;
+			}
 		}
-	}
+	}	
 
 	//apply trait modifiers
-	for (int iTrait = 0; iTrait < GC.getNumTraitInfos(); iTrait++)
-	{
-		if (GET_PLAYER(city.getOwnerINLINE()).hasTrait((TraitTypes)iTrait))
+	if (0 != iDomesticConnectednessCommerce)
+	{	
+		for (int iTrait = 0; iTrait < GC.getNumTraitInfos(); iTrait++)
 		{
-			if (GC.getTraitInfo((TraitTypes)iTrait).getTradeYieldModifier(YIELD_COMMERCE) != 0)
+			if (GET_PLAYER(city.getOwnerINLINE()).hasTrait((TraitTypes)iTrait))
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_TRAIT_DOMESTIC_CONNECTED_COMMERCE_MODIFIER_CITY_HELP", (GC.getTraitInfo((TraitTypes)iTrait).getTradeYieldModifier(YIELD_COMMERCE) * 15), GC.getTraitInfo((TraitTypes)iTrait).getDescription()));
-				szBuffer.append(NEWLINE);
-				iDomesticConnectednessCommerce *= (100 + (GC.getTraitInfo((TraitTypes)iTrait).getTradeYieldModifier(YIELD_COMMERCE) * 15));
-				iDomesticConnectednessCommerce /= 100;
+				if (GC.getTraitInfo((TraitTypes)iTrait).getTradeYieldModifier(YIELD_COMMERCE) != 0)
+				{
+					int iTraitExtra = iDomesticConnectednessCommerce * GC.getTraitInfo((TraitTypes)iTrait).getTradeYieldModifier(YIELD_COMMERCE) * 15 / 100;
+					szBuffer.append(gDLL->getText("TXT_KEY_TRAIT_DOMESTIC_CONNECTED_COMMERCE_MODIFIER_CITY_HELP", (GC.getTraitInfo((TraitTypes)iTrait).getTradeYieldModifier(YIELD_COMMERCE) * 15), GC.getTraitInfo((TraitTypes)iTrait).getDescription(), iTraitExtra));
+					szBuffer.append(NEWLINE);
+					iBaseProduction += iTraitExtra;					
+				}
 			}
 		}
 	}
 
-
-	for (int iCivicOption = 0; iCivicOption < GC.getNumCivicOptionInfos(); iCivicOption++)
+	if (0 != iForeignConnectednessCommerce)
 	{
-		CivicTypes eCivic = GET_PLAYER(city.getOwnerINLINE()).getCivics((CivicOptionTypes)iCivicOption);
-		if (eCivic != NO_CIVIC && GC.getCivicInfo(eCivic).getForeignConnectednessModifier() != 0)
+		for (int iCivicOption = 0; iCivicOption < GC.getNumCivicOptionInfos(); iCivicOption++)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_CIVIC_FOREIGN_CONNECTED_COMMERCE_MODIFIER_CITY_HELP", GC.getCivicInfo(eCivic).getForeignConnectednessModifier(), GC.getCivicInfo(eCivic).getDescription()));
-			szBuffer.append(NEWLINE);
-
-			iForeignConnectednessCommerce *= (100 + GC.getCivicInfo(eCivic).getForeignConnectednessModifier());
-			iForeignConnectednessCommerce /= 100;
+			CivicTypes eCivic = GET_PLAYER(city.getOwnerINLINE()).getCivics((CivicOptionTypes)iCivicOption);
+			if (eCivic != NO_CIVIC && GC.getCivicInfo(eCivic).getForeignConnectednessModifier() != 0)
+			{
+				int iCivicExtra = iForeignConnectednessCommerce * GC.getCivicInfo(eCivic).getForeignConnectednessModifier() / 100;
+				szBuffer.append(gDLL->getText("TXT_KEY_CIVIC_FOREIGN_CONNECTED_COMMERCE_MODIFIER_CITY_HELP", GC.getCivicInfo(eCivic).getForeignConnectednessModifier(), GC.getCivicInfo(eCivic).getDescription(), iCivicExtra));
+				szBuffer.append(NEWLINE);
+				iBaseProduction += iCivicExtra;				
+			}
 		}
 	}
 

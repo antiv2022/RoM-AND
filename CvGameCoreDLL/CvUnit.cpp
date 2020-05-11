@@ -14583,53 +14583,172 @@ bool CvUnit::canJoinGroup(const CvPlot* pPlot, CvSelectionGroup* pSelectionGroup
 	return true;
 }
 
-
+//Original code - START 
 void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, bool bRejoin)
 {
-	PROFILE_FUNC();
-
-	CvSelectionGroup* pOldSelectionGroup;
-	CvSelectionGroup* pNewSelectionGroup;
-	CvPlot* pPlot;
-
-	pOldSelectionGroup = GET_PLAYER(getOwnerINLINE()).getSelectionGroup(getGroupID());
-
-	//Afforess retain automation type
-	AutomateTypes eOldAutotype = NO_AUTOMATE;
-	if (pOldSelectionGroup != NULL)
+	if (GC.getGameINLINE().isNetworkMultiPlayer())
 	{
-		eOldAutotype = pOldSelectionGroup->getAutomateType();
-	}
+		PROFILE_FUNC();
 
-	if ((pSelectionGroup != pOldSelectionGroup) || (pOldSelectionGroup == NULL))
-	{
-		pPlot = plot();
+		CvSelectionGroup* pOldSelectionGroup;
+		CvSelectionGroup* pNewSelectionGroup;
+		CvPlot* pPlot;
 
-		if (pSelectionGroup != NULL)
+		pOldSelectionGroup = GET_PLAYER(getOwnerINLINE()).getSelectionGroup(getGroupID());
+
+		//Afforess retain automation type
+		AutomateTypes eOldAutotype = NO_AUTOMATE;
+		if (pOldSelectionGroup != NULL)
 		{
-			pNewSelectionGroup = pSelectionGroup;
+			eOldAutotype = pOldSelectionGroup->getAutomateType();
 		}
-		else
+
+		if ((pSelectionGroup != pOldSelectionGroup) || (pOldSelectionGroup == NULL))
 		{
-			if (bRejoin)
+			pPlot = plot();
+
+			if (pSelectionGroup != NULL)
 			{
-				pNewSelectionGroup = GET_PLAYER(getOwnerINLINE()).addSelectionGroup();
-				if (pNewSelectionGroup != NULL)
-				{
-					pNewSelectionGroup->init(pNewSelectionGroup->getID(), getOwnerINLINE());
-				}
-				else
-				{
-					FAssert(pNewSelectionGroup != NULL);
-				}
+				pNewSelectionGroup = pSelectionGroup;
 			}
 			else
 			{
-				pNewSelectionGroup = NULL;
+				if (bRejoin)
+				{
+					pNewSelectionGroup = GET_PLAYER(getOwnerINLINE()).addSelectionGroup();
+					if (pNewSelectionGroup != NULL)
+					{
+						pNewSelectionGroup->init(pNewSelectionGroup->getID(), getOwnerINLINE());
+					}
+					else
+					{
+						FAssert(pNewSelectionGroup != NULL);
+					}
+				}
+				else
+				{
+					pNewSelectionGroup = NULL;
+				}
+			}
+
+			if ((pNewSelectionGroup == NULL) || canJoinGroup(pPlot, pNewSelectionGroup))
+			{
+				if (pOldSelectionGroup != NULL)
+				{
+					bool bWasHead = false;
+					if (!isHuman())
+					{
+						if (pOldSelectionGroup->getNumUnits() > 1)
+						{
+							if (pOldSelectionGroup->getHeadUnit() == this)
+							{
+								bWasHead = true;
+							}
+						}
+					}
+
+					pOldSelectionGroup->removeUnit(this);
+
+					// if we were the head, if the head unitAI changed, then force the group to separate (non-humans)
+					if (bWasHead)
+					{
+						FAssert(pOldSelectionGroup->getHeadUnit() != NULL);
+						if (pOldSelectionGroup->getHeadUnit()->AI_getUnitAIType() != AI_getUnitAIType())
+						{
+							pOldSelectionGroup->AI_makeForceSeparate();
+						}
+					}
+				}
+
+				if (pNewSelectionGroup != NULL)
+				{
+					//	Normal rules apply when we join someone else's group unless
+					//	the priority chnage was actually to DOWNgrade our priority
+					if ( AI_groupFirstVal() != LEADER_PRIORITY_MIN )
+					{
+						AI_setLeaderPriority(-1);
+					}
+
+					m_iGroupID = pNewSelectionGroup->getID();
+
+					if ( !pNewSelectionGroup->addUnit(this, false) )
+					{
+						m_iGroupID = FFreeList::INVALID_INDEX;
+					}
+				}
+				else
+				{
+					//	Normal rules apply when we are alone again
+					AI_setLeaderPriority(-1);
+
+					m_iGroupID = FFreeList::INVALID_INDEX;
+				}
+
+				if (getGroup() != NULL)
+				{
+					if (getGroup()->getNumUnits() > 1 )
+					{
+						if ( getGroup()->canAllMove() )
+						{
+							getGroup()->setActivityType(ACTIVITY_AWAKE);
+						}
+					}
+					else
+					{
+						GET_PLAYER(getOwnerINLINE()).updateGroupCycle(this, false);
+					}
+				}
+
+				if (getTeam() == GC.getGameINLINE().getActiveTeam())
+				{
+					if (pPlot != NULL)
+					{
+						pPlot->setFlagDirty(true);
+					}
+				}
+
+				if (pPlot == gDLL->getInterfaceIFace()->getSelectionPlot())
+				{
+					gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
+				}
+			}
+
+			if (bRemoveSelected)
+			{
+				if (IsSelected())
+				{
+					gDLL->getInterfaceIFace()->removeFromSelectionList(this);
+				}
 			}
 		}
 
-		if ((pNewSelectionGroup == NULL) || canJoinGroup(pPlot, pNewSelectionGroup))
+		if (eOldAutotype != NO_AUTOMATE)
+		{
+			if (getGroup() != NULL)
+			{
+				getGroup()->setAutomateType(eOldAutotype);
+			}
+		}
+	}
+	else
+	// K-Mod has edited this function to increase readability and robustness
+	// 45deg: changes proposed by devolution, after some test it looks like they might cause OOS problems so I leave alone this function in network multiplayer and use K-Mod version in single player
+	{
+		CvSelectionGroup* pOldSelectionGroup = GET_PLAYER(getOwnerINLINE()).getSelectionGroup(getGroupID());
+
+		if (pOldSelectionGroup && pSelectionGroup == pOldSelectionGroup)
+			return; // attempting to join the group we are already in
+
+		CvPlot* pPlot = plot();
+		CvSelectionGroup* pNewSelectionGroup = pSelectionGroup;
+
+		if (pNewSelectionGroup == NULL && bRejoin)
+		{
+			pNewSelectionGroup = GET_PLAYER(getOwnerINLINE()).addSelectionGroup();
+			pNewSelectionGroup->init(pNewSelectionGroup->getID(), getOwnerINLINE());
+		}
+
+		if (pNewSelectionGroup == NULL || canJoinGroup(pPlot, pNewSelectionGroup))
 		{
 			if (pOldSelectionGroup != NULL)
 			{
@@ -14658,43 +14777,47 @@ void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, 
 				}
 			}
 
-			if (pNewSelectionGroup != NULL)
+			if ((pNewSelectionGroup != NULL) && pNewSelectionGroup->addUnit(this, false))
 			{
-				//	Normal rules apply when we join someone else's group unless
-				//	the priority chnage was actually to DOWNgrade our priority
-				if ( AI_groupFirstVal() != LEADER_PRIORITY_MIN )
-				{
-					AI_setLeaderPriority(-1);
-				}
-
 				m_iGroupID = pNewSelectionGroup->getID();
-
-				if ( !pNewSelectionGroup->addUnit(this, false) )
-				{
-					m_iGroupID = FFreeList::INVALID_INDEX;
-				}
 			}
 			else
 			{
-				//	Normal rules apply when we are alone again
-				AI_setLeaderPriority(-1);
-
 				m_iGroupID = FFreeList::INVALID_INDEX;
 			}
 
 			if (getGroup() != NULL)
 			{
-				if (getGroup()->getNumUnits() > 1 )
+				// K-Mod
+				if (isGroupHead())
+					GET_PLAYER(getOwnerINLINE()).updateGroupCycle(this, false);
+				// K-Mod end
+				if (getGroup()->getNumUnits() > 1)
 				{
-					if ( getGroup()->canAllMove() )
+					/* original bts code
+					getGroup()->setActivityType(ACTIVITY_AWAKE); */
+					// K-Mod
+					// For the AI, only wake the group in particular circumstances. This is to avoid AI deadlocks where they just keep grouping and ungroup indefinitely.
+					// If the activity type is not changed at all, then that would enable exploits such as adding new units to air patrol groups to bypass the movement conditions.
+					if (isHuman())
 					{
+						getGroup()->setAutomateType(NO_AUTOMATE);
 						getGroup()->setActivityType(ACTIVITY_AWAKE);
+						getGroup()->clearMissionQueue();
+						// K-Mod note. the mission queue has to be cleared, because when the shift key is released, the exe automatically sends the autoMission net message.
+						// (if the mission queue isn't cleared, the units will immediately begin their message whenever units are added using shift.)
 					}
+					else if (getGroup()->AI_getMissionAIType() == MISSIONAI_GROUP || getLastMoveTurn() == GC.getGameINLINE().getTurnSlice())
+						getGroup()->setActivityType(ACTIVITY_AWAKE);
+					else if (getGroup()->getActivityType() != ACTIVITY_AWAKE)
+						getGroup()->setActivityType(ACTIVITY_HOLD); // don't let them cheat.
+																	// K-Mod end
 				}
+				/* original bts code
 				else
 				{
-					GET_PLAYER(getOwnerINLINE()).updateGroupCycle(this, false);
-				}
+				GET_PLAYER(getOwnerINLINE()).updateGroupCycle(this);
+				} */
 			}
 
 			if (getTeam() == GC.getGameINLINE().getActiveTeam())
@@ -14711,23 +14834,11 @@ void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, 
 			}
 		}
 
-		if (bRemoveSelected)
+		if (bRemoveSelected && IsSelected())
 		{
-			if (IsSelected())
-			{
-				gDLL->getInterfaceIFace()->removeFromSelectionList(this);
-			}
-		}
+			gDLL->getInterfaceIFace()->removeFromSelectionList(this);
+		}	
 	}
-
-	if (eOldAutotype != NO_AUTOMATE)
-	{
-		if (getGroup() != NULL)
-		{
-			getGroup()->setAutomateType(eOldAutotype);
-		}
-	}
-
 }
 
 

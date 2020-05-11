@@ -27799,6 +27799,12 @@ void CvCity::clearModifierTotals()
 	m_iExtraBuildingDefenseRecoverySpeedModifier = 0;
 	m_iModifiedBuildingDefenseRecoverySpeedCap = 0;
 	m_iExtraCityDefenseRecoverySpeedModifier = 0;
+	// valergrad bugfix - START
+	m_iExtraCapitalCommerce = 0;
+	m_iPreviousExtraCommerce = 0;
+	m_iPreviousConnectedCommerce = 0;
+	m_iPreviousForeignConnectedCommerce = 0;
+	// valergrad bugfix - END
 }
 
 void CvCity::recalculateModifiers()

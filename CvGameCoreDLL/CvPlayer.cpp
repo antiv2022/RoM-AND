@@ -7011,6 +7011,9 @@ void CvPlayer::updateTradeRoutes()
 		{
 			cityList.insertAtEnd(pLoopCity->getID());
 		}
+		// valergrad bugfix - START
+		pLoopCity->doConnectednessCalculations();
+		// valergrad bugfix - END
 	}
 
 	pCityNode = cityList.head();

@@ -788,18 +788,72 @@ void CvUnitAI::AI_upgrade()
 
 	std::vector<int> aPotentialUnitClassTypes = GC.getUnitInfo(getUnitType()).getUpgradeUnitClassTypes();
 
-	for (int iPass = 0; iPass < 2; iPass++)
+	if (!GC.getGameINLINE().isNetworkMultiPlayer())
 	{
+		for (int iPass = 0; iPass < 2; iPass++)
+		{
+			eBestUnit = NO_UNIT;
+			int iBestValue = 0;
+
+			for (int iI = 0; iI < (int)aPotentialUnitClassTypes.size(); iI++)
+			{
+				eLoopUnit = (UnitTypes)kCivilization.getCivilizationUnits((UnitClassTypes)aPotentialUnitClassTypes[iI]);
+				if (eLoopUnit != NO_UNIT && ((iPass > 0) || GC.getUnitInfo(eLoopUnit).getUnitAIType(eUnitAI)))
+				{
+					int iNewValue = kPlayer.AI_unitValue(eLoopUnit, (iPass == 0 ? eUnitAI : (UnitAITypes)GC.getUnitInfo(eLoopUnit).getDefaultUnitAIType()), pArea);
+					if ((iPass == 0 || iNewValue > 0) && iNewValue > iCurrentValue)
+					{
+						if (canUpgrade(eLoopUnit))
+						{
+							int iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Upgrade"));
+
+							if (iValue > iBestValue)
+							{
+								iBestValue = iValue;
+								eBestUnit = eLoopUnit;
+	/************************************************************************************************/
+	/* RevDCM	                     END                                                            */
+	/************************************************************************************************/
+							}
+						}
+					}
+				}
+			}
+
+			if (eBestUnit != NO_UNIT)
+			{
+				if( gUnitLogLevel >= 2 )
+				{
+					logBBAIForTeam(getTeam(), "    %S at (%d,%d) upgrading to %S", getName(0).GetCString(), plot()->getX_INLINE(), plot()->getY_INLINE(), GC.getUnitInfo(eBestUnit).getDescription());
+				}
+				upgrade(eBestUnit);
+				doDelayedDeath();
+				return;
+			}
+		}
+	}
+	else
+	{
+	//45deg: I copy-pasted this part of the code from C2C because it might solve an OOS issue I ran into, when this function is probably called a different number of times on different PCs
+	//From OOS logs I discovered that "AI Upgrade" and "AI Unit Birthmark 27" were called one time more on a platform compared to the other.
+	//I also report TB's note here below as a warning about odd problems that might arise (still need to be checked)
+	//TB Note: New game theory being introduced here - a unitAI should NEVER change its AI when upgrading!  
+	//This was causing an infinite spam of units that the game couldn't get enough of a count of because 
+	//the AI kept upgrading their best pick for something and then upgrading it to another unit that couldn't be that AI type.  
+	//NOW, we should ALWAYS maintain the role a unit was designed for.  
+	//Watch for odd problems this might introduce elsewhere though.
+	//for (int iPass = 0; iPass < 2; iPass++)
+	//{
 		eBestUnit = NO_UNIT;
 		int iBestValue = 0;
 
 		for (int iI = 0; iI < (int)aPotentialUnitClassTypes.size(); iI++)
 		{
 			eLoopUnit = (UnitTypes)kCivilization.getCivilizationUnits((UnitClassTypes)aPotentialUnitClassTypes[iI]);
-			if (eLoopUnit != NO_UNIT && ((iPass > 0) || GC.getUnitInfo(eLoopUnit).getUnitAIType(eUnitAI)))
+			if (eLoopUnit != NO_UNIT && ((/*iPass > 0 &&*/ !GC.getUnitInfo(eLoopUnit).getNotUnitAIType(eUnitAI)) /*||*/&& GC.getUnitInfo(eLoopUnit).getUnitAIType(eUnitAI)))
 			{
-				int iNewValue = kPlayer.AI_unitValue(eLoopUnit, (iPass == 0 ? eUnitAI : (UnitAITypes)GC.getUnitInfo(eLoopUnit).getDefaultUnitAIType()), pArea);
-				if ((iPass == 0 || iNewValue > 0) && iNewValue > iCurrentValue)
+				int iNewValue = kPlayer.AI_unitValue(eLoopUnit, /*(iPass == 0 ?*/ eUnitAI /*: (UnitAITypes)GC.getUnitInfo(eLoopUnit).getDefaultUnitAIType())*/, pArea);
+				if ((/*iPass == 0 || */iNewValue > 0) && iNewValue > iCurrentValue)
 				{
 					if (canUpgrade(eLoopUnit))
 					{
@@ -822,12 +876,13 @@ void CvUnitAI::AI_upgrade()
 		{
 			if( gUnitLogLevel >= 2 )
 			{
-				logBBAIForTeam(getTeam(), "    %S at (%d,%d) upgrading to %S", getName(0).GetCString(), plot()->getX_INLINE(), plot()->getY_INLINE(), GC.getUnitInfo(eBestUnit).getDescription());
+				logBBAI("    %S at (%d,%d) upgrading to %S", getName(0).GetCString(), plot()->getX_INLINE(), plot()->getY_INLINE(), GC.getUnitInfo(eBestUnit).getDescription());
 			}
 			upgrade(eBestUnit);
 			doDelayedDeath();
 			return;
 		}
+	/*}*/	
 	}
 }
 

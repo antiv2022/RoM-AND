@@ -20754,6 +20754,12 @@ void CvPlayerAI::AI_doCommerce()
 	int iGoldTarget;
 	int iLoop = 0;
 
+	if (isHuman())
+	{
+		verifyGoldCommercePercent();
+		return;
+	}
+
 	FAssertMsg(!isHuman(), "isHuman did not return false as expected");
 
 /************************************************************************************************/
