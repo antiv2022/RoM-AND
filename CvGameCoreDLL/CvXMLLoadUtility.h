@@ -98,7 +98,10 @@ public:
 	// overloaded function that gets the child value of the tag with szName if there is only one child
 	// value of that name
 	DllExport bool GetChildXmlValByName(bool* pbVal, const TCHAR* szName, bool bDefault = false);
-
+	// <f1rpo> (xmldefault)
+	void SetInfoIDFromChildXmlVal(int& r, TCHAR const* szName);
+	int GetChildTypeIndex();
+	// </f1rpo>
 	// loads an xml file into the FXml variable.  The szFilename parameter has
 	// the m_szXmlPath member variable pre-pended to it to form the full pathname
 	DllExport bool LoadCivXml(FXml* pFXml, const TCHAR* szFilename);
@@ -483,6 +486,9 @@ private:
 template <class T>
 void CvXMLLoadUtility::InitList(T **ppList, int iListLen, T val)
 {
+	// <f1rpo> (xmldefault)
+	if (*ppList != NULL) // Already initialized w/ default values
+		return; // </f1rpo>
 	FAssertMsg((0 <= iListLen),"list size to allocate is less than 0");
 	*ppList = new T[iListLen];
 

@@ -53,6 +53,7 @@ class CvInfoBase
 //---------------------------------------PUBLIC INTERFACE---------------------------------
 public:
 	DllExport CvInfoBase();
+	CvInfoBase(CvInfoBase const& kOther); // f1rpo (xmldefault)
 	CvInfoBase(const char* szType);
 
 	DllExport virtual ~CvInfoBase();
@@ -62,6 +63,7 @@ public:
 	DllExport bool isGraphicalOnly() const;										// Exposed to Python
 
 	DllExport const TCHAR* getType() const;										// Exposed to Python
+	bool isDefaultsType() const; // f1rpo (xmldefault)
 	virtual const TCHAR* getButton() const;					// Exposed to Python
 /************************************************************************************************/
 /* XMLCOPY                                 10/08/07                                MRGENIE      */
@@ -5447,6 +5449,7 @@ class CvLeaderHeadInfo :
 public:
 
 	CvLeaderHeadInfo();
+	CvLeaderHeadInfo(CvLeaderHeadInfo const& kOther); // f1rpo (xmldefault)
 	virtual ~CvLeaderHeadInfo();
 
 	int getWonderConstructRand() const;				// Exposed to Python
@@ -5583,8 +5586,8 @@ protected:
 	int m_iWorkerRefuseAttitudeThreshold;
 	int m_iCorporationRefuseAttitudeThreshold;
 	int m_iSecretaryGeneralVoteRefuseAttitudeThreshold;
-	void setDefaultMemoryInfo();
-	void setDefaultContactInfo();
+	/*void setDefaultMemoryInfo();
+	void setDefaultContactInfo();*/ // f1rpo (xmldefault): obsolete
 public:
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
@@ -5714,6 +5717,10 @@ protected:
 	int* m_piDiploPeaceMusicScriptIds;
 	int* m_piDiploWarIntroMusicScriptIds;
 	int* m_piDiploWarMusicScriptIds;
+	// <f1rpo> (xmldefault)
+	static CvXMLLoadUtility* m_pXML;
+	static void GetChildXmlValByName(int& r, TCHAR const* szName, int iDefault = MIN_INT);
+	// </f1rpo>
 
 	// f1rpo: Python wrappers for functions that take enum-type parameters
 	void friend CyInfoPythonInterface3();
@@ -7156,7 +7163,11 @@ class CvArtInfoScalableAsset :
 	public CvScalableInfo
 {
 public:
-
+	// <f1rpo> (xmldefault - for LoadGlobalClassInfo template)
+	CvArtInfoScalableAsset() {}
+	CvArtInfoScalableAsset(CvArtInfoScalableAsset const& kOther);
+	bool isDefaultsType() const { return false; }
+	// </f1rpo>
 	bool read(CvXMLLoadUtility* pXML);
 /************************************************************************************************/
 /* XMLCOPY                                 11/20/07                                MRGENIE      */
@@ -8208,6 +8219,10 @@ class CvEffectInfo :
 public:
 
 	DllExport CvEffectInfo();
+	// <f1rpo> (xmldefault - for LoadGlobalClassInfo template)
+	CvEffectInfo(CvEffectInfo const& kOther);
+	bool isDefaultsType() const { return false; }
+	// </f1rpo>
 	DllExport virtual ~CvEffectInfo();
 
 	DllExport const TCHAR* getPath() const { return m_szPath; }
@@ -8273,6 +8288,10 @@ class CvAttachableInfo :
 public:
 
 	DllExport CvAttachableInfo();
+	// <f1rpo> (xmldefault - for LoadGlobalClassInfo template)
+	CvAttachableInfo(CvAttachableInfo const& kOther);
+	bool isDefaultsType() const { return false; }
+	// </f1rpo>
 	DllExport virtual ~CvAttachableInfo();
 
 	DllExport const TCHAR* getPath() const { return m_szPath; }

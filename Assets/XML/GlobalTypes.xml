@@ -114,6 +114,11 @@
 		<ContactType>CONTACT_TRADE_MILITARY_UNITS</ContactType>
 		<ContactType>CONTACT_TRADE_WORKERS</ContactType>
 		<ContactType>CONTACT_TRADE_CONTACTS</ContactType>
+		<!-- f1rpo (xmldefault): These four were missing -->
+		<ContactType>CONTACT_TRADE_CORPORATION</ContactType>
+		<ContactType>CONTACT_TRADE_BUY_WAR</ContactType>
+		<ContactType>CONTACT_TRADE_WAR_REPARATIONS</ContactType>
+		<ContactType>CONTACT_TRADE_CEASE_RELATIONS</ContactType>
 	</ContactTypes>
 	<DiplomacyPowerTypes>
 		<!--Changes must be reflected in CvEnums.h-->

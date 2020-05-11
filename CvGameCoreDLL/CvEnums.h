@@ -3659,8 +3659,8 @@ enum DiplomacyRequestAction
 	FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, GC.getNum##EnumNamePrefix##Infos())
 #define FOR_EACH_ENUM(eVar, EnumNamePrefix) \
 	FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, GC.getNum##EnumNamePrefix##Types())
-#define FOR_EACH_STATIC_ENUM(eVar, EnumNamePrefix) \
-	FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, NUM_##EnumNamePrefix##_TYPES)
+#define FOR_EACH_STATIC_ENUM(eVar, EnumNamePrefix, ENUM_NAME_PREFIX) \
+	FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, NUM_##ENUM_NAME_PREFIX##_TYPES)
 // </f1rpo>
 
 #endif	// CVENUMS_h

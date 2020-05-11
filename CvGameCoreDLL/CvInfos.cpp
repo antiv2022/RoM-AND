@@ -43,6 +43,12 @@ m_bGraphicalOnly(false)
 	}
 }
 
+// f1rpo (xmldefault):
+CvInfoBase::CvInfoBase(CvInfoBase const& kOther)
+{
+	FAssertMsg(false, "Copy-ctor not implemented");
+}
+
 CvInfoBase::CvInfoBase(const char* szType) :
 m_bGraphicalOnly(false),
 m_szType(szType)
@@ -116,6 +122,19 @@ const TCHAR* CvInfoBase::getType() const
 	}
 
 	return m_szType;
+}
+
+// f1rpo (xmldefault):
+bool CvInfoBase::isDefaultsType() const
+{
+	if (m_szType.empty())
+		return false;
+	CvString const szEnding = "_DEFAULTS";
+	return (m_szType.length() > szEnding.length() &&
+			m_szType.compare(
+				m_szType.length() - szEnding.length(),
+				szEnding.length(),
+				szEnding) == 0);
 }
 
 const TCHAR* CvInfoBase::getButton() const
@@ -19970,6 +19989,44 @@ m_piDiploWarMusicScriptIds(NULL)
 {
 }
 
+// <f1rpo> (xmldefault)
+#define ALLOCCOPY_INT(pDst, pSrc, iSize) \
+	if (pSrc != NULL) \
+	{ \
+		pDst = new int[iSize]; \
+		memcpy(pDst, pSrc, iSize * sizeof(int)); \
+	}
+#define ALLOCCOPY_BOOL(pDst, pSrc, iSize) \
+	if (pSrc != NULL) \
+	{ \
+		pDst = new bool[iSize]; \
+		memcpy(pDst, pSrc, iSize * sizeof(bool)); \
+	}
+
+CvLeaderHeadInfo::CvLeaderHeadInfo(CvLeaderHeadInfo const& kOther)
+{
+	memcpy(this, &kOther, sizeof(CvLeaderHeadInfo));
+	ALLOCCOPY_BOOL(m_pbTraits, kOther.m_pbTraits, GC.getNumTraitInfos());
+	ALLOCCOPY_INT(m_piFlavorValue, kOther.m_piFlavorValue, GC.getNumFlavorTypes());
+	ALLOCCOPY_INT(m_piContactRand, kOther.m_piContactRand, NUM_CONTACT_TYPES);
+	ALLOCCOPY_INT(m_piContactDelay, kOther.m_piContactDelay, NUM_CONTACT_TYPES);
+	ALLOCCOPY_INT(m_piMemoryDecayRand, kOther.m_piMemoryDecayRand, NUM_MEMORY_TYPES);
+	ALLOCCOPY_INT(m_piMemoryAttitudePercent, kOther.m_piMemoryAttitudePercent, NUM_MEMORY_TYPES);
+	ALLOCCOPY_INT(m_piNoWarAttitudeProb, kOther.m_piNoWarAttitudeProb, NUM_ATTITUDE_TYPES);
+	ALLOCCOPY_INT(m_piUnitAIWeightModifier, kOther.m_piUnitAIWeightModifier, NUM_UNITAI_TYPES);
+	ALLOCCOPY_INT(m_piImprovementWeightModifier, kOther.m_piImprovementWeightModifier, GC.getNumImprovementInfos());
+	ALLOCCOPY_INT(m_piDiploPeaceIntroMusicScriptIds, kOther.m_piDiploPeaceIntroMusicScriptIds, GC.getNumEraInfos());
+	ALLOCCOPY_INT(m_piDiploPeaceMusicScriptIds, kOther.m_piDiploPeaceMusicScriptIds, GC.getNumEraInfos());
+	ALLOCCOPY_INT(m_piDiploWarIntroMusicScriptIds, kOther.m_piDiploWarIntroMusicScriptIds, GC.getNumEraInfos());
+	ALLOCCOPY_INT(m_piDiploWarMusicScriptIds, kOther.m_piDiploWarMusicScriptIds, GC.getNumEraInfos());
+	// (Civic AI Weights)
+	ALLOCCOPY_INT(m_piCivicAIWeights, kOther.m_piCivicAIWeights, GC.getNumCivicInfos());
+	// (Sexism)
+	ALLOCCOPY_INT(m_piSexistAttitudeChanges, kOther.m_piSexistAttitudeChanges, GC.getNumGenderTypes());
+	// (Racism)
+	ALLOCCOPY_INT(m_piRacistAttitudeChanges, kOther.m_piRacistAttitudeChanges, GC.getNumRaceTypes());
+} // </f1rpo>
+
 //------------------------------------------------------------------------------------------------------
 //
 //  FUNCTION:   ~CvLeaderHeadInfo()
@@ -21261,133 +21318,121 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
 	setArtDefineTag(szTextVal);
 
-	pXML->GetChildXmlValByName(&m_iWonderConstructRand, "iWonderConstructRand");
-	pXML->GetChildXmlValByName(&m_iBaseAttitude, "iBaseAttitude");
-	pXML->GetChildXmlValByName(&m_iBasePeaceWeight, "iBasePeaceWeight");
-	pXML->GetChildXmlValByName(&m_iPeaceWeightRand, "iPeaceWeightRand");
-	pXML->GetChildXmlValByName(&m_iWarmongerRespect, "iWarmongerRespect");
-	pXML->GetChildXmlValByName(&m_iEspionageWeight, "iEspionageWeight");
-	pXML->GetChildXmlValByName(&m_iRefuseToTalkWarThreshold, "iRefuseToTalkWarThreshold");
-	pXML->GetChildXmlValByName(&m_iNoTechTradeThreshold, "iNoTechTradeThreshold");
-	pXML->GetChildXmlValByName(&m_iTechTradeKnownPercent, "iTechTradeKnownPercent");
-	pXML->GetChildXmlValByName(&m_iMaxGoldTradePercent, "iMaxGoldTradePercent");
-	pXML->GetChildXmlValByName(&m_iMaxGoldPerTurnTradePercent, "iMaxGoldPerTurnTradePercent");
+	/*	f1rpo (xmldefault): Redirect the CvXMLLoadUtility::GetChildXmlValByName
+		calls through CvLeaderHeadInfo::GetChildXmlValByName. */
+	m_pXML = pXML;
+	GetChildXmlValByName(m_iWonderConstructRand, "iWonderConstructRand");
+	GetChildXmlValByName(m_iBaseAttitude, "iBaseAttitude");
+	GetChildXmlValByName(m_iBasePeaceWeight, "iBasePeaceWeight");
+	GetChildXmlValByName(m_iPeaceWeightRand, "iPeaceWeightRand");
+	GetChildXmlValByName(m_iWarmongerRespect, "iWarmongerRespect");
+	GetChildXmlValByName(m_iEspionageWeight, "iEspionageWeight");
+	GetChildXmlValByName(m_iRefuseToTalkWarThreshold, "iRefuseToTalkWarThreshold");
+	GetChildXmlValByName(m_iNoTechTradeThreshold, "iNoTechTradeThreshold");
+	GetChildXmlValByName(m_iTechTradeKnownPercent, "iTechTradeKnownPercent");
+	GetChildXmlValByName(m_iMaxGoldTradePercent, "iMaxGoldTradePercent");
+	GetChildXmlValByName(m_iMaxGoldPerTurnTradePercent, "iMaxGoldPerTurnTradePercent");
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      03/21/10                                jdog5000      */
 /*                                                                                              */
 /* Victory Strategy AI                                                                          */
 /************************************************************************************************/
-	pXML->GetChildXmlValByName(&m_iCultureVictoryWeight, "iCultureVictoryWeight", 0);
-	pXML->GetChildXmlValByName(&m_iSpaceVictoryWeight, "iSpaceVictoryWeight", 0);
-	pXML->GetChildXmlValByName(&m_iConquestVictoryWeight, "iConquestVictoryWeight", 0);
-	pXML->GetChildXmlValByName(&m_iDominationVictoryWeight, "iDominationVictoryWeight", 0);
-	pXML->GetChildXmlValByName(&m_iDiplomacyVictoryWeight, "iDiplomacyVictoryWeight", 0);
+	GetChildXmlValByName(m_iCultureVictoryWeight, "iCultureVictoryWeight", 0);
+	GetChildXmlValByName(m_iSpaceVictoryWeight, "iSpaceVictoryWeight", 0);
+	GetChildXmlValByName(m_iConquestVictoryWeight, "iConquestVictoryWeight", 0);
+	GetChildXmlValByName(m_iDominationVictoryWeight, "iDominationVictoryWeight", 0);
+	GetChildXmlValByName(m_iDiplomacyVictoryWeight, "iDiplomacyVictoryWeight", 0);
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-	pXML->GetChildXmlValByName(&m_iMaxWarRand, "iMaxWarRand");
-	pXML->GetChildXmlValByName(&m_iMaxWarNearbyPowerRatio, "iMaxWarNearbyPowerRatio");
-	pXML->GetChildXmlValByName(&m_iMaxWarDistantPowerRatio, "iMaxWarDistantPowerRatio");
-	pXML->GetChildXmlValByName(&m_iMaxWarMinAdjacentLandPercent, "iMaxWarMinAdjacentLandPercent");
-	pXML->GetChildXmlValByName(&m_iLimitedWarRand, "iLimitedWarRand");
-	pXML->GetChildXmlValByName(&m_iLimitedWarPowerRatio, "iLimitedWarPowerRatio");
-	pXML->GetChildXmlValByName(&m_iDogpileWarRand, "iDogpileWarRand");
-	pXML->GetChildXmlValByName(&m_iMakePeaceRand, "iMakePeaceRand");
-	pXML->GetChildXmlValByName(&m_iDeclareWarTradeRand, "iDeclareWarTradeRand");
-	pXML->GetChildXmlValByName(&m_iDemandRebukedSneakProb, "iDemandRebukedSneakProb");
-	pXML->GetChildXmlValByName(&m_iDemandRebukedWarProb, "iDemandRebukedWarProb");
-	pXML->GetChildXmlValByName(&m_iRazeCityProb, "iRazeCityProb");
-	pXML->GetChildXmlValByName(&m_iBuildUnitProb, "iBuildUnitProb");
-	pXML->GetChildXmlValByName(&m_iBaseAttackOddsChange, "iBaseAttackOddsChange");
-	pXML->GetChildXmlValByName(&m_iAttackOddsChangeRand, "iAttackOddsChangeRand");
-	pXML->GetChildXmlValByName(&m_iWorseRankDifferenceAttitudeChange, "iWorseRankDifferenceAttitudeChange");
-	pXML->GetChildXmlValByName(&m_iBetterRankDifferenceAttitudeChange, "iBetterRankDifferenceAttitudeChange");
-	pXML->GetChildXmlValByName(&m_iCloseBordersAttitudeChange, "iCloseBordersAttitudeChange");
-	pXML->GetChildXmlValByName(&m_iLostWarAttitudeChange, "iLostWarAttitudeChange");
-	pXML->GetChildXmlValByName(&m_iAtWarAttitudeDivisor, "iAtWarAttitudeDivisor");
-	pXML->GetChildXmlValByName(&m_iAtWarAttitudeChangeLimit, "iAtWarAttitudeChangeLimit");
-	pXML->GetChildXmlValByName(&m_iAtPeaceAttitudeDivisor, "iAtPeaceAttitudeDivisor");
-	pXML->GetChildXmlValByName(&m_iAtPeaceAttitudeChangeLimit, "iAtPeaceAttitudeChangeLimit");
-	pXML->GetChildXmlValByName(&m_iSameReligionAttitudeChange, "iSameReligionAttitudeChange");
-	pXML->GetChildXmlValByName(&m_iSameReligionAttitudeDivisor, "iSameReligionAttitudeDivisor");
-	pXML->GetChildXmlValByName(&m_iSameReligionAttitudeChangeLimit, "iSameReligionAttitudeChangeLimit");
-	pXML->GetChildXmlValByName(&m_iDifferentReligionAttitudeChange, "iDifferentReligionAttitudeChange");
-	pXML->GetChildXmlValByName(&m_iDifferentReligionAttitudeDivisor, "iDifferentReligionAttitudeDivisor");
-	pXML->GetChildXmlValByName(&m_iDifferentReligionAttitudeChangeLimit, "iDifferentReligionAttitudeChangeLimit");
-	pXML->GetChildXmlValByName(&m_iBonusTradeAttitudeDivisor, "iBonusTradeAttitudeDivisor");
-	pXML->GetChildXmlValByName(&m_iBonusTradeAttitudeChangeLimit, "iBonusTradeAttitudeChangeLimit");
-	pXML->GetChildXmlValByName(&m_iOpenBordersAttitudeDivisor, "iOpenBordersAttitudeDivisor");
-	pXML->GetChildXmlValByName(&m_iOpenBordersAttitudeChangeLimit, "iOpenBordersAttitudeChangeLimit");
-	pXML->GetChildXmlValByName(&m_iDefensivePactAttitudeDivisor, "iDefensivePactAttitudeDivisor");
-	pXML->GetChildXmlValByName(&m_iDefensivePactAttitudeChangeLimit, "iDefensivePactAttitudeChangeLimit");
-	pXML->GetChildXmlValByName(&m_iShareWarAttitudeChange, "iShareWarAttitudeChange");
-	pXML->GetChildXmlValByName(&m_iShareWarAttitudeDivisor, "iShareWarAttitudeDivisor");
-	pXML->GetChildXmlValByName(&m_iShareWarAttitudeChangeLimit, "iShareWarAttitudeChangeLimit");
-	pXML->GetChildXmlValByName(&m_iFavoriteCivicAttitudeChange, "iFavoriteCivicAttitudeChange");
-	pXML->GetChildXmlValByName(&m_iFavoriteCivicAttitudeDivisor, "iFavoriteCivicAttitudeDivisor");
-	pXML->GetChildXmlValByName(&m_iFavoriteCivicAttitudeChangeLimit, "iFavoriteCivicAttitudeChangeLimit");
-	pXML->GetChildXmlValByName(&m_iVassalPowerModifier, "iVassalPowerModifier");
-	pXML->GetChildXmlValByName(&m_iFreedomAppreciation, "iFreedomAppreciation");
+	GetChildXmlValByName(m_iMaxWarRand, "iMaxWarRand");
+	GetChildXmlValByName(m_iMaxWarNearbyPowerRatio, "iMaxWarNearbyPowerRatio");
+	GetChildXmlValByName(m_iMaxWarDistantPowerRatio, "iMaxWarDistantPowerRatio");
+	GetChildXmlValByName(m_iMaxWarMinAdjacentLandPercent, "iMaxWarMinAdjacentLandPercent");
+	GetChildXmlValByName(m_iLimitedWarRand, "iLimitedWarRand");
+	GetChildXmlValByName(m_iLimitedWarPowerRatio, "iLimitedWarPowerRatio");
+	GetChildXmlValByName(m_iDogpileWarRand, "iDogpileWarRand");
+	GetChildXmlValByName(m_iMakePeaceRand, "iMakePeaceRand");
+	GetChildXmlValByName(m_iDeclareWarTradeRand, "iDeclareWarTradeRand");
+	GetChildXmlValByName(m_iDemandRebukedSneakProb, "iDemandRebukedSneakProb");
+	GetChildXmlValByName(m_iDemandRebukedWarProb, "iDemandRebukedWarProb");
+	GetChildXmlValByName(m_iRazeCityProb, "iRazeCityProb");
+	GetChildXmlValByName(m_iBuildUnitProb, "iBuildUnitProb");
+	GetChildXmlValByName(m_iBaseAttackOddsChange, "iBaseAttackOddsChange");
+	GetChildXmlValByName(m_iAttackOddsChangeRand, "iAttackOddsChangeRand");
+	GetChildXmlValByName(m_iWorseRankDifferenceAttitudeChange, "iWorseRankDifferenceAttitudeChange");
+	GetChildXmlValByName(m_iBetterRankDifferenceAttitudeChange, "iBetterRankDifferenceAttitudeChange");
+	GetChildXmlValByName(m_iCloseBordersAttitudeChange, "iCloseBordersAttitudeChange");
+	GetChildXmlValByName(m_iLostWarAttitudeChange, "iLostWarAttitudeChange");
+	GetChildXmlValByName(m_iAtWarAttitudeDivisor, "iAtWarAttitudeDivisor");
+	GetChildXmlValByName(m_iAtWarAttitudeChangeLimit, "iAtWarAttitudeChangeLimit");
+	GetChildXmlValByName(m_iAtPeaceAttitudeDivisor, "iAtPeaceAttitudeDivisor");
+	GetChildXmlValByName(m_iAtPeaceAttitudeChangeLimit, "iAtPeaceAttitudeChangeLimit");
+	GetChildXmlValByName(m_iSameReligionAttitudeChange, "iSameReligionAttitudeChange");
+	GetChildXmlValByName(m_iSameReligionAttitudeDivisor, "iSameReligionAttitudeDivisor");
+	GetChildXmlValByName(m_iSameReligionAttitudeChangeLimit, "iSameReligionAttitudeChangeLimit");
+	GetChildXmlValByName(m_iDifferentReligionAttitudeChange, "iDifferentReligionAttitudeChange");
+	GetChildXmlValByName(m_iDifferentReligionAttitudeDivisor, "iDifferentReligionAttitudeDivisor");
+	GetChildXmlValByName(m_iDifferentReligionAttitudeChangeLimit, "iDifferentReligionAttitudeChangeLimit");
+	GetChildXmlValByName(m_iBonusTradeAttitudeDivisor, "iBonusTradeAttitudeDivisor");
+	GetChildXmlValByName(m_iBonusTradeAttitudeChangeLimit, "iBonusTradeAttitudeChangeLimit");
+	GetChildXmlValByName(m_iOpenBordersAttitudeDivisor, "iOpenBordersAttitudeDivisor");
+	GetChildXmlValByName(m_iOpenBordersAttitudeChangeLimit, "iOpenBordersAttitudeChangeLimit");
+	GetChildXmlValByName(m_iDefensivePactAttitudeDivisor, "iDefensivePactAttitudeDivisor");
+	GetChildXmlValByName(m_iDefensivePactAttitudeChangeLimit, "iDefensivePactAttitudeChangeLimit");
+	GetChildXmlValByName(m_iShareWarAttitudeChange, "iShareWarAttitudeChange");
+	GetChildXmlValByName(m_iShareWarAttitudeDivisor, "iShareWarAttitudeDivisor");
+	GetChildXmlValByName(m_iShareWarAttitudeChangeLimit, "iShareWarAttitudeChangeLimit");
+	GetChildXmlValByName(m_iFavoriteCivicAttitudeChange, "iFavoriteCivicAttitudeChange");
+	GetChildXmlValByName(m_iFavoriteCivicAttitudeDivisor, "iFavoriteCivicAttitudeDivisor");
+	GetChildXmlValByName(m_iFavoriteCivicAttitudeChangeLimit, "iFavoriteCivicAttitudeChangeLimit");
+	GetChildXmlValByName(m_iVassalPowerModifier, "iVassalPowerModifier");
+	GetChildXmlValByName(m_iFreedomAppreciation, "iFreedomAppreciation");
 
-	pXML->GetChildXmlValByName(szTextVal, "DemandTributeAttitudeThreshold");
-	m_iDemandTributeAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	/*	f1rpo (xmldefault): Rewrote the loading of attitude thresholds
+		so that missing elements are tolerated if the attitude threshold
+		was already set by the copy-constructor. */
+	pXML->SetInfoIDFromChildXmlVal(m_iDemandTributeAttitudeThreshold,
+			"DemandTributeAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iNoGiveHelpAttitudeThreshold,
+			"NoGiveHelpAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iTechRefuseAttitudeThreshold,
+			"TechRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iStrategicBonusRefuseAttitudeThreshold,
+			"StrategicBonusRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iHappinessBonusRefuseAttitudeThreshold,
+			"HappinessBonusRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iHealthBonusRefuseAttitudeThreshold,
+			"HealthBonusRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iMapRefuseAttitudeThreshold,
+			"MapRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iDeclareWarRefuseAttitudeThreshold,
+			"DeclareWarRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iDeclareWarThemRefuseAttitudeThreshold,
+			"DeclareWarThemRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iStopTradingRefuseAttitudeThreshold,
+			"StopTradingRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iStopTradingThemRefuseAttitudeThreshold,
+			"StopTradingThemRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iAdoptCivicRefuseAttitudeThreshold,
+			"AdoptCivicRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iConvertReligionRefuseAttitudeThreshold,
+			"ConvertReligionRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iOpenBordersRefuseAttitudeThreshold,
+			"OpenBordersRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iDefensivePactRefuseAttitudeThreshold,
+			"DefensivePactRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iPermanentAllianceRefuseAttitudeThreshold,
+			"PermanentAllianceRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iVassalRefuseAttitudeThreshold,
+			"VassalRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iFavoriteCivic,
+			"FavoriteCivic");
+	pXML->SetInfoIDFromChildXmlVal(m_iFavoriteReligion,
+			"FavoriteReligion");
+	pXML->SetInfoIDFromChildXmlVal(m_iFavoriteReligion,
+			"FavoriteReligion");
 
-	pXML->GetChildXmlValByName(szTextVal, "NoGiveHelpAttitudeThreshold");
-	m_iNoGiveHelpAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "TechRefuseAttitudeThreshold");
-	m_iTechRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "StrategicBonusRefuseAttitudeThreshold");
-	m_iStrategicBonusRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "HappinessBonusRefuseAttitudeThreshold");
-	m_iHappinessBonusRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "HealthBonusRefuseAttitudeThreshold");
-	m_iHealthBonusRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "MapRefuseAttitudeThreshold");
-	m_iMapRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "DeclareWarRefuseAttitudeThreshold");
-	m_iDeclareWarRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "DeclareWarThemRefuseAttitudeThreshold");
-	m_iDeclareWarThemRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "StopTradingRefuseAttitudeThreshold");
-	m_iStopTradingRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "StopTradingThemRefuseAttitudeThreshold");
-	m_iStopTradingThemRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "AdoptCivicRefuseAttitudeThreshold");
-	m_iAdoptCivicRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "ConvertReligionRefuseAttitudeThreshold");
-	m_iConvertReligionRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "OpenBordersRefuseAttitudeThreshold");
-	m_iOpenBordersRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "DefensivePactRefuseAttitudeThreshold");
-	m_iDefensivePactRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "PermanentAllianceRefuseAttitudeThreshold");
-	m_iPermanentAllianceRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "VassalRefuseAttitudeThreshold");
-	m_iVassalRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "FavoriteCivic");
-#ifdef _DEBUG
-	m_iFavoriteCivic = pXML->FindInInfoClass(szTextVal);
-#else
-	m_iFavoriteCivic = pXML->FindInInfoClass(szTextVal, true);
-#endif
-	pXML->GetChildXmlValByName(szTextVal, "FavoriteReligion");
-	m_iFavoriteReligion = pXML->FindInInfoClass(szTextVal);
 	// <f1rpo>
 	// Civic AI Weights
 	pXML->SetVariableListTagPair(&m_piCivicAIWeights, "CivicAIWeights", -1/*(unused)*/, GC.getNumCivicInfos(), 0, true);
@@ -21421,26 +21466,53 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 /*                                                                                              */
 /* Advanced Diplomacy                                                                           */
 /************************************************************************************************/
-	pXML->GetChildXmlValByName(szTextVal, "MilitaryUnitRefuseAttitudeThreshold");
-	m_iMilitaryUnitRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "WorkerRefuseAttitudeThreshold");
-	m_iWorkerRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "CorporationRefuseAttitudeThreshold");
-	m_iCorporationRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "SecretaryGeneralVoteRefuseAttitudeThreshold");
-	m_iSecretaryGeneralVoteRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
-	
-	setDefaultMemoryInfo();
-	setDefaultContactInfo();
+	// f1rpo (xmldefault): Replacing GetChildXmlValByName FindInInfoClass calls
+	pXML->SetInfoIDFromChildXmlVal(m_iMilitaryUnitRefuseAttitudeThreshold,
+			"MilitaryUnitRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iWorkerRefuseAttitudeThreshold,
+			"WorkerRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iCorporationRefuseAttitudeThreshold,
+			"CorporationRefuseAttitudeThreshold");
+	pXML->SetInfoIDFromChildXmlVal(m_iSecretaryGeneralVoteRefuseAttitudeThreshold,
+			"SecretaryGeneralVoteRefuseAttitudeThreshold");
+	/*setDefaultMemoryInfo();
+	setDefaultContactInfo();*/ // obsolete
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
-
+	// <f1rpo> (xmldefault)
+	#ifdef FASSERT_ENABLE
+	if (!isDefaultsType())
+	{
+		if (m_piContactRand != NULL)
+		{
+			FOR_EACH_STATIC_ENUM(eContact, Contact, CONTACT)
+				FAssert(m_piContactRand[eContact] >= 0);
+		}
+		FAssert(m_piContactDelay == NULL || m_piContactRand[CONTACT_PEACE_TREATY] >= 0);
+		FAssert(m_piMemoryAttitudePercent == NULL || m_piMemoryAttitudePercent[MEMORY_TRADED_TECH_TO_US] != -1);
+		if (m_piDiploPeaceMusicScriptIds != NULL)
+		{
+			FOR_EACH_INFO(eEra, Era)
+				FAssert(m_piDiploPeaceMusicScriptIds[eEra] >= 0);
+		}
+	}
+	#endif
+	m_pXML = NULL;
+	// </f1rpo>
 	return true;
 }
+
+// <f1rpo> (xmldefault)
+CvXMLLoadUtility* CvLeaderHeadInfo::m_pXML = NULL;
+
+void CvLeaderHeadInfo::GetChildXmlValByName(int& r, TCHAR const* szName, int iDefault)
+{
+	if (r != 0) // If child not found, keep the data set by the copy-ctor.
+		iDefault = r;
+	m_pXML->GetChildXmlValByName(&r, szName, iDefault);
+} // </f1rpo>
+
 /************************************************************************************************/
 /* XMLCOPY                                 10/12/07                                MRGENIE      */
 /*                                                                                              */
@@ -21732,7 +21804,8 @@ void CvLeaderHeadInfo::copyNonDefaults(CvLeaderHeadInfo* pClassInfo, CvXMLLoadUt
 /*                                                                                              */
 /************************************************************************************************/
 //I'm lazy, so sue me. The XML still overrides this, so no worries.
-void CvLeaderHeadInfo::setDefaultMemoryInfo()
+// f1rpo (xmldefault): obsolete
+/*void CvLeaderHeadInfo::setDefaultMemoryInfo()
 {
 	if ( NULL == m_piMemoryDecayRand )
 	{
@@ -21943,7 +22016,7 @@ void CvLeaderHeadInfo::setDefaultContactInfo()
 			}
 		}
 	}
-}
+}*/
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
@@ -27894,6 +27967,12 @@ void CvArtInfoLeaderhead::copyNonDefaults(CvArtInfoLeaderhead* pClassInfo, CvXML
 // CvArtInfoScalableAsset
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+// f1rpo (xmldefault):
+CvArtInfoScalableAsset::CvArtInfoScalableAsset(CvArtInfoScalableAsset const& kOther)
+{
+	FAssertMsg(false, "No copy-ctor implemented");
+}
+
 bool CvArtInfoScalableAsset::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvArtInfoAsset::read(pXML))
@@ -30177,6 +30256,12 @@ m_fProjectileArc(0.0f)
 {
 }
 
+// f1rpo (xmldefault):
+CvEffectInfo::CvEffectInfo(CvEffectInfo const& kOther)
+{
+	FAssertMsg(false, "Copy-ctor not implemented");
+}
+
 CvEffectInfo::~CvEffectInfo()
 {
 }
@@ -30292,6 +30377,11 @@ void CvEffectInfo::copyNonDefaults(CvEffectInfo* pClassInfo, CvXMLLoadUtility* p
 CvAttachableInfo::CvAttachableInfo() :
 m_fUpdateRate(0.0f)
 {
+}
+// f1rpo (xmldefault):
+CvAttachableInfo::CvAttachableInfo(CvAttachableInfo const& kOther)
+{
+	FAssertMsg(false, "Copy-ctor not implemented");
 }
 
 CvAttachableInfo::~CvAttachableInfo()

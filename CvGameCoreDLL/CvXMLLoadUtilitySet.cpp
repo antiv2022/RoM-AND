@@ -1936,13 +1936,20 @@ void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* s
 	// if we successfully locate the tag name in the xml file
 	if (GETXML->LocateNode(m_pFXml, szTagName))
 	{
+		static T* pDefaultClassInfo = NULL; // f1rpo (xmldefault)
 		// loop through each tag
 		do
 		{
 				if (!SkipToNextVal())	// skip to the next non-comment node
 					break;              // AIAndy: need to break the loop when the last sibling is a comment node
 
-				T* pClassInfo = new T();
+				//T* pClassInfo = new T();
+				// <f1rpo> (xmldefault)
+				T* pClassInfo = NULL;
+				if (pDefaultClassInfo == NULL)
+					pClassInfo = new T();
+				else pClassInfo = new T(*pDefaultClassInfo);
+				// </f1rpo> (xmldefault)
 
 				FAssert(NULL != pClassInfo);
 				if (NULL == pClassInfo)
@@ -1951,6 +1958,13 @@ void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* s
 				}
 
 				bool bSuccess = pClassInfo->read(this);
+				// <f1rpo> (xmldefault)
+				if (pClassInfo->isDefaultsType())
+				{
+					SAFE_DELETE(pDefaultClassInfo);
+					pDefaultClassInfo = pClassInfo;
+					continue;
+				} // </f1rpo>
 /************************************************************************************************/
 /* MODULAR_LOADING_CONTROL                 02/20/08                                MRGENIE      */
 /*                                                                                              */
@@ -2199,6 +2213,10 @@ void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* s
 
 
 		} while (GETXML->NextSibling(m_pFXml));
+		/*	f1rpo (xmldefault): Should be deleted in the final call to this
+			instantiation of the function template. How to tell in AND?
+			All just leave it as a fairly harmless memory leak. */
+		//SAFE_DELETE(pDefaultClassInfo);
 //This ends readpass1, above loop keeps going till you reach the end of the XML file (or more correctly, go up one parent element from those which contain Types).
 // AIAndy: This two pass is no more maintained, the replacement is used always
 		/*if (bTwoPass)
@@ -3473,7 +3491,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 	TCHAR szTextVal[256];
 	int* piList = NULL;
 
-	*ppiList = NULL;
+	//*ppiList = NULL; // f1rpo (xmldefault)
 
 	if (0 > iInfoBaseLength)
 	{
@@ -3490,7 +3508,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 			if (0 < iNumSibs)
 			{
 				InitList(ppiList, iInfoBaseLength, iDefaultListVal);
-				bool bListModified = false; // f1rpo
+				bool bListModified = (*ppiList != NULL); // f1rpo
 				piList = *ppiList;
 				if(!(iNumSibs <= iInfoBaseLength))
 				{
@@ -3554,7 +3572,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 	TCHAR szTextVal[256];
 	int* piList = NULL;
 
-	*ppiList = NULL;
+	//*ppiList = NULL; // f1rpo (xmldefault)
 
 	if (0 > iInfoBaseLength)
 	{
@@ -3641,7 +3659,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 	TCHAR szTextVal[256];
 	bool* pbList = NULL;
 
-	*ppbList = NULL;
+	//*ppbList = NULL; // f1rpo (xmldefault)
 
 	if(!(0 < iInfoBaseLength))
 	{
@@ -3711,7 +3729,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRo
 	TCHAR szTextVal[256];
 	float* pfList = NULL;
 
-	*ppfList = NULL;
+	//*ppfList = NULL; // f1rpo (xmldefault)
 
 	if(!(0 < iInfoBaseLength))
 	{
@@ -3775,13 +3793,16 @@ void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRo
 void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
 											  int iInfoBaseSize, int iInfoBaseLength, CvString szDefaultListVal)
 {
+	// <f1rpo> (xmldefault)
+	if (*ppszList != NULL)
+		return; // </f1rpo>
 	int i;
 	int iIndexVal;
 	int iNumSibs;
 	TCHAR szTextVal[256];
 	CvString* pszList;
 
-	*ppszList = NULL;
+	//*ppszList = NULL; // f1rpo (xmldefault)
 
 	if(!(0 < iInfoBaseLength))
 	{
@@ -3845,13 +3866,14 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
 											  CvString* m_paszTagList, int iTagListLength, int iDefaultListVal)
 {
+
 	int i;
 	int iIndexVal;
 	int iNumSibs;
 	TCHAR szTextVal[256];
 	int* piList = NULL;
 
-	*ppiList = NULL;
+	//*ppiList = NULL; // f1rpo (xmldefault)
 
 	if(!(0 < iTagListLength))
 	{
@@ -3922,7 +3944,7 @@ void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, cons
 	int* piList;
 	CvString szTemp;
 
-	*ppiList = NULL;
+	//*ppiList = NULL; // f1rpo (xmldefault)
 
 	if (GETXML->SetToChildByTagName(m_pFXml,szRootTagName))
 	{
@@ -4008,7 +4030,7 @@ void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, cons
 	int* piList;
 	CvString szTemp;
 
-	*ppiList = NULL;
+	//*ppiList = NULL; // f1rpo (xmldefault)
 
 	if (GETXML->SetToChildByTagName(m_pFXml,szRootTagName))
 	{
@@ -4094,7 +4116,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 	TCHAR szTextVal[256];
 	bool* pbList = NULL;
 
-	*ppbList = NULL;
+	//*ppbList = NULL; // f1rpo (xmldefault)
 
 	if(!(0 < iTagListLength))
 	{
@@ -4158,13 +4180,17 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
 											  CvString* m_paszTagList, int iTagListLength, CvString szDefaultListVal)
 {
+	// <f1rpo> (xmldefault)
+	if (*ppszList != NULL)
+		return; // </advc.xmldefault>
+
 	int i;
 	int iIndexVal;
 	int iNumSibs;
 	TCHAR szTextVal[256];
 	CvString* pszList;
 
-	*ppszList = NULL;
+	//*ppszList = NULL; // f1rpo (xmldefault)
 
 	if(!(0 < iTagListLength))
 	{
