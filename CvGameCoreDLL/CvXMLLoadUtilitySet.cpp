@@ -2215,8 +2215,9 @@ void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* s
 		} while (GETXML->NextSibling(m_pFXml));
 		/*	f1rpo (xmldefault): Should be deleted in the final call to this
 			instantiation of the function template. How to tell in AND?
-			All just leave it as a fairly harmless memory leak. */
+			I'll just leave it as a fairly harmless memory leak. */
 		//SAFE_DELETE(pDefaultClassInfo);
+
 //This ends readpass1, above loop keeps going till you reach the end of the XML file (or more correctly, go up one parent element from those which contain Types).
 // AIAndy: This two pass is no more maintained, the replacement is used always
 		/*if (bTwoPass)

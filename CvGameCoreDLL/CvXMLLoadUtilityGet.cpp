@@ -1254,7 +1254,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(bool* pbVal, const TCHAR* szName, bo
 	}
 }
 
-// <f1rpo> (xmldefault)
+// f1rpo: (xmldefault)
 void CvXMLLoadUtility::SetInfoIDFromChildXmlVal(int& r, TCHAR const* szName)
 {
 	CvString szTextVal;
@@ -1262,15 +1262,6 @@ void CvXMLLoadUtility::SetInfoIDFromChildXmlVal(int& r, TCHAR const* szName)
 	if (!szTextVal.IsEmpty())
 		r = FindInInfoClass(szTextVal);
 }
-
-// (based on code by rheinig)
-int CvXMLLoadUtility::GetChildTypeIndex()
-{
-	CvString szType;
-	if (GetChildXmlValByName(szType, "Type") && !szType.empty())
-		return GC.getInfoTypeForString(szType, true);
-	return -1;
-} // </f1rpo>
 
 //------------------------------------------------------------------------------------------------------
 //
