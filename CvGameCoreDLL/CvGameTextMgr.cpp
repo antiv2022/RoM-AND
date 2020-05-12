@@ -12536,7 +12536,10 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 	setBasicUnitHelpWithCity(szBuffer, eUnit, bCivilopediaText, pCity);
 // BUG - Starting Experience - end
 
-	if ((pCity == NULL) || !(pCity->canTrain(eUnit)))
+	// f1rpo: Need this again later
+	bool const bCannotTrainInCity = (pCity != NULL && !pCity->canTrain(eUnit));
+	//if ((pCity == NULL) || !(pCity->canTrain(eUnit)))
+	if (pCity == NULL || bCannotTrainInCity)
 	{
 		if (pCity != NULL)
 		{
@@ -12598,7 +12601,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 /************************************************************************************************/
 		if (GC.getUnitInfo(eUnit).getPrereqVicinityBonus() != NO_BONUS)
 		{
-			if ((pCity == NULL) || !(pCity->canTrain(eUnit)))
+			//if ((pCity == NULL) || !(pCity->canTrain(eUnit)))
+			if (pCity == NULL || bCannotTrainInCity) // f1rpo
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_REQUIRES_VICINITY_BONUS", GC.getBonusInfo((BonusTypes)(GC.getUnitInfo(eUnit).getPrereqVicinityBonus())).getTextKeyWide()));
@@ -12611,7 +12615,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 		{
 			if (GC.getUnitInfo(eUnit).getPrereqOrVicinityBonuses(iI) != NO_BONUS)
 			{
-				if ((pCity == NULL) || !(pCity->canTrain(eUnit)))
+				//if ((pCity == NULL) || !(pCity->canTrain(eUnit)))
+				if (pCity == NULL || bCannotTrainInCity) // f1rpo
 				{
 					szTempBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_REQUIRES_IN_CITY_VICINITY").c_str());
 					setListHelp(szBuffer, szTempBuffer, GC.getBonusInfo((BonusTypes) GC.getUnitInfo(eUnit).getPrereqOrVicinityBonuses(iI)).getDescription(), gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
@@ -12927,6 +12932,14 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 			pExpr->buildDisplayString(szBuffer);
 		}
 	}
+	// <f1rpo> Can't start unit production during strike
+	if (bCannotTrainInCity && GET_PLAYER(ePlayer).isStrike()
+		&& !GC.getUnitInfo(eUnit).isFoodProduction()
+		&& eUnit != pCity->getProductionUnit())
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_NO_TRAIN_DURING_STRIKE"));
+	} // </f1rpo>
 
 	if (bStrategyText)
 	{

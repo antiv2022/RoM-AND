@@ -3377,6 +3377,12 @@ bool CvCity::canTrainInternal(UnitTypes eUnit, bool bContinue, bool bTestVisible
 	{
 		return false;
 	}
+	// <f1rpo> Can't start production during strike
+	if (!bTestVisible && !bContinue && GET_PLAYER(getOwnerINLINE()).isStrike()
+		&& !GC.getUnitInfo(eUnit).isFoodProduction())
+	{
+		return false;
+	} // </f1rpo>
 /************************************************************************************************/
 /* REVDCM                                 02/16/10                                phungus420    */
 /*                                                                                              */
@@ -20260,6 +20266,19 @@ void CvCity::startHeadOrder()
 
 		AI_setAssignWorkDirty(true);
 	}
+	// <f1rpo> Checking canContinueProduction (later on) isn't enough during strike
+	if (!GET_PLAYER(getOwnerINLINE()).isStrike())
+		return;
+	while (pOrderNode != NULL)
+	{
+		OrderData order = pOrderNode->m_data;
+		pOrderNode = nextOrderQueueNode(pOrderNode);
+		if (order.eOrderType == ORDER_TRAIN
+			&& !canTrain((UnitTypes)EXTERNAL_ORDER_IDATA(order.iData1)))
+		{
+			popOrder(0, false, true);
+		}
+	} // </f1rpo>
 }
 
 

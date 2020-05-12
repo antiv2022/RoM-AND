@@ -17595,7 +17595,12 @@ void CvPlayer::setStrike(bool bNewValue)
 	if (isStrike() != bNewValue)
 	{
 		m_bStrike = bNewValue;
-
+		// <f1rpo> Can't start unit production during strike
+		#ifdef CAN_TRAIN_CACHING
+		int iIter;
+		for (CvCity* pCity = firstCity(&iIter); pCity != NULL; pCity = nextCity(&iIter))
+			pCity->clearCanTrainCache(false);
+		#endif // </f1rpo>
 		if (isStrike())
 		{
 			if (getID() == GC.getGameINLINE().getActivePlayer())

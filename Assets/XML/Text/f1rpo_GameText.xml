@@ -1,13 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <Civ4GameText>
-	<!-- f1rpo (Sexism, Racism): English by Inthegrave.
+	<!-- Sexism, Racism: English by Inthegrave.
 		 The German translation is by me; not great, better than none. -->
     <TEXT>
         <Tag>TXT_KEY_MISC_ATTITUDE_PREJUDICE_NEGATIVE</Tag>
         <English>%D1: "You are inferior to me."</English>
         <German>%D1: "Euresgleichen steht unter uns."</German>
     </TEXT>
-	<!-- By f1rpo - may well remain unused. Just something to make sure that
+	<!-- May well remain unused. Just something to make sure that
 		 positive attitude doesn't remain hidden.
 		 This quote from "Falling Down" was the only thing that
 		 came to mind. -->
@@ -16,4 +16,11 @@
         <English>%D1: "We're the same, you and me."</English>
         <German>%D1: "Wir beide sind gleich."</German>
     </TEXT>
+
+	<TEXT>
+        <Tag>TXT_KEY_NO_TRAIN_DURING_STRIKE</Tag>
+        <English>[COLOR_WARNING_TEXT]Strike!!![COLOR_REVERT]</English>
+        <German>[COLOR_WARNING_TEXT]Streik!!![COLOR_REVERT]</German>
+    </TEXT>
+
 </Civ4GameText>
