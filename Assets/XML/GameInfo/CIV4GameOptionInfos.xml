@@ -374,10 +374,11 @@
 			<bDefault>1</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
+		<!-- f1rpo (era options): Position swapped with NO_FUTURE -->
 		<GameOptionInfo>
-			<Type>GAMEOPTION_NO_FUTURE</Type>
-			<Description>TXT_KEY_GAMEOPTION_NO_FUTURE</Description>
-			<Help>TXT_KEY_GAMEOPTION_NO_FUTURE_HELP</Help>
+			<Type>GAMEOPTION_MOVEMENT_LIMITS</Type>
+			<Description>TXT_KEY_GAMEOPTION_MOVEMENT_LIMITS</Description>
+			<Help>TXT_KEY_GAMEOPTION_MOVEMENT_LIMITS_HELP</Help>
 			<bDefault>0</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
@@ -465,12 +466,50 @@
 			<bDefault>0</bDefault>
 			<bVisible>0</bVisible>
 		</GameOptionInfo>
+		<!-- f1rpo (era options): start -->
 		<GameOptionInfo>
-			<Type>GAMEOPTION_MOVEMENT_LIMITS</Type>
-			<Description>TXT_KEY_GAMEOPTION_MOVEMENT_LIMITS</Description>
-			<Help>TXT_KEY_GAMEOPTION_MOVEMENT_LIMITS_HELP</Help>
+			<!-- (Meaning, as before: NO_TRANSHUMAN_ERA) -->
+			<Type>GAMEOPTION_NO_FUTURE</Type>
+			<Description>TXT_KEY_GAMEOPTION_NO_FUTURE</Description>
+			<Help>TXT_KEY_GAMEOPTION_NO_FUTURE_HELP</Help>
 			<bDefault>0</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
+		<GameOptionInfo>
+			<Type>GAMEOPTION_NO_MODERN_ERA</Type>
+			<Description>TXT_KEY_GAMEOPTION_NO_MODERN_ERA</Description>
+			<Help>TXT_KEY_GAMEOPTION_NO_MODERN_ERA_HELP</Help>
+			<bDefault>0</bDefault>
+			<bVisible>1</bVisible>
+		</GameOptionInfo>
+		<GameOptionInfo>
+			<Type>GAMEOPTION_NO_INDUSTRIAL_ERA</Type>
+			<Description>TXT_KEY_GAMEOPTION_NO_INDUSTRIAL_ERA</Description>
+			<Help>TXT_KEY_GAMEOPTION_NO_INDUSTRIAL_ERA_HELP</Help>
+			<bDefault>0</bDefault>
+			<bVisible>1</bVisible>
+		</GameOptionInfo>
+		<GameOptionInfo>
+			<Type>GAMEOPTION_NO_RENAISSANCE_ERA</Type>
+			<Description>TXT_KEY_GAMEOPTION_NO_RENAISSANCE_ERA</Description>
+			<Help>TXT_KEY_GAMEOPTION_NO_RENAISSANCE_ERA_HELP</Help>
+			<bDefault>0</bDefault>
+			<bVisible>1</bVisible>
+		</GameOptionInfo>
+		<GameOptionInfo>
+			<Type>GAMEOPTION_NO_MEDIEVAL_ERA</Type>
+			<Description>TXT_KEY_GAMEOPTION_NO_MEDIEVAL_ERA</Description>
+			<Help>TXT_KEY_GAMEOPTION_NO_MEDIEVAL_ERA_HELP</Help>
+			<bDefault>0</bDefault>
+			<bVisible>1</bVisible>
+		</GameOptionInfo>
+		<GameOptionInfo>
+			<Type>GAMEOPTION_NO_CLASSICAL_ERA</Type>
+			<Description>TXT_KEY_GAMEOPTION_NO_CLASSICAL_ERA</Description>
+			<Help>TXT_KEY_GAMEOPTION_NO_CLASSICAL_ERA_HELP</Help>
+			<bDefault>0</bDefault>
+			<bVisible>1</bVisible>
+		</GameOptionInfo>
+		<!-- f1rpo (end) -->
 	</GameOptionInfos>
 </Civ4GameOptionInfos>

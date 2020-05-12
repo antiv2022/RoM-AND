@@ -571,6 +571,7 @@ public:
 	DllExport void setGameState(GameStateTypes eNewValue);
 
 	DllExport EraTypes getStartEra() const;																			// Exposed to Python
+	EraTypes getPenultimateEra() const { return m_ePenultimateEra; } // f1rpo (era options)
 
 	DllExport CalendarTypes getCalendar() const;																// Exposed to Python
 
@@ -951,7 +952,8 @@ protected:
 	TeamTypes m_circumnavigatingTeam;
 
 	HandicapTypes m_eHandicap;
-	HandicapTypes m_eAIHandicap; // f1rpo
+	HandicapTypes m_eAIHandicap; // f1rpo.autoplay
+	EraTypes m_ePenultimateEra; // f1rpo (era options)
 	PlayerTypes m_ePausePlayer;
 	mutable UnitTypes m_eBestLandUnit;
 	TeamTypes m_eWinner;
@@ -1034,6 +1036,7 @@ protected:
 	bool	m_bRecalculatingModifiers;
 
 	void initAIHandicap(); // f1rpo.autoplay
+	void updatePenultimateEra(); // f1rpo (era options)
 
 	void doTurn();
 	void doDeals();

@@ -27700,14 +27700,18 @@ With this option OFF guilds work in a clearer and more realistic way: requiring 
     </TEXT>
     <TEXT>
         <Tag>TXT_KEY_GAMEOPTION_NO_FUTURE</Tag>
-        <English>No Transhuman Era</English>
+        <!--English>No Transhuman Era</English-->
+		<!-- f1rpo (era options): To be consistent with the new options -->
+		<English>No Post-Modern Tech</English>
         <French>Pas d'ère futuriste</French>
         <Polish>Bez Transhumanizmu</Polish>
         <Czech>Žádná budoucí éra</Czech>
         <Korean>미래시대 없음</Korean>
         <Russian>Без эпохи трансгуманизма</Russian>
         <Brazilian>Sem Era do Futuro</Brazilian>
-        <German>Kein transhumanes Zeitalter</German>
+        <!--German>Kein transhumanes Zeitalter</German-->
+		<!-- f1rpo: -->
+		<German>Keine postmoderne Technologie</German>
         <Spanish>Sin Era Transhumana</Spanish>
         <Ukrainian>Без епохи Трансгуманізму</Ukrainian>
         <Italian>Nessuna Età transumana</Italian>
@@ -27715,7 +27719,9 @@ With this option OFF guilds work in a clearer and more realistic way: requiring 
     </TEXT>
     <TEXT>
         <Tag>TXT_KEY_GAMEOPTION_NO_FUTURE_HELP</Tag>
-        <English>Future and Transhuman Eras are disabled. The game ends at the end of the Modern Era.</English>
+        <!--English>Future and Transhuman Eras are disabled. The game ends at the end of the Modern Era.</English-->
+		<!-- f1rpo: -->
+		<English>Disables the Transhuman era; Future Tech becomes available at the end of the Modern era instead.</English>
         <French>Les ères futuriste et transhumaine sont désactivées. Le jeu se termine à la fin de l'ère moderne.</French>
         <Polish>Przyszłoäâ oraz Transhumanizm będá wyłáczone. Gra kończy się na Współczesnoäci.</Polish>
         <Korean>미래와 인간강화 시대가 비활성화됩니다. 게임은 현대시대 종반에 끝이 납니다.</Korean>
@@ -27724,8 +27730,62 @@ With this option OFF guilds work in a clearer and more realistic way: requiring 
         <Ukrainian>Вимикає епохи Майбутнє і Трансгуманізм. Гра закінчиться наприкінці сучасної епохи.</Ukrainian>
         <Italian>L'Età futura e quella transumana sono disabilitate. Il gioco finirà durante l'Era moderna.</Italian>
         <Turkish>Gelecek ve Transinsan Çağı engellendi. Oyun, Modern Çağ'ın sonunda bitiyor.</Turkish>
-        <German>Zukunft und Transhumanes Zeitalter sind abgeschaltet. Das Spiel endet in der Moderne.</German>
+        <!--German>Zukunft und Transhumanes Zeitalter sind abgeschaltet. Das Spiel endet in der Moderne.</German-->
+		<!-- f1rpo: -->
+		<German>Deaktiviert das transhumane Zeitalter; Zukunftstechnologien werden stattdessen am Ende der Moderne verfügbar.</German>
     </TEXT>
+	<!-- f1rpo (era options): start -->
+	<TEXT>
+        <Tag>TXT_KEY_GAMEOPTION_NO_MODERN_ERA</Tag>
+        <English>No Post-Industrial Tech</English>
+        <German>Keine nachindustrielle Technologie</German>
+    </TEXT>
+    <TEXT>
+        <Tag>TXT_KEY_GAMEOPTION_NO_MODERN_ERA_HELP</Tag>
+        <English>Disables the Modern and Transhuman era; Future Tech becomes available at the end of the Industrial era.</English>
+        <German>Deaktiviert die Moderne und das transhumane Zeitalter; Zukunftstechnologien werden am Ende des Industriezeitalters verfügbar.</German>
+    </TEXT>
+	<TEXT>
+        <Tag>TXT_KEY_GAMEOPTION_NO_INDUSTRIAL_ERA</Tag>
+        <English>No Post-Renaissance Tech</English>
+        <German>Keine Post-Renaissance-Technologie</German>
+    </TEXT>
+    <TEXT>
+        <Tag>TXT_KEY_GAMEOPTION_NO_INDUSTRIAL_ERA_HELP</Tag>
+        <English>Disables the Industrial, Modern and Transhuman era; Future Tech becomes available at the end of Renaissance.</English>
+        <German>Deaktiviert Industriezeitalter, Moderne und transhumanes Zeitalter; Zukunftstechnologien werden am Ende der Renaissance verfügbar.</German>
+    </TEXT>
+	<TEXT>
+        <Tag>TXT_KEY_GAMEOPTION_NO_RENAISSANCE_ERA</Tag>
+        <English>No Post-Medieval Tech</English>
+        <German>Keine nachmittelalterliche Technologie</German>
+    </TEXT>
+    <TEXT>
+        <Tag>TXT_KEY_GAMEOPTION_NO_RENAISSANCE_ERA_HELP</Tag>
+        <English>Disables the Renaissance era and all subsequent eras; Future Tech becomes available at the end of the Medieval era.</English>
+        <German>Deaktiviert die Renaissance und alle darauf folgenden Zeitalter; Zukunftstechnologien werden am Ende des Mittelalters verfügbar.</German>
+    </TEXT>
+	<TEXT>
+        <Tag>TXT_KEY_GAMEOPTION_NO_MEDIEVAL_ERA</Tag>
+        <English>No Post-Classical Tech</English>
+        <German>Keine nachklassische Technologie</German>
+    </TEXT>
+    <TEXT>
+        <Tag>TXT_KEY_GAMEOPTION_NO_MEDIEVAL_ERA_HELP</Tag>
+        <English>Disables the Medieval era and all subsequent eras; Future Tech becomes available at the end of the Classical era.</English>
+        <German>Deaktiviert das Mittelalter und alle darauf folgenden Zeitalter; Zukunftstechnologien werden am Ende der Klassik verfügbar.</German>
+    </TEXT>
+	<TEXT>
+        <Tag>TXT_KEY_GAMEOPTION_NO_CLASSICAL_ERA</Tag>
+        <English>Only Ancient Tech</English>
+        <German>Nur antike Technologie</German>
+    </TEXT>
+    <TEXT>
+        <Tag>TXT_KEY_GAMEOPTION_NO_CLASSICAL_ERA_HELP</Tag>
+        <English>Disables the Classical era and all subsequent eras; Future Tech becomes available at the end of the Ancient era.</English>
+        <German>Deaktiviert die Klassik und alle darauf folgenden Zeitalter; Zukunftstechnologien werden am Ende der (vorklassischen) Antike verfügbar.</German>
+    </TEXT>
+	<!-- f1rpo: end -->
     <TEXT>
         <Tag>TXT_KEY_GAMEOPTION_REALISTIC_CORPORATIONS</Tag>
         <English>Realistic Corporations</English>

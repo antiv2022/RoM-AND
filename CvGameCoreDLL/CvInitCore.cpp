@@ -2291,7 +2291,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 			}
 		}
 	}
-	else if (iGameOptionsSaveFormat == 1)
+	else/* if (iGameOptionsSaveFormat == 1)*/ // f1rpo (era options)
 	{
 		for (int i = 0; i < NUM_GAMEOPTION_TYPES; i++)
 		{
@@ -2301,8 +2301,14 @@ void CvInitCore::read(FDataStreamBase* pStream)
 			static int _idHint; static int _saveSeq = -1; 
 			(wrapper).Read(buffer, _idHint, _saveSeq, &m_abOptions[i]);
 		}
+		// <f1rpo> (era options)
+		if (iGameOptionsSaveFormat < 2)
+		{
+			std::swap(m_abOptions[GAMEOPTION_MOVEMENT_LIMITS],
+					  m_abOptions[GAMEOPTION_NO_FUTURE]);
+		}
 	}
-	else
+	if (iGameOptionsSaveFormat > 2) // </f1rpo>
 	{
 		FAssertMsg(false, "Unknown game options save format");
 	}
@@ -2583,6 +2589,7 @@ void CvInitCore::write(FDataStreamBase* pStream)
 
 
 	int iGameOptionsSaveFormat = 1;
+	iGameOptionsSaveFormat = 2; // f1rpo (era options)
 	WRAPPER_WRITE(wrapper, "CvInitCore", iGameOptionsSaveFormat);
 	for (int i = 0; i < NUM_GAMEOPTION_TYPES; i++)
 	{

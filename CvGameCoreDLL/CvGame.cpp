@@ -881,6 +881,10 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_eAIHandicap = (bConstructorCall ? NO_HANDICAP
 			// (XML not loaded when constructor called)
 			: (HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP")); // </f1rpo.autoplay>
+	// <f1rpo> (era options)
+	m_ePenultimateEra = (EraTypes)std::max(0, GC.getNumEraInfos() - 2);
+	if (!bConstructorCall)
+		updatePenultimateEra(); // </f1rpo>
 	m_ePausePlayer = NO_PLAYER;
 	m_eBestLandUnit = NO_UNIT;
 	m_eWinner = NO_TEAM;
@@ -1280,6 +1284,26 @@ void CvGame::initAIHandicap()
 	}
 	if(iDiv > 0) // Leaves it at STANDARD_HANDICAP in all-human games
 		m_eAIHandicap = (HandicapTypes)ROUND_DIVIDE(iHandicapSum, iDiv);
+}
+
+// f1rpo (era options):
+void CvGame::updatePenultimateEra()
+{
+	int iOption = GAMEOPTION_NO_CLASSICAL_ERA;
+	for (; iOption >= GAMEOPTION_NO_FUTURE; iOption--)
+	{
+		if (isOption((GameOptionTypes)iOption))
+			break;
+	}
+	int iEra = 5 - (iOption - GAMEOPTION_NO_FUTURE);
+	FAssertBounds(0, GC.getNumEraInfos(), iEra);
+	iEra = std::max<int>(iEra, getStartEra());
+	if (iEra >= GC.getNumEraInfos() - 1)
+	{
+		FAssertMsg(false, "Penultimate not before ultimate era");
+		return;
+	}
+	m_ePenultimateEra = (EraTypes)iEra;
 }
 
 
@@ -7165,7 +7189,11 @@ void CvGame::doTurn()
 	}
 
 	EraTypes eStartEra = getStartEra();
-	EraTypes eEndEra = (EraTypes)(isOption(GAMEOPTION_NO_FUTURE) ? GC.getInfoTypeForString("ERA_MODERN") : GC.getNumEraInfos() - 1);
+	//EraTypes eEndEra = (EraTypes)(isOption(GAMEOPTION_NO_FUTURE) ? GC.getInfoTypeForString("ERA_MODERN") : GC.getNumEraInfos() - 1);
+	/*	f1rpo (era options):  [Note that GAMEOPTION_NO_FUTURE only disables the
+		transhuman era, not the future era. Therefore, the above should've been
+		GC.getInfoTypeForString("ERA_MODERN")+1.] */
+	EraTypes eEndEra = (EraTypes)(getPenultimateEra() + 1);
 	int iEraCount = /* f1rpo: bugfix: */ std::max(1,
 			eEndEra - eStartEra);
 	//Assuming we divide turns evenly per era
@@ -14624,11 +14652,13 @@ int CvGame::getAverageCorporationInfluence(CvCity* pCity, CorporationTypes eCorp
 
 bool CvGame::canEverResearch(TechTypes eTech) const
 {
-	if (!isOption(GAMEOPTION_MOUNTAINS) && GC.getTechInfo(eTech).isCanPassPeaks())
+	if (GC.getTechInfo(eTech).isCanPassPeaks()
+		// advc.opt: Switched; game option checks aren't super fast.
+		&& !isOption(GAMEOPTION_MOUNTAINS))
 	{
 		return false;
 	}
-	if (isOption(GAMEOPTION_NO_FUTURE))
+	/*if (isOption(GAMEOPTION_NO_FUTURE))
 	{
 		if (GC.getTechInfo(eTech).getEra() > GC.getInfoTypeForString("ERA_MODERN"))
 		{
@@ -14637,7 +14667,13 @@ bool CvGame::canEverResearch(TechTypes eTech) const
 				return false;
 			}
 		}
-	}
+	}*/
+	// <f1rpo> (era options)
+	if (GC.getTechInfo(eTech).getEra() > getPenultimateEra()
+		&& !GC.getTechInfo(eTech).isRepeat())
+	{
+		return false;
+	} // </f1rpo>
 	if (GC.getTechInfo(eTech).getPrereqGameOption() != NO_GAMEOPTION)
 	{
 		if (!isOption((GameOptionTypes)GC.getTechInfo(eTech).getPrereqGameOption()))
@@ -14651,7 +14687,7 @@ bool CvGame::canEverResearch(TechTypes eTech) const
 
 void CvGame::setFutureEras()
 {
-	TechTypes eFutureTech =  NO_TECH;
+	/*TechTypes eFutureTech = NO_TECH;
 	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
 	{
 		if (GC.getTechInfo((TechTypes)iI).isRepeat())
@@ -14659,9 +14695,19 @@ void CvGame::setFutureEras()
 			eFutureTech = (TechTypes)iI;
 			break;
 		}
-	}
-	if (eFutureTech != NO_TECH)
+	}*/
+	// <f1rpo> (era options - not needed, but ...)
+	std::vector<TechTypes> aFutureTech;
+	FOR_EACH_INFO(eTech, Tech)
 	{
+		if (GC.getTechInfo(eTech).isRepeat())
+			aFutureTech.push_back(eTech);
+	}
+	//if (eFutureTech != NO_TECH)
+	// <f1rpo>
+	for (size_t i = 0; i < aFutureTech.size(); i++)
+	{
+		TechTypes eFutureTech = aFutureTech[i]; // </f1rpo>
 		bool bSet = false;
 		for (int iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(); iI++)
 		{
@@ -14704,9 +14750,13 @@ void CvGame::setFutureEras()
 			GC.getTechInfo(eFutureTech).setGridX(iBestX + 1);
 		}
 	}
-	if (isOption(GAMEOPTION_NO_FUTURE))
+	/*if (isOption(GAMEOPTION_NO_FUTURE)) {
+		if (eFutureTech != NO_TECH)*/
+	// <f1rpo>
+	for (size_t i = 0; i < aFutureTech.size(); i++)
 	{
-		if (eFutureTech != NO_TECH)
+		TechTypes eFutureTech = aFutureTech[i];
+		if (getPenultimateEra() < GC.getTechInfo(eFutureTech).getEra() - 1) // </f1rpo>
 		{
 			//Remove existing techs prereqs
 			for (int iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(); iI++)

@@ -692,7 +692,9 @@ void CyEnumsPythonInterface()
 		.value("GAMEOPTION_LARGER_CITIES", GAMEOPTION_LARGER_CITIES)
 		.value("GAMEOPTION_REALISTIC_CORPORATIONS", GAMEOPTION_REALISTIC_CORPORATIONS)
 		.value("GAMEOPTION_RELIGION_DECAY", GAMEOPTION_RELIGION_DECAY)
-		.value("GAMEOPTION_NO_FUTURE", GAMEOPTION_NO_FUTURE)
+		// Movement Limits by 45deg - START  (f1rpo: Position swapped with NO_FUTURE)
+		.value("GAMEOPTION_MOVEMENT_LIMITS", GAMEOPTION_MOVEMENT_LIMITS)
+		// Movement Limits by 45deg - END
 		.value("GAMEOPTION_BARBARIANS_ALWAYS_RAZE", GAMEOPTION_BARBARIANS_ALWAYS_RAZE)
 		.value("GAMEOPTION_UNITED_NATIONS", GAMEOPTION_UNITED_NATIONS)
 		.value("GAMEOPTION_ADVANCED_ESPIONAGE", GAMEOPTION_ADVANCED_ESPIONAGE)
@@ -710,10 +712,16 @@ void CyEnumsPythonInterface()
 		.value("GAMEOPTION_NO_FIXED_BORDERS", GAMEOPTION_NO_FIXED_BORDERS)
 /************************************************************************************************/
 /*C2C                                     End                                                */
-/************************************************************************************************/		
-// Movement Limits by 45deg - START
-		.value("GAMEOPTION_MOVEMENT_LIMITS", GAMEOPTION_MOVEMENT_LIMITS)
-// Movement Limits by 45deg - END
+/************************************************************************************************/	
+		// <f1rpo> (era options)
+		.value("GAMEOPTION_NO_FUTURE", GAMEOPTION_NO_FUTURE)
+		.value("GAMEOPTION_NO_MODERN_ERA", GAMEOPTION_NO_MODERN_ERA)
+		.value("GAMEOPTION_NO_INDUSTRIAL_ERA", GAMEOPTION_NO_INDUSTRIAL_ERA)
+		.value("GAMEOPTION_NO_RENAISSANCE_ERA", GAMEOPTION_NO_RENAISSANCE_ERA)
+		.value("GAMEOPTION_NO_MEDIEVAL_ERA", GAMEOPTION_NO_MEDIEVAL_ERA)
+		.value("GAMEOPTION_NO_CLASSICAL_ERA", GAMEOPTION_NO_CLASSICAL_ERA)
+		// </f1rpo>
+
 		//.value("NUM_GAMEOPTION_TYPES", NUM_GAMEOPTION_TYPES)
 		;
 

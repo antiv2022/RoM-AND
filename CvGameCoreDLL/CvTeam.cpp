@@ -3800,7 +3800,9 @@ int CvTeam::getResearchCost(TechTypes eTech) const
 			
 		//fEstimateEndTurn -= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getGoldenAgePercent() / 20; // leave 5 turns at the end of the game for Future Techs (blitz gamespeed), scaled for gamespeed
 		EraTypes eStartEra = (EraTypes)GC.getGame().getStartEra();
-		EraTypes eEndEra = (EraTypes)((GC.getGameINLINE().isOption(GAMEOPTION_NO_FUTURE)) ? GC.getInfoTypeForString("ERA_MODERN") : GC.getNumEraInfos() - 1);
+		//EraTypes eEndEra = (EraTypes)((GC.getGameINLINE().isOption(GAMEOPTION_NO_FUTURE)) ? GC.getInfoTypeForString("ERA_MODERN") : GC.getNumEraInfos() - 1);
+		// f1rpo (era options; cf. CvGame::doTurn)
+		EraTypes eEndEra = (EraTypes)(GC.getGame().getPenultimateEra() + 1);
 		int iEraCount = /* f1rpo: bugfix */ std::max(1,
 				(int)eEndEra - (int)eStartEra);
 

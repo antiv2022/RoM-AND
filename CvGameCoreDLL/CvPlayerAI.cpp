@@ -30070,6 +30070,9 @@ int CvPlayerAI::AI_getSpaceVictoryStage() const
 	{
 		return 0;
 	}
+	// <f1rpo> (era options)
+	if (GC.getGameINLINE().getPenultimateEra() < GC.getNumEraInfos() - 2)
+		return 0; // </f1rpo>
 
 	if (getCapitalCity() == NULL)
     {
