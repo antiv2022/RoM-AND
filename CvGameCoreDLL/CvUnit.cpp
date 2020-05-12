@@ -19127,7 +19127,7 @@ void CvUnit::write(FDataStreamBase* pStream)
 	}
 	else
 	{
-		WRAPPER_WRITE_DECORATED(wrapper, "CvUnit", (char)GC.getNumTerrainInfos(), "cConditional");
+		WRAPPER_WRITE_DECORATED(wrapper, "CvUnit", (char)GC.getNumFeatureInfos(), "cConditional"); // f1rpo (bugfix): was TerrainInfos
 		WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_FEATURES, GC.getNumFeatureInfos(), m_paiFeatureDoubleMoveCount);
 	}
 
@@ -19160,7 +19160,7 @@ void CvUnit::write(FDataStreamBase* pStream)
 	}
 	else
 	{
-		WRAPPER_WRITE_DECORATED(wrapper, "CvUnit", (char)GC.getNumTerrainInfos(), "cConditional");
+		WRAPPER_WRITE_DECORATED(wrapper, "CvUnit", (char)GC.getNumFeatureInfos(), "cConditional"); // f1rpo (bugfix): was TerrainInfos
 		WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_FEATURES, GC.getNumFeatureInfos(), m_paiExtraFeatureAttackPercent);
 	}
 
@@ -19171,7 +19171,7 @@ void CvUnit::write(FDataStreamBase* pStream)
 	}
 	else
 	{
-		WRAPPER_WRITE_DECORATED(wrapper, "CvUnit", (char)GC.getNumTerrainInfos(), "cConditional");
+		WRAPPER_WRITE_DECORATED(wrapper, "CvUnit", (char)GC.getNumFeatureInfos(), "cConditional"); // f1rpo (bugfix): was TerrainInfos
 		WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_FEATURES, GC.getNumFeatureInfos(), m_paiExtraFeatureDefensePercent);
 	}
 	
