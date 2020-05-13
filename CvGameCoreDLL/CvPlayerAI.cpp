@@ -30070,9 +30070,6 @@ int CvPlayerAI::AI_getSpaceVictoryStage() const
 	{
 		return 0;
 	}
-	// <f1rpo> (era options)
-	if (GC.getGameINLINE().getPenultimateEra() < GC.getNumEraInfos() - 2)
-		return 0; // </f1rpo>
 
 	if (getCapitalCity() == NULL)
     {
@@ -30112,12 +30109,14 @@ int CvPlayerAI::AI_getSpaceVictoryStage() const
 			}
 			else
 			{
-				if( !GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getProjectInfo((ProjectTypes)iI).getTechPrereq()) )
+				// f1rpo:
+				TechTypes eTech = (TechTypes)GC.getProjectInfo((ProjectTypes)iI).getTechPrereq();
+				if( !GET_TEAM(getTeam()).isHasTech(eTech) && !isResearchingTech(eTech))
 				{
-					if( !isResearchingTech((TechTypes)GC.getProjectInfo((ProjectTypes)iI).getTechPrereq()) )
-					{
-						bNearAllTechs = false;
-					}
+					bNearAllTechs = false;
+					// <f1rpo> (era options)
+					if (!canEverResearch(eTech))
+						return 0; // </f1rpo>
 				}
 			}
 		}
