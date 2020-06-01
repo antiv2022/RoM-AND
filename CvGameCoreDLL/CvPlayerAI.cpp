@@ -16466,7 +16466,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 			}
 		}
 		iSeizedGold /= 100;
-		iTempValue += iSeizedGold;
+		iTempValue += (2*iSeizedGold);
 	}
 	if (gPlayerLogLevel > 2 && iTempValue != 0)
 	{

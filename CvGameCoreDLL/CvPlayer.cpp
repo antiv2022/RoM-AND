@@ -3969,7 +3969,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 	for (iI = 0; iI < GC.getNumSpecialistInfos(); ++iI)
 	{
-		pNewCity->changeFreeSpecialistCount((SpecialistTypes)iI, aeFreeSpecialists[iI]);
+		pNewCity->changeFreeSpecialistCount((SpecialistTypes)iI, aeFreeSpecialists[iI],
+				true); //valergrad fix
 	}
 
 	for (iI = 0; iI < GC.getNumReligionInfos(); iI++)

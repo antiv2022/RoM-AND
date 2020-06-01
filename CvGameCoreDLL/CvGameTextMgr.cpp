@@ -22760,7 +22760,10 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 	bool bNeedSubtotal = false;
 // BUG - Base Commerce - end
 
-	int iSpecialistCommerce = city.getSpecialistCommerce(eCommerceType) + (city.getSpecialistPopulation() + city.getNumGreatPeople()) * city.getExtraSpecialistCommerceTotal(eCommerceType);
+	int iSpecialistCommerce = city.getSpecialistCommerce(eCommerceType)
+			+ (city.getSpecialistPopulation() + city.getNumGreatPeople())
+			// fix by valergrad (f1rpo: simplified it a little)
+			* (city.getExtraSpecialistCommerceTotal(eCommerceType) + owner.getSpecialistExtraCommerce(eCommerceType))
 	if (0 != iSpecialistCommerce)
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_SPECIALIST_COMMERCE", iSpecialistCommerce, info.getChar(), L"TXT_KEY_CONCEPT_SPECIALISTS"));

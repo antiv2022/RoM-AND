@@ -14602,7 +14602,7 @@ void CvCity::doConnectednessCalculations()
 
 	for (int iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
-		if (getNumRealBuilding((BuildingTypes)iI) > 0)
+		if (getNumBuilding((BuildingTypes)iI) > 0) //valergrad fix
 		{
 			if (GC.getBuildingInfo((BuildingTypes)iI).getDomesticConnectedCommerce() > 0)
 			{
@@ -27820,9 +27820,12 @@ void CvCity::clearModifierTotals()
 	m_iExtraCityDefenseRecoverySpeedModifier = 0;
 	// valergrad bugfix - START
 	m_iExtraCapitalCommerce = 0;
+	m_iExtraForeignCapitalCommerce = 0;
 	m_iPreviousExtraCommerce = 0;
 	m_iPreviousConnectedCommerce = 0;
 	m_iPreviousForeignConnectedCommerce = 0;
+	m_iNumGreatPeople = 0;
+	clearSeizedForeignConnectedness();
 	// valergrad bugfix - END
 }
 
@@ -28391,7 +28394,7 @@ void CvCity::updateSeizedForeignConnectedness()
 				iMaxPercentSeized = aiSeizedCommercePercent[iI];
 			}
 		}
-		int iSeizedCommerceTimes100 = (getForeignConnectednessCommerce() + getDomesticConnectednessCommerce()) * iMaxPercentSeized;
+		int iSeizedCommerceTimes100 = (getForeignConnectednessCommerce() + getDomesticConnectednessCommerce()) /** iMaxPercentSeized*/;
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			m_aiSeizedForeignConnectedness[iI] = 0;
@@ -28399,7 +28402,7 @@ void CvCity::updateSeizedForeignConnectedness()
 			{
 				//If multiple players are seizing commerce from this player, they get a share of the commerce
 				// proportional to the number of players and the amount they seized
-				int iSeized = iSeizedCommerceTimes100 * aiSeizedCommercePercent[iI] / 100;
+				int iSeized = iSeizedCommerceTimes100 * aiSeizedCommercePercent[iI] /*/ 100*/;
 				m_aiSeizedForeignConnectedness[iI] = iSeized / iCount;
 			}
 		}
