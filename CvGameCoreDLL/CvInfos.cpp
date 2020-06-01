@@ -19990,41 +19990,44 @@ m_piDiploWarMusicScriptIds(NULL)
 }
 
 // <f1rpo> (xmldefault)
-#define ALLOCCOPY_INT(pDst, pSrc, iSize) \
-	if (pSrc != NULL) \
-	{ \
-		pDst = new int[iSize]; \
-		memcpy(pDst, pSrc, iSize * sizeof(int)); \
+namespace
+{
+	template<typename T>
+	void allocCopy(T*& pDst, T* pSrc, int iSize)
+	{
+		if (pSrc != NULL)
+		{
+			pDst = new T[iSize];
+			memcpy(pDst, pSrc, iSize * sizeof(T));
+		}
 	}
-#define ALLOCCOPY_BOOL(pDst, pSrc, iSize) \
-	if (pSrc != NULL) \
-	{ \
-		pDst = new bool[iSize]; \
-		memcpy(pDst, pSrc, iSize * sizeof(bool)); \
-	}
+}
 
 CvLeaderHeadInfo::CvLeaderHeadInfo(CvLeaderHeadInfo const& kOther)
 {
-	memcpy(this, &kOther, sizeof(CvLeaderHeadInfo));
-	ALLOCCOPY_BOOL(m_pbTraits, kOther.m_pbTraits, GC.getNumTraitInfos());
-	ALLOCCOPY_INT(m_piFlavorValue, kOther.m_piFlavorValue, GC.getNumFlavorTypes());
-	ALLOCCOPY_INT(m_piContactRand, kOther.m_piContactRand, NUM_CONTACT_TYPES);
-	ALLOCCOPY_INT(m_piContactDelay, kOther.m_piContactDelay, NUM_CONTACT_TYPES);
-	ALLOCCOPY_INT(m_piMemoryDecayRand, kOther.m_piMemoryDecayRand, NUM_MEMORY_TYPES);
-	ALLOCCOPY_INT(m_piMemoryAttitudePercent, kOther.m_piMemoryAttitudePercent, NUM_MEMORY_TYPES);
-	ALLOCCOPY_INT(m_piNoWarAttitudeProb, kOther.m_piNoWarAttitudeProb, NUM_ATTITUDE_TYPES);
-	ALLOCCOPY_INT(m_piUnitAIWeightModifier, kOther.m_piUnitAIWeightModifier, NUM_UNITAI_TYPES);
-	ALLOCCOPY_INT(m_piImprovementWeightModifier, kOther.m_piImprovementWeightModifier, GC.getNumImprovementInfos());
-	ALLOCCOPY_INT(m_piDiploPeaceIntroMusicScriptIds, kOther.m_piDiploPeaceIntroMusicScriptIds, GC.getNumEraInfos());
-	ALLOCCOPY_INT(m_piDiploPeaceMusicScriptIds, kOther.m_piDiploPeaceMusicScriptIds, GC.getNumEraInfos());
-	ALLOCCOPY_INT(m_piDiploWarIntroMusicScriptIds, kOther.m_piDiploWarIntroMusicScriptIds, GC.getNumEraInfos());
-	ALLOCCOPY_INT(m_piDiploWarMusicScriptIds, kOther.m_piDiploWarMusicScriptIds, GC.getNumEraInfos());
+	/*	Better not to memcpy the base class.
+		m_iWonderConstructRand is the first data member of CvLeaderHeadInfo. */
+	memcpy(&m_iWonderConstructRand, &kOther.m_iWonderConstructRand,
+			sizeof(CvLeaderHeadInfo) - sizeof(CvInfoBase));
+	allocCopy(m_pbTraits, kOther.m_pbTraits, GC.getNumTraitInfos());
+	allocCopy(m_piFlavorValue, kOther.m_piFlavorValue, GC.getNumFlavorTypes());
+	allocCopy(m_piContactRand, kOther.m_piContactRand, NUM_CONTACT_TYPES);
+	allocCopy(m_piContactDelay, kOther.m_piContactDelay, NUM_CONTACT_TYPES);
+	allocCopy(m_piMemoryDecayRand, kOther.m_piMemoryDecayRand, NUM_MEMORY_TYPES);
+	allocCopy(m_piMemoryAttitudePercent, kOther.m_piMemoryAttitudePercent, NUM_MEMORY_TYPES);
+	allocCopy(m_piNoWarAttitudeProb, kOther.m_piNoWarAttitudeProb, NUM_ATTITUDE_TYPES);
+	allocCopy(m_piUnitAIWeightModifier, kOther.m_piUnitAIWeightModifier, NUM_UNITAI_TYPES);
+	allocCopy(m_piImprovementWeightModifier, kOther.m_piImprovementWeightModifier, GC.getNumImprovementInfos());
+	allocCopy(m_piDiploPeaceIntroMusicScriptIds, kOther.m_piDiploPeaceIntroMusicScriptIds, GC.getNumEraInfos());
+	allocCopy(m_piDiploPeaceMusicScriptIds, kOther.m_piDiploPeaceMusicScriptIds, GC.getNumEraInfos());
+	allocCopy(m_piDiploWarIntroMusicScriptIds, kOther.m_piDiploWarIntroMusicScriptIds, GC.getNumEraInfos());
+	allocCopy(m_piDiploWarMusicScriptIds, kOther.m_piDiploWarMusicScriptIds, GC.getNumEraInfos());
 	// (Civic AI Weights)
-	ALLOCCOPY_INT(m_piCivicAIWeights, kOther.m_piCivicAIWeights, GC.getNumCivicInfos());
+	allocCopy(m_piCivicAIWeights, kOther.m_piCivicAIWeights, GC.getNumCivicInfos());
 	// (Sexism)
-	ALLOCCOPY_INT(m_piSexistAttitudeChanges, kOther.m_piSexistAttitudeChanges, GC.getNumGenderTypes());
+	allocCopy(m_piSexistAttitudeChanges, kOther.m_piSexistAttitudeChanges, GC.getNumGenderTypes());
 	// (Racism)
-	ALLOCCOPY_INT(m_piRacistAttitudeChanges, kOther.m_piRacistAttitudeChanges, GC.getNumRaceTypes());
+	allocCopy(m_piRacistAttitudeChanges, kOther.m_piRacistAttitudeChanges, GC.getNumRaceTypes());
 } // </f1rpo>
 
 //------------------------------------------------------------------------------------------------------

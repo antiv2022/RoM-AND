@@ -5606,7 +5606,8 @@ public:
 
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 protected:
-
+	/*	f1rpo: (xmldefault - note): The copy-ctor relies on m_iWonderConstructRand
+		being the first data member */
 	int m_iWonderConstructRand;
 	int m_iBaseAttitude;
 	int m_iBasePeaceWeight;
