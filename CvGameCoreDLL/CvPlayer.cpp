@@ -9145,15 +9145,13 @@ bool CvPlayer::isTradingWithTeam(TeamTypes eTeam, bool bIncludeCancelable) const
 
 bool CvPlayer::canStopTradingWithTeam(TeamTypes eTeam, bool bContinueNotTrading) const
 {
-	if (eTeam == getTeam())
-	{
+	/*if (eTeam == getTeam())
 		return false;
-	}
-
-	if ((GET_TEAM(getTeam()).isVassal(eTeam)) || (GET_TEAM(eTeam).isVassal(getTeam())))
-	{
-		return false;
-	}
+	if (GET_TEAM(getTeam()).isVassal(eTeam) || GET_TEAM(eTeam).isVassal(getTeam()))
+		return false;*/
+	// <f1rpo> Vassals of the same master shouldn't stop trading either
+	if (!GET_TEAM(getTeam()).isRival(eTeam))
+		return false; // </f1rpo>
 
 	if (!isTradingWithTeam(eTeam, false))
 	{

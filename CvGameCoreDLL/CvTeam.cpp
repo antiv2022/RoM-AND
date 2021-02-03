@@ -5894,6 +5894,28 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 	}
 }
 
+// f1rpo:
+bool CvTeam::isRival(TeamTypes eOther) const
+{
+	CvTeam const& kOther = GET_TEAM(eOther);
+	if (getID() == eOther || isVassal(eOther) || kOther.isVassal(getID()))
+		return false;
+	if (!isAlive() || !kOther.isAlive())
+		return false;
+	/*	(Checking !isAVassal first would be no help - b/c that function
+		also goes through all teams.) */
+	for (int i = 0; i < MAX_CIV_TEAMS; i++)
+	{
+		CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)i);
+		if (kLoopTeam.isAlive() && isVassal(kLoopTeam.getID()) &&
+			kOther.isVassal(kLoopTeam.getID()))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void CvTeam::assignVassal(TeamTypes eVassal, bool bSurrender) const
 {
 	CLinkList<TradeData> ourList;
