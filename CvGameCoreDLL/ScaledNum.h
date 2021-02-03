@@ -21,7 +21,7 @@
 #endif
 
 /*	Uncomment for some additional runtime assertions
-	checking conditions that are really the client's responsibility. */
+	checking conditions that are really the user's responsibility. */
 //#define SCALED_NUM_EXTRA_ASSERTS
 
 namespace fmath
@@ -71,7 +71,7 @@ CvString ScaledNumBase<Dummy>::szBuf = "";
 	Conversion from percentage: macro 'per100' (also 'per1000', 'per10000')
 	'scaled' and 'uscaled' typedefs for default precision.
 
-	In code that uses Hungarian notation, I propose the prefix 'r' for
+	In code that uses Systems Hungarian notation, I propose the prefix 'r' for
 	ScaledNum variables, or more generally for any types that represent
 	rational numbers without a floating point.
 
@@ -85,10 +85,9 @@ CvString ScaledNumBase<Dummy>::szBuf = "";
 	iSCALE, the greater the precision and the tighter the limits.
 
 	IntType is the type of the underlying integer variable. Has to be an integral type.
-	__int64 isn't currently supported. For unsigned IntType, internal integer
-	divisions are rounded to the nearest IntType value in order to improve precision.
-	For signed INT types, this isn't guaranteed. Using an unsigned IntType also
-	speeds up multiplication.
+	__int64 is not supported. For unsigned IntType, internal integer divisions are rounded
+	to the nearest IntType value in order to improve precision. For signed IntType, this
+	isn't guaranteed. Using an unsigned IntType also speeds up multiplication.
 
 	ScaledNum instances of different iSCALE values or different IntTypes can be mixed.
 	Multiplications, divisions and comparisons on differing scales will internally scale
@@ -135,7 +134,7 @@ class ScaledNum : ScaledNumBase<void> // Not named "ScaledInt" b/c what's being 
 	static bool const bSIGNED = std::numeric_limits<IntType>::is_signed;
 	/*	Limits of IntType. Set through std::numeric_limits, but can't do that in-line; and
 		we don't have SIZE_MIN/MAX (cstdint), nor boost::integer_traits<IntType>::const_max.
-		Therefore, can't use INTMIN, INTMAX in static assertions. */
+		Therefore can't use INTMIN, INTMAX in static assertions. */
 	static IntType const INTMIN;
 	static IntType const INTMAX;
 
@@ -154,6 +153,13 @@ public:
 		BOOST_STATIC_ASSERT(bSIGNED || (iDEN > 0 && iNUM >= 0));
 		return fromDouble(iNUM / static_cast<double>(iDEN));
 	}
+	// Smallest positive number that can be represented
+	static __forceinline ScaledNum epsilon()
+	{
+		ScaledNum r;
+		r.m_i = 1;
+		return r;
+	}
 
 	__forceinline static ScaledNum max(ScaledNum r1, ScaledNum r2)
 	{
@@ -171,10 +177,11 @@ public:
 	}
 
 	// Result in the half-open interval [0, 1)
-	static ScaledNum rand(CvRandom& kRand, TCHAR const* pszLog)
+	static ScaledNum rand(CvRandom& kRand, TCHAR const* szLog)
 	{
+		BOOST_STATIC_ASSERT(SCALE <= MAX_UNSIGNED_SHORT);
 		ScaledNum r;
-		r.m_i = static_cast<IntType>(kRand.get(static_cast<uint>(iSCALE), pszLog));
+		r.m_i = static_cast<IntType>(kRand.get(static_cast<unsigned short>(iSCALE), szLog));
 		return r;
 	}
 
@@ -189,7 +196,9 @@ public:
 	}
 	__forceinline ScaledNum(uint u) : m_i(static_cast<IntType>(SCALE * u))
 	{
-		FAssert(u <= static_cast<uint>(INTMAX) / static_cast<uint>(SCALE));
+		#ifdef SCALED_NUM_EXTRA_ASSERTS
+			FAssert(u <= static_cast<uint>(INTMAX) / static_cast<uint>(SCALE));
+		#endif
 	}
 	// Construction from rational
 	__forceinline ScaledNum(int iNum, int iDen)
@@ -203,7 +212,7 @@ public:
 
 	// Scale and integer type conversion constructor
 	template<int iFROM_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType>& rOther);
+	__forceinline ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType> const& rOther);
 
 	/*	Explicit conversion to default EnumType
 		(can't overload explicit cast operator in C++03) */
@@ -214,12 +223,12 @@ public:
 		return r;
 	}
 
-	__forceinline int getInt() const
-	{
-		// Conversion to int shouldn't be extremely frequent; take the time to round.
-		return round();
-	}
-	int round() const;
+	/*	Better be explicit about rounding. Since conversion to int should
+		not be extremely frequent, I recommend using 'round' in most cases. */
+	//__forceinline int getInt() const { return round(); }
+	// Cast operator - again, better to be explicit.
+	//__forceinline operator int() const { return getInt(); }
+	int round() const; // (expect this to get inlined for unsigned IntType)
 	__forceinline int floor() const
 	{
 		return static_cast<int>(m_i / SCALE);
@@ -229,11 +238,6 @@ public:
 		int r = floor();
 		return r + ((m_i >= 0 && m_i - r * SCALE > 0) ? 1 : 0);
 	}
-	// Cast operator - better require explicit calls to getInt.
-	/*__forceinline operator int() const
-	{
-		return getInt();
-	}*/
 	bool isInt() const
 	{
 		return (m_i % SCALE == 0);
@@ -259,7 +263,11 @@ public:
 	{
 		return m_i / static_cast<float>(SCALE);
 	}
-	CvString const& str(int iDen = iSCALE)
+	/*	Tbd.: A static cache returned by reference doesn't work when
+		inserting into a stream, e.g.
+		out << r1.str() << "," << r2.str()
+		Simply return by value instead? */
+	CvString const& str(int iDen = iSCALE) const
 	{
 		if (iDen == 1)
 			szBuf.Format("%s%d", isInt() ? "" : "ca. ", round());
@@ -269,7 +277,7 @@ public:
 			szBuf.Format("%d permille", getPermille());
 		else szBuf.Format("%d/%d", safeToInt(mulDivByScale(m_i, iDen)), iDen);
 		return szBuf;
-	}
+	} // No overloaded operator<< b/c there isn't a good default display format
 
 	void write(FDataStreamBase* pStream) const
 	{
@@ -289,7 +297,10 @@ public:
 	bool bernoulliSuccess(CvRandom& kRand, char const* szLog) const;
 
 	ScaledNum pow(int iExp) const;
-	ScaledNum pow(ScaledNum rExp) const;
+	__forceinline ScaledNum pow(ScaledNum rExp) const
+	{
+		return _pow<rExp.bSIGNED>(rExp);
+	}
 	__forceinline ScaledNum sqrt() const
 	{
 		FAssert(!isNegative());
@@ -317,28 +328,29 @@ public:
 		decreaseTo(hi);
 	}
 	template<typename LoType>
-	__forceinline void increaseTo(LoType lo)
+	void increaseTo(LoType lo)
 	{
 		// (std::max doesn't allow differing types)
 		if (*this < lo)
-			*this = lo;
+			*this = lo; // (Will fail to compile for floating point operand)
 	}
 	template<typename HiType>
-	__forceinline void decreaseTo(HiType hi)
+	void decreaseTo(HiType hi)
 	{
 		if (*this > hi)
 			*this = hi;
 	}
-	// Too easy to use these by accident instead of the non-const functions above
+	/*	Too easy to use these by accident instead of the non-const functions above.
+		Could let the above return *this though (tbd.?). */
 	/*template<typename LoType>
-	__forceinline ScaledNum increasedTo(LoType lo) const
+	ScaledNum increasedTo(LoType lo) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy.increaseTo(lo);
 		return rCopy;
 	}
 	template<typename HiType>
-	__forceinline ScaledNum decreasedTo(HiType hi) const
+	ScaledNum decreasedTo(HiType hi) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy.decreaseTo(hi);
@@ -347,13 +359,12 @@ public:
 
 	template<typename NumType, typename Epsilon>
 	bool approxEquals(NumType num, Epsilon e) const;
-	// To make one ScaledNum differ from another by the smallest amount possible
-	__forceinline void addEpsilon() { m_i++; }
-	__forceinline void subtractEpsilon() { m_i--; }
 
 	__forceinline bool isPositive() const { return (m_i > 0); }
 	__forceinline bool isNegative() const { return (bSIGNED && m_i < 0); }
 
+	__forceinline void flipSign() { *this = -(*this); }
+	__forceinline void flipFraction() { *this = 1 / *this; }
 	__forceinline ScaledNum operator-() const;
 
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
@@ -374,11 +385,11 @@ public:
 	{
 		return (m_i < scaleForComparison(i));
 	}
-    __forceinline bool operator>(int i) const
+	__forceinline bool operator>(int i) const
 	{
 		return (m_i > scaleForComparison(i));
 	}
-    __forceinline bool operator==(int i) const
+	__forceinline bool operator==(int i) const
 	{
 		return (m_i == scaleForComparison(i));
 	}
@@ -390,7 +401,7 @@ public:
 	{
 		return (m_i <= scaleForComparison(i));
 	}
-    __forceinline bool operator>=(int i) const
+	__forceinline bool operator>=(int i) const
 	{
 		return (m_i >= scaleForComparison(i));
 	}
@@ -398,11 +409,11 @@ public:
 	{
 		return (m_i < scaleForComparison(u));
 	}
-    __forceinline bool operator>(uint u) const
+	__forceinline bool operator>(uint u) const
 	{
 		return (m_i > scaleForComparison(u));
 	}
-    __forceinline bool operator==(uint u) const
+	__forceinline bool operator==(uint u) const
 	{
 		return (m_i == scaleForComparison(u));
 	}
@@ -414,18 +425,18 @@ public:
 	{
 		return (m_i <= scaleForComparison(u));
 	}
-    __forceinline bool operator>=(uint u) const
+	__forceinline bool operator>=(uint u) const
 	{
 		return (m_i >= scaleForComparison(u));
 	}
 
-	/*	Can't guarantee here that only const expressions are used.
+	/*	Couldn't guarantee here that only const expressions are used.
 		So floating-point operands will have to be wrapped in fixp. */
 	/*__forceinline bool operator<(double d) const
 	{
 		return (getDouble() < d);
 	}
-    __forceinline bool operator>(double d) const
+	__forceinline bool operator>(double d) const
 	{
 		return (getDouble() > d);
 	}*/
@@ -634,7 +645,7 @@ private:
 			i = ROUND_DIVIDE(i, divisor);
 			i /= divisor;
 			return static_cast<ReturnType>(i);
-		} // In all other cases, mulDiv rounds too.
+		} // In all remaining cases, mulDiv rounds too.
 		return mulDiv(multiplicand, multiplier, divisor);
 	}
 
@@ -661,6 +672,24 @@ private:
 		return static_cast<IntType>(n);
 	}
 
+	/*	Specialize b/c the sign inversion code wouldn't compile for
+		unsigned IntType. */
+	template<bool bSigned>
+	ScaledNum _pow(ScaledNum rExp) const;
+	template<>
+	ScaledNum _pow<true>(ScaledNum rExp) const
+	{
+		FAssert(!isNegative());
+		if (rExp.isNegative())
+			return 1 / powNonNegative(-rExp);
+		return powNonNegative(rExp);
+	}
+	template<>
+	__forceinline ScaledNum _pow<false>(ScaledNum rExp) const
+	{
+		return powNonNegative(rExp);
+	}
+
 	ScaledNum powNonNegative(int iExp) const
 	{
 		ScaledNum rCopy(*this);
@@ -684,21 +713,27 @@ private:
 		/*	Base 0 or too close to it to make a difference given the precision of the algorithm.
 			Fixme: rExp could also be close to 0. Should somehow use x=y*z => b^x = (b^y)^z. */
 		if (m_i < SCALE / 64)
+		{
+			// This would be rather expensive and could overflow
+			/*if (m_i > 0)
+				return 1 / powNonNegative(1 / *this);*/
 			return 0;
+		}
 		/*	Recall that: If x=y+z, then b^x=(b^y)*(b^z).
 						 If b=a*c, then b^x=(a^x)*(c^x). */
-		// Split rExp into the sum of an integer and a (scaled) fraction between 0 and 1
+		/*	Split rExp into the sum of an integer and a (scaled) fraction between 0 and 1.
+			(Due to rounding, the fractional part can take the value 1.) */
 		// Running example: 5.2^2.1 at SCALE 1024, i.e. (5325/1024)^(2150/1024)
-		IntType expInt = rExp.m_i / SCALE; // 2 in the example
+		IntType nExpInt = rExp.m_i / SCALE; // 2 in the example
 		// Use uint in all local ScaledNum variables for more accurate rounding
-		ScaledNum<128,uint> rExpFrac(rExp - expInt); // Ex.: 13/128
+		ScaledNum<128,uint> rExpFrac(rExp - nExpInt); // Ex.: 13/128
 		/*	Factorize the base into powers of 2 and, as the last factor, the base divided
 			by the product of the 2-bases. */
 		ScaledNum<iSCALE,uint> rProductOfPowersOfTwo(1);
-		IntType baseDiv = 1;
+		IntType nBaseDiv = 1;
 		// Look up approximate result of 2^rExpFrac in precomputed table
 		#ifdef SCALED_NUM_EXTRA_ASSERTS
-			FAssertBounds(0, 128, rExpFrac.m_i);
+			FAssertBounds(0, 129, rExpFrac.m_i);
 		#endif
 		ScaledNum<256,uint> rPowOfTwo; // Ex.: Array position [13] is 19, so rPowOfTwo=19/256
 		rPowOfTwo.m_i = FixedPointPowTables::powersOfTwoNormalized_256[rExpFrac.m_i];
@@ -706,25 +741,29 @@ private:
 		/*	Tbd.: Try replacing this loop with _BitScanReverse (using the /EHsc compiler flag).
 			Or perhaps not available in MSVC03? See: github.com/danaj/Math-Prime-Util/pull/10/
 			*/
-		while (baseDiv < *this)
-		{
-			baseDiv *= 2;
-			rProductOfPowersOfTwo *= rPowOfTwo;
-		} // Ex.: baseDiv=8 and rProductOfPowersOfTwo=1270/1024, approximating (2^0.1)^3.
+		{	//while (nBaseDiv < *this) // Would result in expensive overflow handling
+			IntType const nCeil = ceil();
+			while (nBaseDiv < nCeil)
+			{
+				nBaseDiv *= 2;
+				// This is expensive b/c it will generally use 64 bit :(
+				rProductOfPowersOfTwo *= rPowOfTwo;
+			}
+		} // Ex.: nBaseDiv=8 and rProductOfPowersOfTwo=1270/1024, approximating (2^0.1)^3.
 		ScaledNum<256,uint> rLastFactor(1);
-		// Look up approximate result of ((*this)/baseDiv)^rExpFrac in precomputed table
-		int iLastBaseTimes64 = (ScaledNum<64,uint>(*this / baseDiv)).m_i; // Ex.: 42/64 approximating 5.2/8
+		// Look up approximate result of ((*this)/nBaseDiv)^rExpFrac in precomputed table
+		int iLastBaseTimes64 = (ScaledNum<64,uint>(*this / nBaseDiv)).m_i; // Ex.: 42/64 approximating 5.2/8
 		#ifdef SCALED_NUM_EXTRA_ASSERTS
 			FAssertBounds(0, 64+1, iLastBaseTimes64);
 		#endif
 		if (rExpFrac.m_i != 0 && iLastBaseTimes64 != 64)
 		{
-			// Could be prone to cache misses :(
+			// Could be prone to cache misses, but tests so far haven't confirmed this.
 			rLastFactor.m_i = FixedPointPowTables::powersUnitInterval_256
 					[iLastBaseTimes64-1][rExpFrac.m_i-1] + 1; // Table and values are shifted by 1
 			// Ex.: Position [41][12] is 244, i.e. rLastFactor=245/256. Approximation of (5.2/8)^0.1
 		}
-		ScaledNum r(ScaledNum<iSCALE,uint>(pow(expInt)) *
+		ScaledNum r(ScaledNum<iSCALE,uint>(pow(nExpInt)) *
 				rProductOfPowersOfTwo * ScaledNum<iSCALE,uint>(rLastFactor));
 		return r;
 		/*	Ex.: First factor is 27691/1024, approximating 5.2^2,
@@ -783,7 +822,7 @@ template<int iFROM_SCALE, typename OtherIntType, typename OtherEnumType>
 	Taking it by value leads to peculiar compiler errors when an assignment is followed 
 	by an opening curly brace (compiler demands a semicolon then). */
 __forceinline
-ScaledNum_T::ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType>& rOther)
+ScaledNum_T::ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType> const& rOther)
 {
 	STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
 	static OtherIntType const FROM_SCALE = ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType>::SCALE;
@@ -809,12 +848,10 @@ int ScaledNum_T::round() const
 		return (m_i + SCALE / static_cast<IntType>(m_i >= 0 ? 2 : -2)) / SCALE;
 	}
 	FAssert(m_i <= static_cast<IntType>(INTMAX - SCALE / 2u));
-	FAssert(m_i >= static_cast<IntType>(INTMIN + SCALE / 2u));
 	return (m_i + SCALE / 2u) / SCALE;
 }
 
 template<ScaledNum_PARAMS>
-// Bernoulli trial (coin flip) with success probability equal to m_i/SCALE
 bool ScaledNum_T::bernoulliSuccess(CvRandom& kRand, char const* szLog) const
 {
 	// Guards for better performance and to avoid unnecessary log output
@@ -835,19 +872,12 @@ ScaledNum_T ScaledNum_T::pow(int iExp) const
 }
 
 template<ScaledNum_PARAMS>
-ScaledNum_T ScaledNum_T::pow(ScaledNum rExp) const
-{
-	FAssert(!isNegative());
-	if (rExp.bSIGNED && rExp.isNegative())
-		return 1 / powNonNegative(-rExp);
-	return powNonNegative(rExp);
-}
-
-template<ScaledNum_PARAMS>
 template<typename NumType, typename Epsilon>
 bool ScaledNum_T::approxEquals(NumType num, Epsilon e) const
 {
-	// Can't be allowed for floating point types; will have to use fixp to wrap.
+	/*	Can't be allowed for floating-point types; will have to use fixp to wrap.
+		(Wouldn't compile anyway b/c arithmetic and comparison operators aren't
+		overloaded for float. The assert is just for clarity.) */
 	BOOST_STATIC_ASSERT(!std::numeric_limits<NumType>::has_infinity);
 	BOOST_STATIC_ASSERT(!std::numeric_limits<Epsilon>::has_infinity);
 	if (!bSIGNED)
@@ -861,7 +891,7 @@ ScaledNum_T ScaledNum_T::operator-() const
 {
 	BOOST_STATIC_ASSERT(bSIGNED);
 	#ifdef SCALED_NUM_EXTRA_ASSERTS
-		FAssertMsg(m_i != MININT, "MININT can't be inverted");
+		FAssertMsg(m_i != INTMIN, "INTMIN can't be inverted");
 	#endif
 	ScaledNum_T r;
 	r.m_i = -m_i;
@@ -964,7 +994,7 @@ ScaledNum_T& ScaledNum_T::operator+=(ScaledNum rOther)
 {
 	#ifdef SCALED_NUM_EXTRA_ASSERTS
 		FAssert(rOther <= 0 || m_i <= INTMAX - rOther.m_i);
-		FAssert(rOther >= 0 || m_i >= INTMIN + rOther.m_i);
+		FAssert(rOther >= 0 || m_i >= INTMIN - rOther.m_i);
 	#endif
 	m_i += rOther.m_i;
 	return *this;
@@ -976,7 +1006,7 @@ ScaledNum_T& ScaledNum_T::operator-=(ScaledNum rOther)
 {
 	#ifdef SCALED_NUM_EXTRA_ASSERTS
 		FAssert(rOther >= 0 || m_i <= INTMAX + rOther.m_i);
-		FAssert(rOther <= 0 || m_i >= INTMIN - rOther.m_i);
+		FAssert(rOther <= 0 || m_i >= INTMIN + rOther.m_i);
 	#endif
 	m_i -= rOther.m_i;
 	return *this;
@@ -1017,7 +1047,7 @@ ScaledNum_T& ScaledNum_T::operator/=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEn
 	>::type
 /*	Simpler, but crashes the compiler (i.e. the above is a workaround).
 #define COMMON_SCALED_NUM \
-	ScaledNum<(iLeft > iRight ? iLeft : iRight), \
+	ScaledNum<(iLEFT_SCALE > iRIGHT_SCALE ? iLEFT_SCALE : iRIGHT_SCALE), \
 	typename choose_int_type<LeftIntType,RightIntType>::type, \
 	typename choose_type<is_same_type<LeftEnumType,int>::value,RightEnumType,LeftEnumType>::type > */
 
@@ -1084,9 +1114,9 @@ operator/(
 	}
 	else
 	{
-		COMMON_SCALED_NUM r(rRight);
-		r /= rLeft;
-		return r;
+		COMMON_SCALED_NUM rDen(rRight);
+		rLeft /= rDen;
+		return rLeft;
 	}
 }
 
@@ -1188,7 +1218,7 @@ template<ScaledNum_PARAMS>
 {
 	return (r <= i);
 }
-/*	Can't guarantee here that only const expressions are used.
+/*	Couldn't guarantee here that only const expressions are used.
 	So floating-point operands will have to be wrapped in fixp. */
 /*template<ScaledNum_PARAMS>
 __forceinline bool operator<(double d, ScaledNum_T r)
@@ -1237,7 +1267,8 @@ __forceinline scaled per10000(int iNum)
 	return scaled(iNum, 10000);
 }
 /*	'scaled' construction from double. Only const expressions are allowed.
-	Can only make sure of that through a macro. Tbd.: Could return a uscaled
+	Can only make sure of that through a macro (as we want to spare the caller
+	the use of angle brackets). Tbd.: Could return a uscaled
 	when the double expression is non-negative:
 	choose_type<(dConstExpr) >= 0,uscaled,scaled>::type::fromRational
 	Arithmetic operations are faster on uscaled, but mixing the two types
