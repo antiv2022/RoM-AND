@@ -3937,7 +3937,8 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestVis
 				//	Verify if required
 				if ( bResult != canConstructInternal(eBuilding, bContinue, bTestVisible, bIgnoreCost, bIgnoreAmount) )
 				{
-					MessageBox(NULL,"canConstruct cached result mismatch","cvGameCore",MB_OK);
+// f1rpo: An assertion for debug builds is fine, but keep that message box out of my face.
+//					MessageBox(NULL,"canConstruct cached result mismatch","cvGameCore",MB_OK);
 					FAssertMsg(false, "canConstruct cached result mismatch");
 				}
 #endif
