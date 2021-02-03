@@ -161,7 +161,7 @@ public:
 	DenialTypes AI_permanentAllianceTrade(TeamTypes eTeam) const;
 
 	TeamTypes AI_getWorstEnemy() const;
-	void AI_updateWorstEnemy();
+	void AI_updateWorstEnemy(/* f1rpo: */ bool bUpdateTradeMemory = true);
 
 	int AI_getWarPlanStateCounter(TeamTypes eIndex) const;
 	void AI_setWarPlanStateCounter(TeamTypes eIndex, int iNewValue);

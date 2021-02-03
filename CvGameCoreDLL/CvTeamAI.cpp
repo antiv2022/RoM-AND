@@ -4154,7 +4154,7 @@ TeamTypes CvTeamAI::AI_getWorstEnemy() const
 }
 
 
-void CvTeamAI::AI_updateWorstEnemy()
+void CvTeamAI::AI_updateWorstEnemy(/* f1rpo: */ bool bUpdateTradeMemory)
 {
 	PROFILE_FUNC();
 
@@ -4202,6 +4202,33 @@ void CvTeamAI::AI_updateWorstEnemy()
 			}
 		}
 	}
+
+	// <f1rpo> (from AdvCiv)
+	if(eBestTeam == m_eWorstEnemy)
+		return;
+	// Partly forgive civs that have traded with the old m_eWorstEnemy
+	if (bUpdateTradeMemory && m_eWorstEnemy != NO_TEAM && m_eWorstEnemy != eBestTeam)
+	{
+		for (int i = 0; i < MAX_CIV_TEAMS; i++)
+		{
+			TeamTypes eLoopTeam = (TeamTypes)i;
+			if (eLoopTeam == getID() || eLoopTeam == m_eWorstEnemy)
+				continue;
+			CvTeam const& kLoopTeam = GET_TEAM(eLoopTeam);
+			if (!kLoopTeam.isAlive() || kLoopTeam.isMinorCiv()
+				|| !kLoopTeam.isHasMet(getID()))
+			{
+				continue;
+			}
+			int iOldGrantVal = AI_getEnemyPeacetimeGrantValue(eLoopTeam);
+			int iOldTradeVal = AI_getEnemyPeacetimeTradeValue(eLoopTeam);
+			AI_setEnemyPeacetimeGrantValue(eLoopTeam, (2 * iOldGrantVal) / 3);
+			AI_setEnemyPeacetimeTradeValue(eLoopTeam, (2 * iOldTradeVal) / 3);
+		}
+		// The above loop may have improved relations with eBestTeam
+		AI_updateWorstEnemy(false);
+		return;
+	} // </f1rpo>
 
 	m_eWorstEnemy = eBestTeam;
 }
