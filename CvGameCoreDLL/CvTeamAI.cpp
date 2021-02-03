@@ -4167,7 +4167,8 @@ void CvTeamAI::AI_updateWorstEnemy()
 		CvTeam& kLoopTeam = GET_TEAM(eLoopTeam);
 		if (kLoopTeam.isAlive())
 		{
-			if (iI != getID() && !kLoopTeam.isVassal(getID()))
+			if (iI != getID() && !kLoopTeam.isVassal(getID())
+				&& !kLoopTeam.isMinorCiv()) // f1rpo
 			{
 				if (isHasMet(eLoopTeam))
 				{
