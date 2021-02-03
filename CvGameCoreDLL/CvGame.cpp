@@ -13298,24 +13298,24 @@ void CvGame::doFlexibleDifficulty()
 		{
 			int iTurns = kPlayer.getModderOption(MODDEROPTION_FLEXIBLE_DIFFICULTY_TURN_INCREMENTS);
 			int iTimer = getFlexibleDifficultyTimer((PlayerTypes)iI);
-			if (!isPitboss())
-			{
+//			if (!isPitboss())
+//			{
 				if (iTurns <= 0 || (!kPlayer.isHuman() && isModderGameOption(MODDERGAMEOPTION_AI_USE_FLEXIBLE_DIFFICULTY)))
 				{
-					iTurns = GC.getDefineINT("DEFAULT_FLEXIBLE_DIFFICULTY_TURN_INCREMENTS", 25);
-					iTurns *= GC.getGameSpeedInfo(getGameSpeedType()).getResearchPercent();
+					iTurns = GC.getDefineINT("DEFAULT_FLEXIBLE_DIFFICULTY_TURN_INCREMENTS", 10);
+					iTurns *= GC.getGameSpeedInfo(getGameSpeedType()).getGoldenAgePercent();
 					iTurns /= 100;
 				}
-			}
-			else	//45deg: hack for Pitboss games: using the same timer for both humans and AI, otherwise the game might go OOS
+//			}
+			/*else	//45deg: hack for Pitboss games: using the same timer for both humans and AI, otherwise the game might go OOS
 			{
 				if (iTurns <= 0 || isModderGameOption(MODDERGAMEOPTION_AI_USE_FLEXIBLE_DIFFICULTY))
 				{
 					iTurns = GC.getDefineINT("DEFAULT_FLEXIBLE_DIFFICULTY_TURN_INCREMENTS", 15);
-					iTurns *= GC.getGameSpeedInfo(getGameSpeedType()).getResearchPercent();
+					iTurns *= GC.getGameSpeedInfo(getGameSpeedType()).getGoldenAgePercent();
 					iTurns /= 180;
 				}
-			}			
+			}			*/ //45deg:removed Pitboss hack, it doesn't work like this
 
 			logMsg("[Flexible Difficulty] (%d / %d) turns until next flexible difficulty check for Player: %S", iTimer, iTurns, kPlayer.getName());
 			
@@ -13330,15 +13330,19 @@ void CvGame::doFlexibleDifficulty()
 				if (kPlayer.isModderOption(MODDEROPTION_FLEXIBLE_DIFFICULTY) || (!kPlayer.isHuman() && isModderGameOption(MODDERGAMEOPTION_AI_USE_FLEXIBLE_DIFFICULTY)) || gDLL->IsPitbossHost())
 				{
 					logMsg("[Flexible Difficulty] Player: %S has Flexible Difficulty Enabled", kPlayer.getName());
-					int iMinHandiCap = kPlayer.getModderOption(MODDEROPTION_FLEXIBLE_DIFFICULTY_MIN_DIFFICULTY);
-					int iMaxHandicap = kPlayer.getModderOption(MODDEROPTION_FLEXIBLE_DIFFICULTY_MAX_DIFFICULTY);
+					int iMinHandiCap = kPlayer.getModderOption(MODDEROPTION_FLEXIBLE_DIFFICULTY_MIN_DIFFICULTY) - 1;
+					int iMaxHandicap = kPlayer.getModderOption(MODDEROPTION_FLEXIBLE_DIFFICULTY_MAX_DIFFICULTY) - 1;
 					if (iMaxHandicap < 0)
 						iMaxHandicap = MAX_INT;
 
 					if (!kPlayer.isHuman() && isModderGameOption(MODDERGAMEOPTION_AI_USE_FLEXIBLE_DIFFICULTY))
 					{
-						iMinHandiCap = 0;
-						iMaxHandicap = GC.getNumHandicapInfos() - 1;
+//						iMinHandiCap = 0;
+//						iMaxHandicap = GC.getNumHandicapInfos() - 1;
+						iMinHandiCap = GC.getDefineINT("DEFAULT_FLEXIBLE_DIFFICULTY_AI_MIN_DIFFICULTY", -1);
+						iMaxHandicap = GC.getDefineINT("DEFAULT_FLEXIBLE_DIFFICULTY_AI_MAX_DIFFICULTY", -1);
+						if (iMaxHandicap < 0)
+							iMaxHandicap = MAX_INT;
 					}
 						
 					//Reset counter
