@@ -20561,7 +20561,7 @@ int CvLeaderHeadInfo::getCivicAIWeight(CivicTypes eCivic) const // Civic AI Weig
 	if (m_piCivicAIWeights == NULL)
 		return 0;
 	int r = m_piCivicAIWeights[eCivic];
-	//FAssert(r >= -100); // Smaller values shouldn't be needed, but let's commit to that.
+	//FAssert(r >= -100); // Smaller values shouldn't be needed, but let's not commit to that.
 	return r;
 }
 

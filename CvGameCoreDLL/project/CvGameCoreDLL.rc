@@ -70,7 +70,7 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "Creator", "Afforess"
-            VALUE "FileDescription", "Game core DLL for Rise of Mankind: A New Dawn 2 (modified by f1rpo)"
+            VALUE "FileDescription", "Game core DLL for Rise of Mankind: A New Dawn 2 (modified for Inthegrave)"
             VALUE "FileVersion", "3, 1, 9, 0"
             VALUE "InternalName", "Sid Meier's Civilization 4 : Beyond The Sword Game Core DLL"
             VALUE "LegalCopyright", "Copyright (C) Firaxis Games.  All Rights Reserved."

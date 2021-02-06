@@ -9,7 +9,7 @@
 ####  Copyright 2010 Danny Daemonic  ####
 #########################################
 
-# advc (2019):
+# advc (2019/2020):
 # Enabled parallel builds (jom) for the Profile configuration
 #   (now called "Profile-fast") and added a configuration Debug-fast. Both use
 #   precompiled headers through the Z7 option as recommended by billw2015.
@@ -20,7 +20,7 @@
 #   difficult to associate error messages with a translation unit; but don't need
 #   a slow version of every config.]
 # YOURLOGS variable (see under "Paths").
-# PROJECT_Profile_CFLAGS, PROJECT_Debug_CFLAGS, PROJECT_DebugOpt_CFLAGS added to Makefile.project.
+# Variables PROJECT_..._CFLAGS added to Makefile.project for targets Profile, Debug, DebugOpt.
 # For selecting a profiler and for balancing speed vs. fidelity of debug builds.
 # Removed unused /DCVGAMECOREDLL_EXPORTS from Debug_DEFINES
 # devolution (Erik) has added the target 'Final_Release' with
@@ -28,7 +28,8 @@
 #   FINAL_RELEASE, which merely disables the OutputDebugString function from
 #   debugapi.h. That's used for all non-debug builds.]
 # CvGameCoreDLL.rc used only for final release.
-# Use /arch:SSE2 for all release builds
+# Use /arch:SSE2 for all release builds. Removed some redundant release-build flags.
+# /W3 moved into PROJECT_CFLAGS.
 
 ## User setup
 ##
@@ -38,7 +39,7 @@
 ## Not touching the makefile itself can be beneficial if the makefile is committed to svn/git
 ## Makefile.settings can also accept CUSTOM_CFLAGS and CUSTOM_LDFLAGS if you want to ADD additional flags
 ##   the custom flags will not overwrite any flags the makefile sets itself
-##   An example could be you want to define ENABLE_MY_DEBUG_OUTPUT in C+, then you write
+##   An example could be you want to define ENABLE_MY_DEBUG_OUTPUT in C++, then you write
 ##     CUSTOM_CFLAGS -DENABLE_MY_DEBUG_OUTPUT
 ##     in Makefile.settings and it will be defined for you without the risk of committing active debug output to other people
 ##
@@ -134,7 +135,7 @@ SUBDIRPATH15 = ../
 !IF [IF NOT EXIST Makefile.project EXIT 1] != 0
 !IF [ECHO SOURCE_DIR = .>> Makefile.project]
 !ENDIF
-!IF [ECHO PROJECT_CFLAGS = >> Makefile.project]
+!IF [ECHO PROJECT_CFLAGS = /W3 >> Makefile.project]
 !ENDIF
 !IF [ECHO PROJECT_LDFLAGS = >> Makefile.project]
 !ENDIF
@@ -190,13 +191,11 @@ CUSTOM_LDFLAGS =
 FILE_DEPENDS = $(TEMP_TARGET_FILES)\depends
 
 #### CFLAGS ####
-GLOBAL_CFLAGS=/GR /Gy /W3 /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(PROJECT_CFLAGS)
-# f1rpo: defines from RoM/AND makefile appended; except /DMEMORY_TRACKING.
-Debug_CFLAGS=/MD /Z7 /Od /RTC1 $(Debug_DEFINES) $(GLOBAL_CFLAGS) $(PROJECT_Debug_CFLAGS) /DVALIDATE_CAN_TRAIN_CACHE_CONSISTENCY /DVALIDATE_CAN_CONSTRUCT_CACHE /DVERIFY_YIELD_CACHE_RESULTS /DVERIFY_PLOT_DANGER_CACHE_RESULTS
-# (Debug-opt: Using Debug_CFLAGS without /D_DEBUG /RTC1 might accomplish largely the same)
-Debug_Opt_CFLAGS=/MD /O2 /Z7 /Oi /G7 /arch:SSE2 $(Release_DEFINES) $(GLOBAL_CFLAGS)$(PROJECT_DebugOpt_CFLAGS)
-Release_CFLAGS= /MD /O2 /Oy /Oi /G7 /arch:SSE2 $(Release_DEFINES) $(GLOBAL_CFLAGS)
+GLOBAL_CFLAGS=/GR /Gy /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(PROJECT_CFLAGS)
+Debug_CFLAGS=/MD /Z7 /Od /RTC1 $(Debug_DEFINES) $(GLOBAL_CFLAGS) $(PROJECT_Debug_CFLAGS)
+Release_CFLAGS=/MD /O2 /G7 /arch:SSE2 $(Release_DEFINES) $(GLOBAL_CFLAGS)
 Final_Release_CFLAGS=$(Release_CFLAGS) /GL
+Debug_Opt_CFLAGS=$(Release_CFLAGS) /Z7 $(PROJECT_DebugOpt_CFLAGS)
 
 PRECOMPILE_CFLAGS1 = /Yu"
 PRECOMPILE_CFLAGS2 = CvGameCoreDLL.h" /Fp"$(Target_PCH)"

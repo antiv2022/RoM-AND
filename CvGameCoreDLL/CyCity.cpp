@@ -2685,9 +2685,10 @@ void CyCity::alterWorkingPlot(int iIndex)
 }
 
 int CyCity::getNumRealBuilding(int /*BuildingTypes*/ iIndex)
-{	// <f1rpo> Workaround for some Python bug (maybe only an issue in Chronicles)
+{	// <f1rpo> Workaround for some Python bug (maybe only an issue in Chronicles).
 	if (iIndex == NO_BUILDING)
-	{
+	{	// Could use this to crash the DLL and get a Python stack trace
+		//CyCity* p=NULL; p->setBombarded(1);
 		FAssertMsg(iIndex != NO_BUILDING, "Invalid building index in call from Python");
 		return 0;
 	} // </f1rpo>

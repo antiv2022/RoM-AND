@@ -13071,8 +13071,10 @@ void CvPlayer::revolution(CivicTypes* paeNewCivics, bool bForce)
 				for (int k = 0; !bRecalc && k < NUM_YIELD_TYPES; k++)
 				{
 					if (GC.getCivicInfo((CivicTypes)paeNewCivics[iI]).
-							getSpecialistYieldPercentChanges(j, k) != 0)
+						getSpecialistYieldPercentChanges(j, k) != 0)
+					{
 						bRecalc = true;
+					}
 				}
 			} // </f1rpo>
 			setCivics(((CivicOptionTypes)iI), paeNewCivics[iI]);

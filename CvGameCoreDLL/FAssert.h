@@ -13,7 +13,7 @@
 #ifdef FASSERT_ENABLE
 /*  f1rpo: Inlining functions with assertions could be a bad choice.
 	Let's at least not force-inline. Could in particular be important for ScaledNum.h. */
-#define __forceinline inline
+#define __forceinline __inline
 
 #ifdef WIN32
 

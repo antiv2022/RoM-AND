@@ -7600,7 +7600,7 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 		{
 			eDefaultBuilding = ((BuildingTypes)(GC.getCivilizationInfo(eCivilization).getCivilizationBuildings(iI)));
 			eUniqueBuilding = ((BuildingTypes)(GC.getBuildingClassInfo((BuildingClassTypes) iI).getDefaultBuildingIndex()));
-			if (/*eDefaultBuilding != NO_BUILDING &&*/ // f1rpo: Don#t require a default building
+			if (/*eDefaultBuilding != NO_BUILDING &&*/ // f1rpo: Don't require a default building
 				eUniqueBuilding != NO_BUILDING)
 			{
 				if (eDefaultBuilding != eUniqueBuilding)
