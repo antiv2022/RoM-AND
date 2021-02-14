@@ -52,8 +52,8 @@
 # Note: $(PROGRAMFILES) converts to "C:\Program Files", "C:\Program Files (x86)" or whatever fits your system.
 # run "nmake.exe /P" in cmd.exe to see what it is on your system
 #
-#TOOLKIT=$(PROGRAMFILES)\Microsoft Visual C++ Toolkit 2003
-#PSDK=$(PROGRAMFILES)\Microsoft SDKs\Windows\v7.0A
+TOOLKIT=..\deps\Microsoft Visual C++ Toolkit 2003
+PSDK=..\deps\Microsoft SDKs\Windows\Vc7
 #
 ## Civ install path
 ## Path to the directory where boost and python is stored
@@ -63,7 +63,7 @@
 #
 ## Optional:
 # To have newly compiled dlls copied to your mod's Assets directory
-#YOURMOD=..
+YOURMOD=..\..
 # When the same DLL is used for a second mod
 #YOURMOD2=$(PROGRAMFILES)\Sid Meier's Civilization 4\Beyond the Sword\Mods\ModName
 # To have logs deleted after compilation
@@ -78,7 +78,7 @@ LD="$(TOOLKIT)\bin\link.exe"
 RC="$(PSDK)\bin\rc.exe"
 ## Uncomment to build dependencies using fastdep
 ## Overwritten by enviroment variable FASTDEP_FULL_PATH
-FD="bin\fastdep.exe"
+FD="..\deps\fastdep.exe"
 
 #### BLACKLIST ####
 ## Uncomment to block CvTextScreen (accidentally included by Firaxis)
@@ -212,19 +212,7 @@ GLOBAL_INCS=/I"$(TOOLKIT)/include" /I"$(PSDK)/Include" /I"$(PSDK)/Include/mfc"
 
 #### boost and python ####
 
-BOOST_LIB_PATH =
-!IF [IF NOT EXIST "$(BOOST_LIB_PATH)Boost-1.32.0\libs\boost_python-vc71-mt-gd-1_32.lib" EXIT 1] != 0
-BOOST_LIB_PATH = $(SOURCE_DIR)
-!IF [IF NOT EXIST "$(BOOST_LIB_PATH)Boost-1.32.0\libs\boost_python-vc71-mt-gd-1_32.lib" EXIT 1] != 0
-BOOST_LIB_PATH=$(CIV4_PATH)/
-!IF [IF NOT EXIST "$(BOOST_LIB_PATH)Boost-1.32.0\libs\boost_python-vc71-mt-gd-1_32.lib" EXIT 1] != 0
-BOOST_LIB_PATH=$(CIV4_LIB_INSTALL_PATH)/
-!IF [IF NOT EXIST "$(BOOST_LIB_PATH)Boost-1.32.0\libs\boost_python-vc71-mt-gd-1_32.lib" EXIT 1] != 0
-!MESSAGE FATAL ERROR: Failed to locate boost and python
-!ENDIF
-!ENDIF
-!ENDIF
-!ENDIF
+BOOST_LIB_PATH = ..\deps/
 
 PROJECT_INCS=/I"$(BOOST_LIB_PATH)Boost-1.32.0/include" /I"$(BOOST_LIB_PATH)Python24/include"
 # f1rpo: threadlib
