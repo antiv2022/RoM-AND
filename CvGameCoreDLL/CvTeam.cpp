@@ -2665,11 +2665,11 @@ void CvTeam::meet(TeamTypes eTeam, bool bNewDiplo)
 		makeHasMet(eTeam, bNewDiplo);
 		GET_TEAM(eTeam).makeHasMet(getID(), bNewDiplo);
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/20/10                                jdog5000      */
-/*                                                                                              */
-/* AI logging                                                                                   */
-/************************************************************************************************/
+/************************************************************************************************/ 
+/* BETTER_BTS_AI_MOD                      02/20/10                                jdog5000      */ 
+/*                                                                                              */ 
+/* AI logging                                                                                   */ 
+/************************************************************************************************/ 
 		if( gTeamLogLevel >= 2 )
 		{
 			if( GC.getGameINLINE().isFinalInitialized() )
@@ -2680,9 +2680,9 @@ void CvTeam::meet(TeamTypes eTeam, bool bNewDiplo)
 				}
 			}
 		}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+/************************************************************************************************/ 
+/* BETTER_BTS_AI_MOD                       END                                                  */ 
+/************************************************************************************************/ 
 	}
 }
 
@@ -5147,9 +5147,6 @@ void CvTeam::setHasMet( TeamTypes eIndex, bool bNewValue )
 
 void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo)
 {
-	CvDiploParameters* pDiplo;
-	int iI;
-
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be within maximum bounds (invalid Index)");
 
@@ -5173,7 +5170,7 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo)
 
 		if (GET_TEAM(eIndex).isHuman())
 		{
-			for (iI = 0; iI < MAX_PLAYERS; iI++)
+			for (int iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				if (GET_PLAYER((PlayerTypes)iI).isAlive())
 				{
@@ -5189,7 +5186,7 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo)
 			}
 		}
 
-		for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
+		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 		{
 			if (GET_TEAM((TeamTypes)iI).isAlive())
 			{
@@ -5240,53 +5237,24 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo)
 /**		REVOLUTION_MOD							END								*/
 /********************************************************************************/
 
-			if (GC.getGameINLINE().isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
+			if (GC.getGameINLINE().isFinalInitialized() && !gDLL->GetWorldBuilderMode()
+			&& !isHuman() && !isAtWar(eIndex))
 			{
-				if (bNewDiplo)
+				for (int iI = 0; iI < MAX_PLAYERS; iI++)
 				{
-					if (!isHuman())
+					const CvPlayer& player = GET_PLAYER((PlayerTypes)iI);
+					if (player.getTeam() == eIndex && player.isAlive() && player.isHuman()
+					&& GET_PLAYER(getLeaderID()).canContact((PlayerTypes)iI))
 					{
-						if (!isAtWar(eIndex))
-						{
-							for (iI = 0; iI < MAX_PLAYERS; iI++)
-							{
-								if (GET_PLAYER((PlayerTypes)iI).isAlive())
-								{
-									if (GET_PLAYER((PlayerTypes)iI).getTeam() == eIndex)
-									{
-										if (GET_PLAYER(getLeaderID()).canContact((PlayerTypes)iI))
-										{
-											if (GET_PLAYER((PlayerTypes)iI).isHuman())
-											{
-												pDiplo = new CvDiploParameters(getLeaderID());
-												FAssertMsg(pDiplo != NULL, "pDiplo must be valid");
-												pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_FIRST_CONTACT"));
-												pDiplo->setAIContact(true);
-												gDLL->beginDiplomacy(pDiplo, ((PlayerTypes)iI));
-											}
-										}
-									}
-								}
-							}
-						}
+						CvDiploParameters* pDiplo = new CvDiploParameters(getLeaderID());
+						FAssertMsg(pDiplo != NULL, "pDiplo must be valid");
+						pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_FIRST_CONTACT"));
+						pDiplo->setAIContact(true);
+						gDLL->beginDiplomacy(pDiplo, ((PlayerTypes)iI));
 					}
 				}
 			}
 		}
-		
-/********************************************************************************/
-/**		REVOLUTION_MOD							7/11/08				jdog5000	*/
-/**																				*/
-/**		For BarbarianCiv and Start As Minors									*/
-/********************************************************************************/
-		/*
-		// report event to Python, along with some other key state
-		CvEventReporter::getInstance().firstContact(getID(), eIndex);
-		*/
-/********************************************************************************/
-/**		REVOLUTION_MOD							END								*/
-/********************************************************************************/
-
 	}
 }
 
