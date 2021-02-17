@@ -230,7 +230,7 @@
         <Brazilian>+%d1_Change[ICON_UNHAPPY]: "Grandes Cidades são opressivas!"</Brazilian>
         <Danish>+%d1_Change[ICON_UNHAPPY]: "Store byer er undertrykkende!"</Danish>
         <Catalan>+%d1_Change [ICON_UNHAPPY]: "Enyorem la natura!"</Catalan>
-        <Greek>+%d1_Change[ICON_UNHAPPY]: ¨Οι μεγάλες πόλεις είναι καταπιεστικές!</Greek>
+        <Greek>+%d1_Change[ICON_UNHAPPY]: "Οι μεγάλες πόλεις είναι καταπιεστικές!"</Greek>
         <Czech>+%d1_Change[ICON_UNHAPPY]: "Velká města nás akorát utlačují!"</Czech>
         <Turkish>+%d1_Change[ICON_UNHAPPY]: "Büyük Şehirler Bunaltıcı!"</Turkish>
         <Ukrainian>+%d1_Change[ICON_UNHAPPY]: "Великі міста пригнічують нас!"</Ukrainian>
@@ -14733,37 +14733,6 @@
         <ChineseSimp>火力机会</ChineseSimp>
     </TEXT>
     <TEXT>
-        <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_RANGE_BOMBARD_HOVER</Tag>
-        <English>Enables a ranged attack for most seige units (excluding catapults)</English>
-        <French>Permet à la plupart des unités de siège (à l'exception des catapultes) de disposer du bombardement à distance</French>
-        <German>Ermöglicht die Fernbombardierung für die meisten Belagerungswaffen (ausgenommen Katapulte)</German>
-        <Spanish>Habilita el ataque a distancia para la mayoría de las unidades de asedio (excluidas las catapultas)</Spanish>
-        <Polish>Włácza zasięg bombardowania do większoäci jednostek oblęëniczych (oprócz katapult)</Polish>
-        <Korean>대부분의 공성유닛(캐터펄트 제외)에게 원거리 공격을 활성화한다.</Korean>
-        <Brazilian>Permite um ataque de longo alcance à maioria das unidades de cerco (excluindo catapultas)</Brazilian>
-        <Ukrainian>Дозволяє дистанційну атаку для більшості облогових підрозділів (за винятком катапульт)</Ukrainian>
-        <Turkish>Birçok kuşatma birimi için (katapultar hariç) uzaktan saldırı sağlar</Turkish>
-    </TEXT>
-    <TEXT>
-        <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_RANGE_BOMBARD_TEXT</Tag>
-        <English>Ranged Bombardment</English>
-        <French>Bombardement à distance</French>
-        <German>Fernbombardierung</German>
-        <Spanish>Bombardeo a Distancia</Spanish>
-        <Polish>Zasięg bombardowania</Polish>
-        <Italian>Bombardamento ad area</Italian>
-        <Russian>Дистанционный удар</Russian>
-        <Korean>원거리 포격</Korean>
-        <Czech>Dálkové bombardování</Czech>
-        <Brazilian>Bombardeio de Longo Alcance</Brazilian>
-        <Portuguese>Bombardeio de Longo Alcance</Portuguese>
-        <Danish>Distance bombardement</Danish>
-        <ChineseSimp>范围轰炸</ChineseSimp>
-        <Ukrainian>Далекобійне бомбардування</Ukrainian>
-        <Turkish>Uzaktan Bombardıman</Turkish>
-        <Hungarian>Távolsági bombázás</Hungarian>
-    </TEXT>
-    <TEXT>
         <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_STACK_ATTACK_HOVER</Tag>
         <English>Enables unit stacks to attack in animated succession, automating the process of attacking by stack; This option has been known to cause stability issues and is not recommended</English>
         <French>Permet aux groupes d'unités d'attaquer de manière automatique les unes après les autres. Attention, cette option peut pour l'instant engendrer des problèmes de stabilité du jeu et n'est pas recommandée.</French>
@@ -27477,37 +27446,13 @@
     <TEXT>
         <Tag>TXT_KEY_GAMEOPTION_GUILDS</Tag>
         <English>Corporaion-like Guilds</English>
-        <!--French>Guildes</French>
-        <Polish>Gildie</Polish>
-        <German>Gilden</German>
-        <Spanish>Gremios</Spanish>
-        <Finnish>killat:killat:kiltoja</Finnish>
-        <Hungarian>Céhek</Hungarian>
-        <Italian>Associazioni</Italian>
-        <Russian>Гильдии</Russian>
-        <Japanese>ギルド</Japanese>
-        <Korean>길드</Korean>
-        <ChineseSimp>行会</ChineseSimp>
-        <Czech>Cechy</Czech>
-        <Portuguese>Guildas</Portuguese>
-        <Brazilian>Guildas</Brazilian>
-        <Catalan>Gremis</Catalan>
-        <Turkish>Loncalar</Turkish>
-        <Ukrainian>Гільдії</Ukrainian>
-        <Arabic>نقابات</Arabic-->
     </TEXT>
     <TEXT>
         <Tag>TXT_KEY_GAMEOPTION_GUILDS_HELP</Tag>
         <English>Guilds adds new Medieval Guilds, which compete with one another and provide access to different unique benefits. With this option ON there is no interaction between the individual guilds and Guilds civic.
 
 With this option OFF guilds work in a clearer and more realistic way: requiring Guilds civic to be built.</English>
-        <!--French>Cette option "guildes" ajoute des guildes médiévales sous forme de corporations, qui entrent en compétition les unes par rapport aux autres et procurent chacune des bénéfices spécifiques.</French>
-        <Polish>Gildie dodaje nowe äredniowieczne gildie które konkurujá ze sobá oraz udostępniajá róëne unikalne korzyäci.</Polish>
-        <Korean>새로운 중세 길드를 추가합니다. 추가된 길드는 다른 길드와 경쟁하고 다른 독특한 혜택을 제공합니다.</Korean>
-        <Russian>Добавляет новые средневековые гильдии, которые конкурируют друг с другом и обеспечивают доступ к различным уникальные преимуществам. Гильдии являются аналогом корпораций для ранних этапов игры.</Russian>
-        <Spanish>Gremios, añade nuevos gremios medievales, que compiten entre sí y facilitan el acceso a diferentes beneficios exclusivos.</Spanish>
-        <Ukrainian>Гільдії додають нові середньовічні гільдії, які конкурують одна з одною та додають різні унікальні переваги.</Ukrainian>
-        <Turkish>Dernekler, birbirleriyle rekabet eden ve farklı benzersiz menfaate erişim sağlayan yeni Orta Çağ Derneklerini ekliyor.</Turkish-->
+
     </TEXT>
     <TEXT>
         <Tag>TXT_KEY_GAMEOPTION_LARGER_CITIES</Tag>

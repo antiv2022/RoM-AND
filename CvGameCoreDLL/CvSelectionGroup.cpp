@@ -1151,12 +1151,9 @@ bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvP
 /************************************************************************************************/
 		// Dale - RB: Field Bombard START
 		case MISSION_RBOMBARD:
-			if(GC.isDCM_RANGE_BOMBARD())
+			if (pLoopUnit->canBombardAtRanged(pPlot, iData1, iData2))
 			{
-				if (pLoopUnit->canBombardAtRanged(pPlot, iData1, iData2))
-				{
-					return true;
-				}
+				return true;
 			}
 			break;
 		// Dale - RB: Field Bombard END
@@ -1952,12 +1949,9 @@ bool CvSelectionGroup::startMission()
 /************************************************************************************************/
 					case MISSION_RBOMBARD:
 						// Dale - RB: Field Bombard START
-						if(GC.isDCM_RANGE_BOMBARD())
+						if (pLoopUnit->bombardRanged(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
 						{
-							if (pLoopUnit->bombardRanged(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
-							{
-								bAction = true;
-							}
+							bAction = true;
 						}
 						break;
 
@@ -3605,15 +3599,9 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 
 		// Dale - RB: Field Bombard START
 		case INTERFACEMODE_BOMBARD:
-			if (pLoopUnit != NULL)
+			if (pLoopUnit != NULL && pLoopUnit->canBombardAtRanged(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
 			{
-				if(GC.isDCM_RANGE_BOMBARD())
-				{
-					if (pLoopUnit->canBombardAtRanged(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
-					{
-						return true;
-					}
-				}
+				return true;
 			}
 			break;
 		// Dale - RB: Field Bombard END

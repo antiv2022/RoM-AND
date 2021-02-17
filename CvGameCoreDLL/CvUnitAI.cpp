@@ -31111,11 +31111,6 @@ bool CvUnitAI::AI_RbombardPlot(int iRange, int iBonusValueThreshold)
 	int iDX = 0, iDY = 0;
 	pBestPlot = NULL;
 
-	if(!GC.isDCM_RANGE_BOMBARD())
-	{
-		return false;
-	}
-
 	iSearchRange = AI_searchRange(iRange);
 
 	for (iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
@@ -31193,11 +31188,6 @@ bool CvUnitAI::AI_RbombardUnit(int iRange, int iHighestOddsThreshold, int iMinSt
 	int iBestValue;
 	int iDX, iDY;
 
-	if(!GC.isDCM_RANGE_BOMBARD())
-	{
-		return false;
-	}
-
 	iSearchRange = AI_searchRange(iRange);
 
 	iBestValue = 999; // looking for the odds at or below iHighestOddsThreshold
@@ -31264,20 +31254,12 @@ bool CvUnitAI::AI_RbombardCity(CvCity* pCity)
 {
 	PROFILE_FUNC();
 
-	CvUnit* pDefender;
-	CvPlot* pPlot;
-
-	if(!GC.isDCM_RANGE_BOMBARD())
-	{
-		return false;
-	}
-
 	if (pCity == NULL)
 	{
 		return false;
 	}
 
-	pPlot = pCity->plot();
+	CvPlot* pPlot = pCity->plot();
 	if (pPlot == NULL)
 	{
 		return false; // ok will never happen but anyway...
@@ -31288,7 +31270,7 @@ bool CvUnitAI::AI_RbombardCity(CvCity* pCity)
 		return false;
 	}
 
-	pDefender = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
+	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
 	if (pDefender != NULL)
 	{
 		if (collateralDamageMaxUnits() > pPlot->getNumUnits())

@@ -362,7 +362,6 @@ public:
 	int getMAX_BATTLE_TURNS() const { return GC.getMAX_BATTLE_TURNS(); }
 
 	bool isDCM_AIR_BOMBING() const { return GC.isDCM_AIR_BOMBING(); }
-	bool isDCM_RANGE_BOMBARD() const { return GC.isDCM_RANGE_BOMBARD(); }
 	int getDCM_RB_CITY_INACCURACY() const { return GC.getDCM_RB_CITY_INACCURACY(); }
 	int getDCM_RB_CITYBOMBARD_CHANCE() const { return GC.getDCM_RB_CITYBOMBARD_CHANCE(); }
 	bool isDCM_ATTACK_SUPPORT() const { return GC.isDCM_ATTACK_SUPPORT(); }

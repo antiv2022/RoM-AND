@@ -21646,12 +21646,6 @@ bool CvUnit::airBomb5(int iX, int iY)
 // Dale - RB: Field Bombard START
 bool CvUnit::canRBombard(const CvPlot* pPlot) const
 {
-
-	if (!GC.isDCM_RANGE_BOMBARD())
-	{
-		return false;
-	}
-
 	if(getDCMBombRange() <= 0)
 	{
         return false;

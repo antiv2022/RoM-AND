@@ -1529,31 +1529,23 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 			szString.append(gDLL->getText("TXT_KEY_UNIT_FLANKING_STRIKES", szTempBuffer.GetCString()));
 		}
 
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-		// Dale - RB: Field Bombard START
-		if(GC.isDCM_RANGE_BOMBARD())
+		// Dale - RB: Field Bombard
+		if (pUnit->getDCMBombRange() > 0 || pUnit->getDCMBombAccuracy() > 0)
 		{
-			if (pUnit->getDCMBombRange() > 0 || pUnit->getDCMBombAccuracy() > 0)
-			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_IS_DCM_BOMBARD"));
-			}
-			if (pUnit->getDCMBombRange() > 0)
-			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_IS_RANGE_BOMBARD", pUnit->getDCMBombRange()));
-			}
-			if (pUnit->getDCMBombAccuracy() > 0)
-			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_IS_ACCURACY_BOMBARD", pUnit->getDCMBombAccuracy()));
-			}
+			szString.append(NEWLINE);
+			szString.append(gDLL->getText("TXT_KEY_IS_DCM_BOMBARD"));
 		}
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
+		if (pUnit->getDCMBombRange() > 0)
+		{
+			szString.append(NEWLINE);
+			szString.append(gDLL->getText("TXT_KEY_IS_RANGE_BOMBARD", pUnit->getDCMBombRange()));
+		}
+		if (pUnit->getDCMBombAccuracy() > 0)
+		{
+			szString.append(NEWLINE);
+			szString.append(gDLL->getText("TXT_KEY_IS_ACCURACY_BOMBARD", pUnit->getDCMBombAccuracy()));
+		}
+
 		if (pUnit->bombardRate() > 0)
 		{
 			if (bShort)
@@ -1567,6 +1559,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 				szString.append(gDLL->getText("TXT_KEY_UNIT_BOMBARD_RATE", ((pUnit->bombardRate() * 100) / GC.getMAX_CITY_DEFENSE_DAMAGE())));
 			}
 		}
+		// ! Dale - RB: Field Bombard
+
 		// < M.A.D. Nukes Start >
 		if(pUnit->isMADEnabled() && pUnit->getMADTargetPlot() != NULL)
 		{
@@ -12011,40 +12005,29 @@ void CvGameTextMgr::setBasicUnitHelpWithCity(CvWStringBuffer &szBuffer, UnitType
 		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_BOMB_RATE", ((GC.getUnitInfo(eUnit).getBombRate() * 100) / GC.getMAX_CITY_DEFENSE_DAMAGE())));
 	}
 
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
 	// Dale - RB: Field Bombard START
-	if (GC.isDCM_RANGE_BOMBARD())
+	if (GC.getUnitInfo(eUnit).getDCMBombRange() > 0 || GC.getUnitInfo(eUnit).getDCMBombAccuracy() > 0)
 	{
-		if (GC.getUnitInfo(eUnit).getDCMBombRange() > 0 || GC.getUnitInfo(eUnit).getDCMBombAccuracy() > 0)
-		{
-			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_IS_DCM_BOMBARD"));
-		}
-		if (GC.getUnitInfo(eUnit).getDCMBombRange() > 0)
-		{
-			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_IS_RANGE_BOMBARD", GC.getUnitInfo(eUnit).getDCMBombRange()));
-		}
-		if (GC.getUnitInfo(eUnit).getDCMBombAccuracy() > 0)
-		{
-			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_IS_ACCURACY_BOMBARD", GC.getUnitInfo(eUnit).getDCMBombAccuracy()));
-		}
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_IS_DCM_BOMBARD"));
 	}
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
+	if (GC.getUnitInfo(eUnit).getDCMBombRange() > 0)
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_IS_RANGE_BOMBARD", GC.getUnitInfo(eUnit).getDCMBombRange()));
+	}
+	if (GC.getUnitInfo(eUnit).getDCMBombAccuracy() > 0)
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_IS_ACCURACY_BOMBARD", GC.getUnitInfo(eUnit).getDCMBombAccuracy()));
+	}
+
 	if (GC.getUnitInfo(eUnit).getBombardRate() > 0)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_BOMBARD_RATE", ((GC.getUnitInfo(eUnit).getBombardRate() * 100) / GC.getMAX_CITY_DEFENSE_DAMAGE())));
 	}
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-	// Dale - RB: Field Bombard END
+	// ! Dale - RB: Field Bombard
 
 	// Dale - FE: Fighters START
 	if (GC.isDCM_FIGHTER_ENGAGE())

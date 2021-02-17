@@ -499,39 +499,36 @@ void CvGame::updateColoredPlots()
 		}
 
 		// Dale - RB: Field Bombard START
-		if(GC.isDCM_RANGE_BOMBARD())
+		iMaxAirRange = 0;
+
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+
+		while (pSelectedUnitNode != NULL)
 		{
-			iMaxAirRange = 0;
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-			while (pSelectedUnitNode != NULL)
+			if (pSelectedUnit != NULL)
 			{
-				pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-
-				if (pSelectedUnit != NULL)
-				{
-					iMaxAirRange = std::max(iMaxAirRange, pSelectedUnit->getDCMBombRange());
-				}
+				iMaxAirRange = std::max(iMaxAirRange, pSelectedUnit->getDCMBombRange());
 			}
+		}
 
-			if (iMaxAirRange > 0)
+		if (iMaxAirRange > 0)
+		{
+			for (iDX = -(iMaxAirRange); iDX <= iMaxAirRange; iDX++)
 			{
-				for (iDX = -(iMaxAirRange); iDX <= iMaxAirRange; iDX++)
+				for (iDY = -(iMaxAirRange); iDY <= iMaxAirRange; iDY++)
 				{
-					for (iDY = -(iMaxAirRange); iDY <= iMaxAirRange; iDY++)
-					{
-						pLoopPlot = plotXY(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), iDX, iDY);
+					pLoopPlot = plotXY(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), iDX, iDY);
 
-						if (pLoopPlot != NULL)
+					if (pLoopPlot != NULL)
+					{
+						if (plotDistance(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= iMaxAirRange)
 						{
-							if (plotDistance(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= iMaxAirRange)
-							{
-								NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE")).getColor());
-								color.a = 0.4f;
-								gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getViewportX(), pLoopPlot->getViewportY(), color, PLOT_STYLE_TARGET, PLOT_LANDSCAPE_LAYER_BASE);
-							}
+							NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE")).getColor());
+							color.a = 0.4f;
+							gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getViewportX(), pLoopPlot->getViewportY(), color, PLOT_STYLE_TARGET, PLOT_LANDSCAPE_LAYER_BASE);
 						}
 					}
 				}
