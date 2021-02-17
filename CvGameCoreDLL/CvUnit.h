@@ -1160,9 +1160,9 @@ private:
 public:
 // Dale - RB: Field Bombard END
 // Dale - ARB: Archer Bombard START
-	bool canArcherBombard(const CvPlot* pPlot) const;
-	bool canArcherBombardAt(const CvPlot* pPlot, int iX, int iY) const;
-	bool archerBombard(int iX, int iY, bool supportAttack = false);
+	bool canVolley() const;
+	bool canVolleyAt(const CvPlot* pPlot, int iX, int iY) const;
+	bool doVolley(int iX, int iY, bool supportAttack = false);
 // Dale - ARB: Archer Bombard END
 // Dale - SA: Stack Attack START
 	void updateStackCombat(bool bQuick = false);

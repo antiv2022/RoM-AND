@@ -31427,7 +31427,7 @@ bool CvUnitAI::AI_Abombard()
 {
 	PROFILE_FUNC();
 
-	if (!canArcherBombard(plot()) || GC.getGameINLINE().getSorenRandNum(10, "Randomness") < 5)
+	if (!canVolley() || GC.getGameINLINE().getSorenRandNum(10, "Randomness") < 5)
 	{
 		return false;
 	}
@@ -31439,7 +31439,7 @@ bool CvUnitAI::AI_Abombard()
 		for (int iDY = -iSearchRange; iDY <= iSearchRange; iDY++)
 		{
 			CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
-			if (pLoopPlot != NULL && canArcherBombardAt(plot(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))
+			if (pLoopPlot != NULL && canVolleyAt(plot(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))
 			{
 				const int iPotentialAttackers = pLoopPlot->getNumVisibleEnemyDefenders(this);//GET_PLAYER(getOwnerINLINE()).AI_adjacentPotentialAttackers(pLoopPlot);
 				if (iPotentialAttackers > 0 || pLoopPlot->isAdjacentTeam(getTeam()))

@@ -22549,85 +22549,63 @@ void CvUnit::doOpportunityFire()
 	//There is absolutely zero resistability to this damage and no potential for failure to strike, making it far more powerful than any player determined
 	//action.  Once I get to focusing in on the Bombard function and adding some more dynamics there to address the above noted issues,
 	//I'll have to enforce those mechanisms onto this Opportunity Fire process as well.
-	int iI;
-	int iUnitDamage = 0;
-	int iVolumeDefenders = 0;
-	int iBestUnitStr = 0;
-	int ipDefenderStr = 0;
-	CvPlot* pLoopPlot;
+
+	if (!GC.isDCM_OPP_FIRE() || !canVolley() || bombardRate() <= 0 || getFortifyTurns() < 0)
+	{
+		return;
+	}
 	CvPlot* pAttackPlot = NULL;
 	CvUnit* pDefender = NULL;
-	CvWString szBuffer;
-	CvUnit* pBestUnit;
+	int ipDefenderStr = 0;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+	{
+		CvPlot* pLoopPlot = plotDirection(plot()->getX_INLINE(), plot()->getY_INLINE(), ((DirectionTypes)iI));
 
-	if (!GC.isDCM_OPP_FIRE())
-	{
-		return;
-	}
-	if (bombardRate() <= 0 || getDCMBombRange() <= 0)
-	{
-		return;
-	}
-
-	if (getFortifyTurns() > 0)
-	{
-		for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+		if (pLoopPlot != NULL && pLoopPlot->getNumUnits() > 0)
 		{
-			pLoopPlot = plotDirection(plot()->getX_INLINE(), plot()->getY_INLINE(), ((DirectionTypes)iI));
-			if (pLoopPlot != NULL)
+			CvUnit* pBestUnit = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
+			if (pBestUnit != NULL)
 			{
-				iVolumeDefenders = pLoopPlot->getNumUnits();
-				if (iVolumeDefenders > 0)
+				const int iBestUnitStr = pBestUnit->currCombatStr(pLoopPlot, this, NULL, true);
+
+				if (iBestUnitStr > ipDefenderStr)
 				{
-					pBestUnit = NULL;
-					pBestUnit = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-					if (pBestUnit != NULL)
-					{
-						iBestUnitStr = pBestUnit->currCombatStr(pLoopPlot, this, NULL, true);
-						if (pDefender != NULL)
-						{
-							if (iBestUnitStr > ipDefenderStr)
-							{
-								pDefender = pBestUnit;
-								pAttackPlot = pLoopPlot;
-								ipDefenderStr = pDefender->currCombatStr(pLoopPlot, this, NULL, true);
-							}
-						}
-						else
-						{
-							pDefender = pBestUnit;
-							pAttackPlot = pLoopPlot;
-							ipDefenderStr = pDefender->currCombatStr(pLoopPlot, this, NULL, true);
-						}
-					}
+					pDefender = pBestUnit;
+					pAttackPlot = pLoopPlot;
+					ipDefenderStr = iBestUnitStr;
 				}
 			}
 		}
-		if (pDefender != NULL)
+	}
+	if (pDefender != NULL)
+	{
+		setBattlePlot(pAttackPlot, pDefender);
+		pDefender->changeDamage(GC.getGameINLINE().getSorenRandNum(bombardRate(), "Bombard damage") * 5, getOwner());
 		{
-			setBattlePlot(pAttackPlot, pDefender);
-			iUnitDamage = (GC.getGameINLINE().getSorenRandNum(bombardRate(), "Bombard damage") * 5);
-			pDefender->changeDamage(iUnitDamage, getOwner());
-
-			{
-				MEMORY_TRACK_EXEMPT();
-
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_OPP_FIRE", getNameKey(), pDefender->getNameKey());
-				AddMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_OUR_WITHDRAWL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pAttackPlot->getX_INLINE(), pAttackPlot->getY_INLINE(), true, true);
-				szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_OPP_FIRE", getNameKey(), pDefender->getNameKey());
-				AddMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_THEIR_WITHDRAWL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pAttackPlot->getX_INLINE(), pAttackPlot->getY_INLINE(), true, true);
-			}
-			if (pAttackPlot->isActiveVisible(false) && !pDefender->isUsingDummyEntities())
-			{
-				// Bombard entity mission
-				CvMissionDefinition kDefiniton;
-				kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_BOMBARD).getTime() * gDLL->getSecsPerTurn());
-				kDefiniton.setMissionType(MISSION_BOMBARD);
-				kDefiniton.setPlot(pAttackPlot);
-				kDefiniton.setUnit(BATTLE_UNIT_ATTACKER, this);
-				kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, pDefender);
-				addMission(&kDefiniton);
-			}
+			MEMORY_TRACK_EXEMPT();
+			AddMessage(
+				getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText("TXT_KEY_MISC_YOU_OPP_FIRE", getNameKey(), pDefender->getNameKey()),
+				"AS2D_OUR_WITHDRAWL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+				pAttackPlot->getX_INLINE(), pAttackPlot->getY_INLINE(), true, true
+			);
+			AddMessage(
+				pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText("TXT_KEY_MISC_ENEMY_OPP_FIRE", getNameKey(), pDefender->getNameKey()),
+				"AS2D_THEIR_WITHDRAWL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+				pAttackPlot->getX_INLINE(), pAttackPlot->getY_INLINE(), true, true
+			);
+		}
+		if (pAttackPlot->isActiveVisible(false) && !pDefender->isUsingDummyEntities())
+		{
+			// Bombard entity mission
+			CvMissionDefinition kDefiniton;
+			kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_BOMBARD).getTime() * gDLL->getSecsPerTurn());
+			kDefiniton.setMissionType(MISSION_BOMBARD);
+			kDefiniton.setPlot(pAttackPlot);
+			kDefiniton.setUnit(BATTLE_UNIT_ATTACKER, this);
+			kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, pDefender);
+			addMission(&kDefiniton);
 		}
 	}
 }
@@ -22707,7 +22685,7 @@ void CvUnit::doActiveDefense()
 // Dale - SA: Active Defense END
 
 // Dale - ARB: Archer Bombard START
-bool CvUnit::canArcherBombard(const CvPlot* pPlot) const
+bool CvUnit::canVolley() const
 {
 	if (getDCMBombRange() <= 0)
 	{
@@ -22724,10 +22702,10 @@ bool CvUnit::canArcherBombard(const CvPlot* pPlot) const
 	return true;
 }
 
-bool CvUnit::canArcherBombardAt(const CvPlot* pPlot, int iX, int iY) const
+bool CvUnit::canVolleyAt(const CvPlot* pPlot, int iX, int iY) const
 {
 	CvPlot* pTargetPlot;
-	if (!canArcherBombard(pPlot))
+	if (!canVolley())
 	{
 		return false;
 	}
@@ -22759,9 +22737,9 @@ bool CvUnit::canArcherBombardAt(const CvPlot* pPlot, int iX, int iY) const
 	return true;
 }
 
-bool CvUnit::archerBombard(int iX, int iY, bool supportAttack)
+bool CvUnit::doVolley(int iX, int iY, bool supportAttack)
 {
-	if (!canArcherBombardAt(plot(), iX, iY))
+	if (!canVolleyAt(plot(), iX, iY))
 	{
 		return false;
 	}

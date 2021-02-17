@@ -1160,7 +1160,7 @@ bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvP
 
 		// Dale - ARB: Archer Bombard START
 		case MISSION_ABOMBARD:
-			if (pLoopUnit->canArcherBombardAt(pPlot, iData1, iData2))
+			if (pLoopUnit->canVolleyAt(pPlot, iData1, iData2))
 			{
 				return true;
 			}
@@ -2169,7 +2169,7 @@ bool CvSelectionGroup::startMission()
 
 					case MISSION_ABOMBARD:
 						// Dale - ARB: Archer Bombard START
-						if (pLoopUnit->archerBombard(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
+						if (pLoopUnit->doVolley(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
 						{
 							bAction = true;
 						}
@@ -3374,7 +3374,7 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 
 		// Dale - ARB: Archer Bombard START
 		case INTERFACEMODE_ABOMBARD:
-			if (pLoopUnit->canArcherBombard(pLoopUnit->plot()))
+			if (pLoopUnit->canVolley())
 			{
 				return true;
 			}
@@ -3602,7 +3602,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 
 		// Dale - ARB: Archer Bombard START
 		case INTERFACEMODE_ABOMBARD:
-			if (pLoopUnit != NULL && pLoopUnit->canArcherBombardAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
+			if (pLoopUnit != NULL && pLoopUnit->canVolleyAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
 			{
 				return true;
 			}
@@ -4308,9 +4308,7 @@ bool CvSelectionGroup::canBombard(const CvPlot* pPlot, bool bCheckCanReduceOnly)
 		{
 			return true;
 		}
-/************************************************************************************************/
-/* DCM                               04/19/09                           Johny Smith      */
-/************************************************************************************************/		
+
 		// Dale - RB: Field Bombard START
 		if (!bCheckCanReduceOnly && pLoopUnit->canRBombard(pPlot))
 		{
@@ -4318,14 +4316,11 @@ bool CvSelectionGroup::canBombard(const CvPlot* pPlot, bool bCheckCanReduceOnly)
 		}
 		// Dale - RB: Field Bombard END
 		// Dale - ARB: Archer Bombard START
-		if (!bCheckCanReduceOnly && pLoopUnit->canArcherBombard(pPlot))
+		if (!bCheckCanReduceOnly && pLoopUnit->canVolley())
 		{
 			return true;
 		}
 		// Dale - ARB: Archer Bombard END
-/************************************************************************************************/
-/* DCM                               End                               Johny Smith        */
-/************************************************************************************************/		
 	}
 
 	return false;
@@ -5146,11 +5141,9 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 								{
 									if (plot() != NULL)
 									{
-										if (pLoopUnit->canArcherBombardAt(pDestPlot, plot()->getX_INLINE(), plot()->getY_INLINE()))
+										if (pLoopUnit->canVolleyAt(pDestPlot, plot()->getX_INLINE(), plot()->getY_INLINE()))
 										{
-											if (pLoopUnit->archerBombard(plot()->getX_INLINE(), plot()->getY_INLINE(), true))
-											{
-											}
+											pLoopUnit->doVolley(plot()->getX_INLINE(), plot()->getY_INLINE(), true);
 										}
 										else if (pLoopUnit->canBombardAtRanged(pDestPlot, plot()->getX_INLINE(), plot()->getY_INLINE()))
 										{
@@ -5180,11 +5173,9 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 								{
 									if (pLoopUnit != NULL && this != NULL && pDestPlot != NULL && plot() != NULL)
 									{
-										if (pLoopUnit->canArcherBombardAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
+										if (pLoopUnit->canVolleyAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
 										{
-											if (pLoopUnit->archerBombard(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), true))
-											{
-											}
+											pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), true);
 										}
 										else if (pLoopUnit->canBombardAtRanged(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
 										{
@@ -5247,10 +5238,10 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 
 										if (pLoopUnit != NULL && this != NULL && pDestPlot != NULL && plot() != NULL)
 										{
-											if (pLoopUnit->canArcherBombardAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
+											if (pLoopUnit->canVolleyAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
 											{
 												bFoundBombard = true;
-												pLoopUnit->archerBombard(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), false);
+												pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), false);
 											}
 											else if (pLoopUnit->canBombardAtRanged(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
 											{
@@ -7809,9 +7800,9 @@ bool CvSelectionGroup::groupStackAttack(int iX, int iY, int iFlags, bool& bFaile
 								{
 									if (plot() != NULL)
 									{
-										if (pLoopUnit->canArcherBombardAt(pDestPlot, plot()->getX_INLINE(), plot()->getY_INLINE()))
+										if (pLoopUnit->canVolleyAt(pDestPlot, plot()->getX_INLINE(), plot()->getY_INLINE()))
 										{
-											if (pLoopUnit->archerBombard(plot()->getX_INLINE(), plot()->getY_INLINE(), true))
+											if (pLoopUnit->doVolley(plot()->getX_INLINE(), plot()->getY_INLINE(), true))
 											{
 												bAction = true;
 											}
@@ -7845,9 +7836,9 @@ bool CvSelectionGroup::groupStackAttack(int iX, int iY, int iFlags, bool& bFaile
 								{
 									if (pLoopUnit != NULL && this != NULL && pDestPlot != NULL && plot() != NULL)
 									{
-										if (pLoopUnit->canArcherBombardAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
+										if (pLoopUnit->canVolleyAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
 										{
-											if (pLoopUnit->archerBombard(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), true))
+											if (pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), true))
 											{
 												bAction = true;
 											}
@@ -7908,10 +7899,10 @@ bool CvSelectionGroup::groupStackAttack(int iX, int iY, int iFlags, bool& bFaile
 
 										if (pLoopUnit != NULL && this != NULL && pDestPlot != NULL && plot() != NULL)
 										{
-											if (pLoopUnit->canArcherBombardAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
+											if (pLoopUnit->canVolleyAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
 											{
 												bFoundBombard = true;
-												pLoopUnit->archerBombard(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), false);
+												pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), false);
 											}
 											else if (pLoopUnit->canBombardAtRanged(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
 											{
