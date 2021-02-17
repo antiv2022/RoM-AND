@@ -31427,67 +31427,52 @@ bool CvUnitAI::AI_Abombard()
 {
 	PROFILE_FUNC();
 
-	CvPlot* pLoopPlot;
-	CvPlot* pBestPlot;
-	CvUnit* pDefender;
-	int iSearchRange;
-	int iPotentialAttackers;
-	int iValue;
-	int iDamage;
-	int iBestValue;
-	int iDX, iDY;
-
-	if(!canArcherBombard(plot()))
+	if (!canArcherBombard(plot()) || GC.getGameINLINE().getSorenRandNum(10, "Randomness") < 5)
 	{
 		return false;
 	}
-	if (GC.getGameINLINE().getSorenRandNum(10, "Randomness") < 5)
+	const int iSearchRange = 1;
+	CvPlot* pBestPlot = NULL;
+	int iBestValue = 0;
+	for (int iDX = -iSearchRange; iDX <= iSearchRange; iDX++)
 	{
-		return false;
-	}
-	if(GC.isDCM_ARCHER_BOMBARD())
-	{
-		iSearchRange = 1;
-		iBestValue = 0;
-		pBestPlot = NULL;
-		for (iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
+		for (int iDY = -iSearchRange; iDY <= iSearchRange; iDY++)
 		{
-			for (iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
+			CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+			if (pLoopPlot != NULL && canArcherBombardAt(plot(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))
 			{
-				pLoopPlot	= plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
-				if (pLoopPlot != NULL)
+				const int iPotentialAttackers = pLoopPlot->getNumVisibleEnemyDefenders(this);//GET_PLAYER(getOwnerINLINE()).AI_adjacentPotentialAttackers(pLoopPlot);
+				if (iPotentialAttackers > 0 || pLoopPlot->isAdjacentTeam(getTeam()))
 				{
-					if (canArcherBombardAt(plot(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))
+					CvUnit* pDefender = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
+
+					if (pDefender != NULL)
 					{
-						iValue = 0;
-						iPotentialAttackers = pLoopPlot->getNumVisibleEnemyDefenders(this);//GET_PLAYER(getOwnerINLINE()).AI_adjacentPotentialAttackers(pLoopPlot);
-						if (iPotentialAttackers > 0 || pLoopPlot->isAdjacentTeam(getTeam()))
+						const int iDamage = 
+						(
+							std::max(1,
+								GC.getDefineINT("COMBAT_DAMAGE") * (currFirepower(NULL, NULL) + (currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2)
+								/
+								(pDefender->currFirepower(pLoopPlot, this) + (currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2)
+							)
+						);
+						const int iValue = iDamage * iPotentialAttackers * GC.getGameINLINE().getSorenRandNum(5, "AI Bombard");
+
+						if (iValue > iBestValue)
 						{
-							pDefender = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-
-							if ( pDefender != NULL )
-							{
-								iDamage = std::max(1, ((GC.getDefineINT("COMBAT_DAMAGE") * (currFirepower(NULL, NULL) + ((currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2))) / (pDefender->currFirepower(pLoopPlot, this) + ((currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2))));
-								iValue += (iDamage * iPotentialAttackers);
-
-								iValue *= GC.getGameINLINE().getSorenRandNum(5, "AI Bombard");
-								if (iValue > iBestValue)
-								{
-									iBestValue = iValue;
-									pBestPlot = pLoopPlot;
-									FAssert(!atPlot(pBestPlot));
-								}
-							}
+							iBestValue = iValue;
+							pBestPlot = pLoopPlot;
+							FAssert(!atPlot(pBestPlot));
 						}
 					}
 				}
 			}
 		}
-		if (pBestPlot != NULL)
-		{
-			getGroup()->pushMission(MISSION_ABOMBARD, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
-			return true;
-		}
+	}
+	if (pBestPlot != NULL)
+	{
+		getGroup()->pushMission(MISSION_ABOMBARD, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+		return true;
 	}
 	return false;
 }

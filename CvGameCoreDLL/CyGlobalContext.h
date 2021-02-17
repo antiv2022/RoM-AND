@@ -368,7 +368,6 @@ public:
 	bool isDCM_STACK_ATTACK() const { return GC.isDCM_STACK_ATTACK(); }
 	bool isDCM_OPP_FIRE() const { return GC.isDCM_OPP_FIRE(); }
 	bool isDCM_ACTIVE_DEFENSE() const { return GC.isDCM_ACTIVE_DEFENSE(); }
-	bool isDCM_ARCHER_BOMBARD() const { return GC.isDCM_ARCHER_BOMBARD(); }
 	bool isDCM_FIGHTER_ENGAGE() const { return GC.isDCM_FIGHTER_ENGAGE(); }
 
 	bool isDYNAMIC_CIV_NAMES() const { return GC.isDYNAMIC_CIV_NAMES(); }

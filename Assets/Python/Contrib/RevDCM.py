@@ -67,8 +67,6 @@ def changedDCM_ACTIVE_DEFENSE (option, value):
 	gc.setDefineINT("DCM_ACTIVE_DEFENSE", RevDCMOpt.isDCM_ACTIVE_DEFENSE())
 def changedDCM_FIGHTER_ENGAGE (option, value):
 	gc.setDefineINT("DCM_FIGHTER_ENGAGE", RevDCMOpt.isDCM_FIGHTER_ENGAGE())
-def changedDCM_ARCHER_BOMBARD (option, value):
-	gc.setDefineINT("DCM_ARCHER_BOMBARD", RevDCMOpt.isDCM_ARCHER_BOMBARD())
 def changedDCM_BATTLE_EFFECTS (option, value):
 	gc.setDefineINT("DCM_BATTLE_EFFECTS", RevDCMOpt.isDCM_BATTLE_EFFECTS())
 	
@@ -116,7 +114,6 @@ def setXMLOptionsfromIniFile():
 	gc.setDefineINT("DCM_AIR_BOMBING", RevDCMOpt.isDCM_AIR_BOMBING())
 	gc.setDefineINT("DCM_ACTIVE_DEFENSE", RevDCMOpt.isDCM_ACTIVE_DEFENSE())
 	gc.setDefineINT("DCM_FIGHTER_ENGAGE", RevDCMOpt.isDCM_FIGHTER_ENGAGE())
-	gc.setDefineINT("DCM_ARCHER_BOMBARD", RevDCMOpt.isDCM_ARCHER_BOMBARD())
 	gc.setDefineINT("DCM_BATTLE_EFFECTS", RevDCMOpt.isDCM_BATTLE_EFFECTS())
 	#IDW
 	gc.setDefineINT("IDW_ENABLED", RevDCMOpt.isIDW_ENABLED())

@@ -21648,7 +21648,7 @@ bool CvUnit::canRBombard(const CvPlot* pPlot) const
 {
 	if(getDCMBombRange() <= 0)
 	{
-        return false;
+		return false;
 	}
 
 	if (getDomainType() == DOMAIN_AIR)
@@ -22709,10 +22709,6 @@ void CvUnit::doActiveDefense()
 // Dale - ARB: Archer Bombard START
 bool CvUnit::canArcherBombard(const CvPlot* pPlot) const
 {
-	if(!GC.isDCM_ARCHER_BOMBARD())
-	{
-		return false;
-	}
 	if (getDCMBombRange() <= 0)
 	{
 		return false;
@@ -22765,43 +22761,24 @@ bool CvUnit::canArcherBombardAt(const CvPlot* pPlot, int iX, int iY) const
 
 bool CvUnit::archerBombard(int iX, int iY, bool supportAttack)
 {
-	CvPlot* pPlot;
-	CvWString szBuffer;
-	CvUnit* pLoopUnit = NULL;
-	int iDefenderNum, iUnitDamage;
-	bool bTarget = false;
 	if (!canArcherBombardAt(plot(), iX, iY))
 	{
 		return false;
 	}
-	pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-	iDefenderNum = pPlot->getNumVisibleEnemyDefenders(this);
-	if(iDefenderNum == 0)
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+	if (pPlot->getNumVisibleEnemyDefenders(this) == 0)
 	{
 		return false;
 	}
+	CvWString szBuffer;
 
 	// RevolutionDCM - getBestDefender() now used in all cases
-	pLoopUnit = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
+	CvUnit* pLoopUnit = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
 
 	if (GC.getGameINLINE().getSorenRandNum(100, "Bombard Accuracy") <= getDCMBombAccuracy())
 	{
-		bTarget = true;
-	}
-	else
-	{
-		MEMORY_TRACK_EXEMPT();
-
-		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_BOMB_MISSED", getNameKey());
-		AddMessage(getOwnerINLINE(), false, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
-		szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_BOMB_MISSED", getNameKey());
-		// RevolutionDCM - Archer Bombard fix - text display
-		AddMessage(pLoopUnit->getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE());
-	}
-	if (bTarget)
-	{
 		//RevolutionDCM - Archer Bombard fix - report killed units
-		iUnitDamage = std::max(1, ((GC.getDefineINT("COMBAT_DAMAGE") * (currFirepower(NULL, NULL) + ((currFirepower(NULL, NULL) + pLoopUnit->currFirepower(NULL, NULL) + 1) / 2))) / (pLoopUnit->currFirepower(pPlot, this) + ((currFirepower(NULL, NULL) + pLoopUnit->currFirepower(NULL, NULL) + 1) / 2))));
+		const int iUnitDamage = std::max(1, ((GC.getDefineINT("COMBAT_DAMAGE") * (currFirepower(NULL, NULL) + ((currFirepower(NULL, NULL) + pLoopUnit->currFirepower(NULL, NULL) + 1) / 2))) / (pLoopUnit->currFirepower(pPlot, this) + ((currFirepower(NULL, NULL) + pLoopUnit->currFirepower(NULL, NULL) + 1) / 2))));
 		pLoopUnit->setupPreCombatDamage();
 		pLoopUnit->changeDamage(iUnitDamage, getOwner());
 		if (pLoopUnit->isDead())
@@ -22860,6 +22837,16 @@ bool CvUnit::archerBombard(int iX, int iY, bool supportAttack)
 /************************************************************************************************/
 /* RevolutionDCM	             Battle Effects END                                             */
 /************************************************************************************************/
+	}
+	else
+	{
+		MEMORY_TRACK_EXEMPT();
+
+		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_BOMB_MISSED", getNameKey());
+		AddMessage(getOwnerINLINE(), false, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
+		szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_BOMB_MISSED", getNameKey());
+		// RevolutionDCM - Archer Bombard fix - text display
+		AddMessage(pLoopUnit->getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE());
 	}
 
 	if (!supportAttack)

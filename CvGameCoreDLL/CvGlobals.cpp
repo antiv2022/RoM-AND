@@ -213,7 +213,6 @@ m_bDCM_ATTACK_SUPPORT(false),
 m_bDCM_STACK_ATTACK(false),
 m_bDCM_OPP_FIRE(false),
 m_bDCM_ACTIVE_DEFENSE(false),
-m_bDCM_ARCHER_BOMBARD(false),
 m_bDCM_FIGHTER_ENGAGE(false),
 
 m_bDYNAMIC_CIV_NAMES(false),
@@ -3672,7 +3671,6 @@ void cvInternalGlobals::cacheGlobals()
 	m_bDCM_STACK_ATTACK = (getDefineINT("DCM_STACK_ATTACK") > 0) ? true : false;
 	m_bDCM_OPP_FIRE = (getDefineINT("DCM_OPP_FIRE") > 0) ? true : false;
 	m_bDCM_ACTIVE_DEFENSE = (getDefineINT("DCM_ACTIVE_DEFENSE") > 0) ? true : false;
-	m_bDCM_ARCHER_BOMBARD = (getDefineINT("DCM_ARCHER_BOMBARD") > 0) ? true : false;
 	m_bDCM_FIGHTER_ENGAGE = (getDefineINT("DCM_FIGHTER_ENGAGE") > 0) ? true : false;
 
 	m_bDYNAMIC_CIV_NAMES = (getDefineINT("DYNAMIC_CIV_NAMES") > 0) ? true : false;
@@ -5950,11 +5948,6 @@ bool cvInternalGlobals::isDCM_OPP_FIRE()
 bool cvInternalGlobals::isDCM_ACTIVE_DEFENSE()
 {
 	return m_bDCM_ACTIVE_DEFENSE;
-}
-
-bool cvInternalGlobals::isDCM_ARCHER_BOMBARD()
-{
-	return m_bDCM_ARCHER_BOMBARD;
 }
 
 bool cvInternalGlobals::isDCM_FIGHTER_ENGAGE()

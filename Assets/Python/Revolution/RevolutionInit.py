@@ -252,9 +252,6 @@ class RevolutionInit :
 		if RevDCMOpt.isDCM_BATTLE_EFFECTS():
 			revComponentsText += self.optionFormat + localText.getText("TXT_KEY_REV_MOD_INITIALIZING_BATTLE_EFFECTS",())
 			anyOption = True
-		if RevDCMOpt.isDCM_ARCHER_BOMBARD():
-			revComponentsText += self.optionFormat + localText.getText("TXT_KEY_REV_MOD_INITIALIZING_ARCHER_BOMBARD",())
-			anyOption = True
 		if RevDCMOpt.isDCM_STACK_ATTACK():
 			revComponentsText += self.optionFormat + localText.getText("TXT_KEY_REV_MOD_INITIALIZING_STACK_ATTACK",())
 			anyOption = True

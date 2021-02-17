@@ -1049,7 +1049,6 @@ public:
 	bool isDCM_STACK_ATTACK();
 	bool isDCM_OPP_FIRE();
 	bool isDCM_ACTIVE_DEFENSE();
-	bool isDCM_ARCHER_BOMBARD();
 	bool isDCM_FIGHTER_ENGAGE();
 
 	bool isDYNAMIC_CIV_NAMES();
@@ -1689,7 +1688,6 @@ protected:
 	bool m_bDCM_STACK_ATTACK;
 	bool m_bDCM_OPP_FIRE;
 	bool m_bDCM_ACTIVE_DEFENSE;
-	bool m_bDCM_ARCHER_BOMBARD;
 	bool m_bDCM_FIGHTER_ENGAGE;
 
 	bool m_bDYNAMIC_CIV_NAMES;

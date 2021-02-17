@@ -1160,12 +1160,9 @@ bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvP
 
 		// Dale - ARB: Archer Bombard START
 		case MISSION_ABOMBARD:
-			if(GC.isDCM_ARCHER_BOMBARD())
+			if (pLoopUnit->canArcherBombardAt(pPlot, iData1, iData2))
 			{
-				if (pLoopUnit->canArcherBombardAt(pPlot, iData1, iData2))
-				{
-					return true;
-				}
+				return true;
 			}
 			break;
 		// Dale - ARB: Archer Bombard END
@@ -2171,15 +2168,12 @@ bool CvSelectionGroup::startMission()
 						// Dale - AB: Bombing END
 
 					case MISSION_ABOMBARD:
-					// Dale - ARB: Archer Bombard START
-						if(GC.isDCM_ARCHER_BOMBARD())
+						// Dale - ARB: Archer Bombard START
+						if (pLoopUnit->archerBombard(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
 						{
-							if (pLoopUnit->archerBombard(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
-							{
-								bAction = true;
-							}
+							bAction = true;
 						}
-					// Dale - ARB: Archer Bombard END
+						// Dale - ARB: Archer Bombard END
 						break;
 
 					// Dale - FE: Fighters START
@@ -3380,7 +3374,7 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 
 		// Dale - ARB: Archer Bombard START
 		case INTERFACEMODE_ABOMBARD:
-			if (pLoopUnit->canArcherBombard(pLoopUnit->plot()) && GC.isDCM_ARCHER_BOMBARD())
+			if (pLoopUnit->canArcherBombard(pLoopUnit->plot()))
 			{
 				return true;
 			}
@@ -3608,15 +3602,9 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 
 		// Dale - ARB: Archer Bombard START
 		case INTERFACEMODE_ABOMBARD:
-			if (pLoopUnit != NULL)
+			if (pLoopUnit != NULL && pLoopUnit->canArcherBombardAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
 			{
-				if(GC.isDCM_ARCHER_BOMBARD())
-				{
-					if (pLoopUnit->canArcherBombardAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
-					{
-						return true;
-					}
-				}
+				return true;
 			}
 			break;
 		// Dale - ARB: Archer Bombard END
