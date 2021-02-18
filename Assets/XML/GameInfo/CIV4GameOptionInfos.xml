@@ -90,8 +90,8 @@
 			<Type>GAMEOPTION_PICK_RELIGION</Type>
 			<Description>TXT_KEY_GAME_OPTION_PICK_RELIGION</Description>
 			<Help>TXT_KEY_GAME_OPTION_PICK_RELIGION_HELP</Help>
-			<bDefault>0</bDefault>
-			<bVisible>0</bVisible>
+			<bDefault>1</bDefault>
+			<bVisible>1</bVisible>
 		</GameOptionInfo>
 		<GameOptionInfo>
 			<Type>GAMEOPTION_NO_TECH_TRADING</Type>
@@ -154,7 +154,7 @@
 			<Description>TXT_KEY_GAME_OPTION_LOCK_MODS</Description>
 			<Help>TXT_KEY_GAME_OPTION_LOCK_MODS_HELP</Help>
 			<bDefault>0</bDefault>
-			<bVisible>1</bVisible>
+			<bVisible>0</bVisible>
 		</GameOptionInfo>
 		<GameOptionInfo>
 			<Type>GAMEOPTION_COMPLETE_KILLS</Type>
@@ -167,7 +167,7 @@
 			<Type>GAMEOPTION_NO_VASSAL_STATES</Type>
 			<Description>TXT_KEY_GAME_OPTION_NO_VASSAL_STATES</Description>
 			<Help>TXT_KEY_GAME_OPTION_NO_VASSAL_STATES_HELP</Help>
-			<bDefault>0</bDefault>
+			<bDefault>1</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
 		<GameOptionInfo>
@@ -181,7 +181,7 @@
 			<Type>GAMEOPTION_NO_EVENTS</Type>
 			<Description>TXT_KEY_GAME_OPTION_NO_EVENTS</Description>
 			<Help>TXT_KEY_GAME_OPTION_NO_EVENTS_HELP</Help>
-			<bDefault>0</bDefault>
+			<bDefault>1</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
 		<GameOptionInfo>
@@ -203,7 +203,7 @@
 			<Type>GAMEOPTION_NO_REVOLUTION</Type>
 			<Description>TXT_KEY_REV_OPTION_NO_REVOLUTION</Description>
 			<Help>TXT_KEY_REV_OPTION_NO_REVOLUTION_HELP</Help>
-			<bDefault>0</bDefault>
+			<bDefault>1</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
 		<GameOptionInfo>
@@ -231,7 +231,7 @@
 			<Type>GAMEOPTION_NO_TECH_DIFFUSION</Type>
 			<Description>TXT_KEY_REV_OPTION_NO_TECH_DIFFUSION</Description>
 			<Help>TXT_KEY_REV_OPTION_NO_TECH_DIFFUSION_HELP</Help>
-			<bDefault>0</bDefault>
+			<bDefault>1</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
 		<GameOptionInfo>
@@ -337,7 +337,7 @@
 			<Description>TXT_KEY_GAME_OPTION_CULTURALLY_LINKED_STARTS</Description>
 			<Help>TXT_KEY_GAME_OPTION_CULTURALLY_LINKED_STARTS_HELP</Help>
 			<bDefault>0</bDefault>
-			<bVisible>1</bVisible>
+			<bVisible>0</bVisible>
 		</GameOptionInfo>
 		<GameOptionInfo>
 			<Type>GAMEOPTION_PERSONALIZED_MAP</Type>
@@ -428,7 +428,7 @@
 			<Type>GAMEOPTION_GUILDS</Type>
 			<Description>TXT_KEY_GAMEOPTION_GUILDS</Description>
 			<Help>TXT_KEY_GAMEOPTION_GUILDS_HELP</Help>
-			<bDefault>0</bDefault>
+			<bDefault>1</bDefault>
 			<bVisible>0</bVisible>
 		</GameOptionInfo>
 		<GameOptionInfo>
