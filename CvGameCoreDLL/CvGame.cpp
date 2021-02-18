@@ -2765,12 +2765,9 @@ void CvGame::update()
 			gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
 		}
 	}
-	
-	int iActiveTurn = 0;
-	if (!isPbem())
-	{	
-		iActiveTurn = getGameTurn();
-	}
+
+	const int iActiveTurn = getGameTurn();
+
 again:
 	if (!gDLL->GetWorldBuilderMode() || isInAdvancedStart())
 	{
@@ -2842,22 +2839,14 @@ again:
 				}
 			}
 		}
-/************************************************************************************************/
-/* REVOLUTION_MOD                                                                 lemmy101      */
-/*                                                                                jdog5000      */
-/*                                                                                              */
-/************************************************************************************************/
-		if ((isNetworkMultiPlayer() || (getAIAutoPlay(getActivePlayer()) <= 0) && !(gDLL->GetAutorun()) && GAMESTATE_EXTENDED != getGameState()))
-/************************************************************************************************/
-/* REVOLUTION_MOD                          END                                                  */
-/************************************************************************************************/
+
+		if ((isNetworkMultiPlayer() || getAIAutoPlay(getActivePlayer()) <= 0 && !gDLL->GetAutorun() && GAMESTATE_EXTENDED != getGameState()))
 		{
 			if (countHumanPlayersAlive() == 0)
 			{
 				setGameState(GAMESTATE_OVER);
 			}
 		}
-
 		changeTurnSlice(1);
 		m_iActiveTurnSlice += 1;
 
@@ -2872,32 +2861,18 @@ again:
 	doQueuedUIActivity();
 
 	//OutputDebugString(CvString::format("Stop profiling(false) after CvGame::update()\n").c_str());
-	if(!isPitboss())
+	if (!isPitboss() && !isGameMultiPlayer())
 	{
-		CvPlayerAI& kActivePlayer = GET_PLAYER(getActivePlayer());
-		if (!isPbem())
+		const CvPlayerAI& kActivePlayer = GET_PLAYER(getActivePlayer());
+		if (!kActivePlayer.hasBusyUnit() && (!kActivePlayer.isTurnActive() || kActivePlayer.isAutoMoves()))
 		{
-			if ( (!kActivePlayer.isTurnActive() || kActivePlayer.isAutoMoves()) &&
-				!kActivePlayer.hasBusyUnit() && !isNetworkMultiPlayer())
-			{
-				updateTimers();
+			updateTimers();
 
-				if (iActiveTurn == getGameTurn())
-				{
-					goto again;
-				}
+			if (iActiveTurn == getGameTurn())
+			{
+				goto again;
 			}
 		}
-		else
-		{	
-			if ( (!kActivePlayer.isTurnActive() || kActivePlayer.isAutoMoves()) && !kActivePlayer.hasBusyUnit() && !isNetworkMultiPlayer()  && 
-				!isPbem() )
-			{
-				updateTimers();
-
-				goto again;
-			}	
-		}	
 	}
 	PROFILE_END();
 	stopProfilingDLL(false);
@@ -9437,9 +9412,7 @@ void CvGame::testAlive()
 {
 	PROFILE_FUNC();
 
-	int iI;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		GET_PLAYER((PlayerTypes)iI).verifyAlive();
 	}

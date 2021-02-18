@@ -16840,106 +16840,52 @@ void CvPlayer::setNewPlayerAlive(bool bNewValue)
 
 void CvPlayer::verifyAlive()
 {
-	bool bKill;
-
 	if (isAlive())
 	{
-		bKill = false;
+		bool bKill = false;
 
-		if (!bKill)
+		if (!isBarbarian())
 		{
-			if (!isBarbarian())
+			if (getNumCities() == 0 && getAdvancedStartPoints() < 0)
 			{
-				if (getNumCities() == 0 && getAdvancedStartPoints() < 0)
+				// Keep a rebel player alive until they lose all units
+				if (getNumUnits() == (AI_getNumAIUnits(UNITAI_SPY) + AI_getNumAIUnits(UNITAI_MERCHANT)) || (!(GC.getGameINLINE().isOption(GAMEOPTION_COMPLETE_KILLS)) && isFoundedFirstCity() && !(isRebel()))) //45� changed so that invisible units (especially Great Spies) are not counted because you can't see them and kill them
 				{
-/************************************************************************************************/
-/* REVOLUTION_MOD                         02/07/08                                jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/* original code
-					if ((getNumUnits() == 0) || (!(GC.getGameINLINE().isOption(GAMEOPTION_COMPLETE_KILLS)) && isFoundedFirstCity()))
-*/
-					// Keep a rebel player alive until they lose all units
-					if (getNumUnits() == (AI_getNumAIUnits(UNITAI_SPY) + AI_getNumAIUnits(UNITAI_MERCHANT)) || (!(GC.getGameINLINE().isOption(GAMEOPTION_COMPLETE_KILLS)) && isFoundedFirstCity() && !(isRebel()))) //45� changed so that invisible units (especially Great Spies) are not counted because you can't see them and kill them
-/************************************************************************************************/
-/* REVOLUTION_MOD                          END                                                  */
-/************************************************************************************************/
-					{
-						bKill = true;
-					}
+					bKill = true;
 				}
 			}
-		}
-
-		if (!bKill)
-		{
-			if (!isBarbarian())
+			if (!bKill && GC.getGameINLINE().getMaxCityElimination() > 0 && getCitiesLost() >= GC.getGameINLINE().getMaxCityElimination())
 			{
-				if (GC.getGameINLINE().getMaxCityElimination() > 0)
-				{
-					if (getCitiesLost() >= GC.getGameINLINE().getMaxCityElimination())
-					{
-						bKill = true;
-					}
-				}
+				bKill = true;
 			}
 		}
 
 		if (bKill)
 		{
 			setAlive(false);
-/************************************************************************************************/
-/* REVOLUTION_MOD                                                                 lemmy101      */
-/*                                                                                jdog5000      */
-/*                                                                                              */
-/************************************************************************************************/
-// Choose a random AI to take over if we die when on autoplay. (Testing)
-			if(isHumanDisabled())
+
+			// Assign player to earliest AI to take over if we die when on autoplay.
+			if (isHumanDisabled())
 			{
-				int x;
-				std::vector<int> Potentials;
-				for(x=0;x<MAX_PLAYERS;x++)
+				for (int x = 0; x < MAX_PLAYERS; x++)
 				{
-					if(GET_PLAYER((PlayerTypes)x).isAlive() && 
-						!GET_PLAYER((PlayerTypes)x).isHumanDisabled() && 
-						!GET_PLAYER((PlayerTypes)x).isHuman() &&
-						GET_PLAYER((PlayerTypes)x).getNumCities() > 0)
+					if (GET_PLAYER((PlayerTypes)x).isAlive() && !GET_PLAYER((PlayerTypes)x).isHumanDisabled() && !GET_PLAYER((PlayerTypes)x).isHuman())
 					{
-						Potentials.push_back(x);
+						GC.getGame().changeHumanPlayer((PlayerTypes)getID(), (PlayerTypes)x);
+						break;
 					}
 				}
-
-				if(Potentials.empty())
-				{
-					if(GET_PLAYER((PlayerTypes)x).isAlive() && 
-						!GET_PLAYER((PlayerTypes)x).isHumanDisabled() && 
-						!GET_PLAYER((PlayerTypes)x).isHuman())
-					{
-						Potentials.push_back(x);
-					}
-				}
-
-				int choose = GC.getGame().getSorenRand().get(Potentials.size(), "Picking new player for dead player...");
-
-				GC.getGame().changeHumanPlayer((PlayerTypes)getID(), (PlayerTypes)choose);
 			}
-/************************************************************************************************/
-/* REVOLUTION_MOD                          END                                                  */
-/************************************************************************************************/
 		}
 	}
-	else
+	else if (getNumCities() > 0 || getNumUnits() > 0)
 	{
-		if ((getNumCities() > 0) || (getNumUnits() > 0))
-		{
-			setAlive(true);
-		}
+		setAlive(true);
 	}
 }
 
 
-bool CvPlayer::isTurnActive() const																			
+bool CvPlayer::isTurnActive() const
 {
 	return m_bTurnActive;
 }
