@@ -1482,11 +1482,11 @@ public:
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
 	// Dale - RB: Field Bombard START
-	int getDCMBombRange() const;
-	int getDCMBombAccuracy() const;
+	int getVolleyRange() const;
+	int getVolleyAccuracy() const;
 protected:
-	int m_iDCMBombRange;
-	int m_iDCMBombAccuracy;
+	int m_iVolleyRange;
+	int m_iVolleyAccuracy;
 public:
 	// Dale - RB: Field Bombard END
 	// Dale - AB: Bombing START

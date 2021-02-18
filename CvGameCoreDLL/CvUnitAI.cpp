@@ -4697,7 +4697,7 @@ void CvUnitAI::AI_collateralMove()
 /************************************************************************************************/
 	// RevolutionDCM - ranged bombardment AI
 	// Dale - RB: Field Bombard START
-	if (AI_RbombardUnit(getDCMBombRange(), 40, 3, 0, 100))
+	if (AI_RbombardUnit(getVolleyRange(), 40, 3, 0, 100))
 	{
 		return;
 	}
@@ -4740,7 +4740,7 @@ void CvUnitAI::AI_collateralMove()
 /************************************************************************************************/
 	// RevolutionDCM - ranged bombardment plot AI
 	// Dale - RB: Field Bombard START
-	if (AI_RbombardPlot(getDCMBombRange(), 20))
+	if (AI_RbombardPlot(getVolleyRange(), 20))
 	{
 		return;
 	}
@@ -14962,7 +14962,7 @@ bool CvUnitAI::AI_afterAttack()
 /************************************************************************************************/
 	// RevolutionDCM - ranged bombardment plot AI
 	// Dale - RB: Field Bombard START
-	if (AI_RbombardPlot(getDCMBombRange(), 60))
+	if (AI_RbombardPlot(getVolleyRange(), 60))
 	{
 		return true;
 	}
@@ -14997,7 +14997,7 @@ bool CvUnitAI::AI_afterAttack()
 /************************************************************************************************/
 	// RevolutionDCM - ranged bombardment plot AI
 	// Dale - RB: Field Bombard START
-	if (AI_RbombardPlot(getDCMBombRange(), 0))
+	if (AI_RbombardPlot(getVolleyRange(), 0))
 	{
 		return true;
 	}
@@ -29753,56 +29753,43 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 	}
 
 	iValue = 0;
-/************************************************************************************************/
-/* REVOLUTIONDCM                            05/24/08                                Glider1     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment plot
-	// Dale - RB: Field Bombard START
-	//if (getDomainType() != DOMAIN_AIR && getDCMBombRange() < 1)
-	// Dale - RB: Field Bombard END
-/************************************************************************************************/
-/* REVOLUTIONDCM                            END	                                 Glider1     */
-/************************************************************************************************/
+
+	if (pPlot->isRoute())
 	{
-		if (pPlot->isRoute())
+		iValue++;
+		if (eNonObsoleteBonus != NO_BONUS)
 		{
-			iValue++;
-			if (eNonObsoleteBonus != NO_BONUS)
-			{
-				iValue += iBonusValue * 4;
-			}
+			iValue += iBonusValue * 4;
+		}
 
-			for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-			{
-				pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
+		for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+		{
+			pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
 
-				if (pAdjacentPlot != NULL && pAdjacentPlot->getTeam() == pPlot->getTeam())
+			if (pAdjacentPlot != NULL && pAdjacentPlot->getTeam() == pPlot->getTeam())
+			{
+				if (pAdjacentPlot->isCity())
 				{
-					if (pAdjacentPlot->isCity())
-					{
-						iValue += 10;
-					}
+					iValue += 10;
+				}
 
-					if (!(pAdjacentPlot->isRoute()))
-					{
-					
+				if (!(pAdjacentPlot->isRoute()))
+				{
+				
 /************************************************************************************************/
 /* Afforess	                  Start		 08/02/10                                               */
 /*                                                                                              */
 /*                                                                                              */
 /************************************************************************************************/
 /*
-						if (!(pAdjacentPlot->isWater()) && !(pAdjacentPlot->isImpassable()))
+					if (!(pAdjacentPlot->isWater()) && !(pAdjacentPlot->isImpassable()))
 */
-						if (!(pAdjacentPlot->isWater()) && !(pAdjacentPlot->isImpassable(getTeam())))
+					if (!(pAdjacentPlot->isWater()) && !(pAdjacentPlot->isImpassable(getTeam())))
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
-						{
-							iValue += 2;
-						}
+					{
+						iValue += 2;
 					}
 				}
 			}
@@ -29826,21 +29813,7 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 			iValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_PRODUCTION, pPlot->getOwnerINLINE()) * 4);
 			iValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_COMMERCE, pPlot->getOwnerINLINE()) * 3);
 		}
-/************************************************************************************************/
-/* REVOLUTIONDCM                            05/24/08                                Glider1     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-		// RevolutionDCM - ranged bombardment plot
-		// Dale - RB: Field Bombard START
-		//if (getDomainType() != DOMAIN_AIR && getDCMBombRange() < 1)
-		// Dale - RB: Field Bombard END
-/************************************************************************************************/
-/* REVOLUTIONDCM                            END                                     Glider1     */
-/************************************************************************************************/
-		{
-			iValue += GC.getImprovementInfo(eImprovement).getPillageGold();
-		}
+		iValue += GC.getImprovementInfo(eImprovement).getPillageGold();
 
 		if (eNonObsoleteBonus != NO_BONUS)
 		{
@@ -31359,7 +31332,7 @@ bool CvUnitAI::AI_RbombardNaval()
 		return false;
 	}
 
-	iSearchRange = getDCMBombRange();
+	iSearchRange = getVolleyRange();
 	iBestValue = 0;
 	pBestPlot = NULL;
 	for (iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)

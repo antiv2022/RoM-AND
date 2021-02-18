@@ -1152,8 +1152,8 @@ public:
 	int getRbombardSeigeCount(CvPlot* pPlot);
 	// RevolutionDCM - end
 
-	DllExport int getDCMBombRange() const;
-	DllExport int getDCMBombAccuracy() const;
+	DllExport int getVolleyRange() const;
+	DllExport int getVolleyAccuracy() const;
 private:
 	int m_iDCMBombRange;
 	int m_iDCMBombAccuracy;

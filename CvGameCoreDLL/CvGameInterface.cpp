@@ -498,45 +498,8 @@ void CvGame::updateColoredPlots()
 			}
 		}
 
-		// Dale - RB: Field Bombard START
+		// Toffer - Volley
 		iMaxAirRange = 0;
-
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-		while (pSelectedUnitNode != NULL)
-		{
-			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-
-			if (pSelectedUnit != NULL)
-			{
-				iMaxAirRange = std::max(iMaxAirRange, pSelectedUnit->getDCMBombRange());
-			}
-		}
-
-		if (iMaxAirRange > 0)
-		{
-			for (iDX = -(iMaxAirRange); iDX <= iMaxAirRange; iDX++)
-			{
-				for (iDY = -(iMaxAirRange); iDY <= iMaxAirRange; iDY++)
-				{
-					pLoopPlot = plotXY(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), iDX, iDY);
-
-					if (pLoopPlot != NULL
-					&& plotDistance(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= iMaxAirRange)
-					{
-						NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE")).getColor());
-						color.a = 0.4f;
-						gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getViewportX(), pLoopPlot->getViewportY(), color, PLOT_STYLE_TARGET, PLOT_LANDSCAPE_LAYER_BASE);
-					}
-				}
-			}
-		}
-		// Dale - RB: Field Bombard END
-
-		// Dale - ARB: Archer Bombard START
-		iMaxAirRange = 0;
-
 		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 
 		while (pSelectedUnitNode != NULL)
@@ -546,10 +509,9 @@ void CvGame::updateColoredPlots()
 
 			if (pSelectedUnit != NULL && pSelectedUnit->canVolley())
 			{
-				iMaxAirRange = std::max(iMaxAirRange, pSelectedUnit->getDCMBombRange());
+				iMaxAirRange = std::max(iMaxAirRange, pSelectedUnit->getVolleyRange());
 			}
 		}
-
 		if (iMaxAirRange > 0)
 		{
 			for (iDX = -(iMaxAirRange); iDX <= iMaxAirRange; iDX++)
@@ -568,7 +530,7 @@ void CvGame::updateColoredPlots()
 				}
 			}
 		}
-		// Dale - ARB: Archer Bombard END
+		// ! Toffer - Volley
 
 		if (pHeadSelectedUnit->getDomainType() == DOMAIN_AIR)
 		{

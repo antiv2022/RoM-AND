@@ -1530,20 +1530,20 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 		}
 
 		// Dale - RB: Field Bombard
-		if (pUnit->getDCMBombRange() > 0 || pUnit->getDCMBombAccuracy() > 0)
+		if (pUnit->getVolleyRange() > 0 || pUnit->getVolleyAccuracy() > 0)
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_IS_DCM_BOMBARD"));
 		}
-		if (pUnit->getDCMBombRange() > 0)
+		if (pUnit->getVolleyRange() > 0)
 		{
 			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_IS_RANGE_BOMBARD", pUnit->getDCMBombRange()));
+			szString.append(gDLL->getText("TXT_KEY_IS_RANGE_BOMBARD", pUnit->getVolleyRange()));
 		}
-		if (pUnit->getDCMBombAccuracy() > 0)
+		if (pUnit->getVolleyAccuracy() > 0)
 		{
 			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_IS_ACCURACY_BOMBARD", pUnit->getDCMBombAccuracy()));
+			szString.append(gDLL->getText("TXT_KEY_IS_ACCURACY_BOMBARD", pUnit->getVolleyAccuracy()));
 		}
 
 		if (pUnit->bombardRate() > 0)
@@ -12006,20 +12006,20 @@ void CvGameTextMgr::setBasicUnitHelpWithCity(CvWStringBuffer &szBuffer, UnitType
 	}
 
 	// Dale - RB: Field Bombard START
-	if (GC.getUnitInfo(eUnit).getDCMBombRange() > 0 || GC.getUnitInfo(eUnit).getDCMBombAccuracy() > 0)
+	if (GC.getUnitInfo(eUnit).getVolleyRange() > 0 || GC.getUnitInfo(eUnit).getVolleyAccuracy() > 0)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IS_DCM_BOMBARD"));
 	}
-	if (GC.getUnitInfo(eUnit).getDCMBombRange() > 0)
+	if (GC.getUnitInfo(eUnit).getVolleyRange() > 0)
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_IS_RANGE_BOMBARD", GC.getUnitInfo(eUnit).getDCMBombRange()));
+		szBuffer.append(gDLL->getText("TXT_KEY_IS_RANGE_BOMBARD", GC.getUnitInfo(eUnit).getVolleyRange()));
 	}
-	if (GC.getUnitInfo(eUnit).getDCMBombAccuracy() > 0)
+	if (GC.getUnitInfo(eUnit).getVolleyAccuracy() > 0)
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_IS_ACCURACY_BOMBARD", GC.getUnitInfo(eUnit).getDCMBombAccuracy()));
+		szBuffer.append(gDLL->getText("TXT_KEY_IS_ACCURACY_BOMBARD", GC.getUnitInfo(eUnit).getVolleyAccuracy()));
 	}
 
 	if (GC.getUnitInfo(eUnit).getBombardRate() > 0)
