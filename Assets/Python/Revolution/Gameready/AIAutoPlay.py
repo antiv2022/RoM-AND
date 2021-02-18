@@ -157,19 +157,18 @@ class AIAutoPlay :
 			SdToolKitCustom.sdObjectSetVal( "AIAutoPlay", game, "bCanCancelAuto", True )
 		elif( SdToolKitCustom.sdObjectGetVal( "AIAutoPlay", game, "bCanCancelAuto" ) == None ) :
 			SdToolKitCustom.sdObjectSetVal( "AIAutoPlay", game, "bCanCancelAuto", True )
-		for idx in range(0,gc.getMAX_CIV_PLAYERS()) :
+		for idx in range(gc.getMAX_CIV_PLAYERS()):
 			playerI = gc.getPlayer(idx)
-			if(playerI.isHumanDisabled()):
-				if(not game.isForcedAIAutoPlay(idx)):
+			if playerI.isHumanDisabled():
+				if not game.isForcedAIAutoPlay(idx):
 					game.setAIAutoPlay(idx, 1)
 
-	def onVictory( self, argsList ) :
-		print ("onVictory", argsList)
+	def onVictory(self, argsList):
 		self.checkPlayer()
 
-		for idx in range(0,gc.getMAX_CIV_PLAYERS()) :
+		for idx in range(gc.getMAX_CIV_PLAYERS()):
 			playerI = gc.getPlayer(idx)
-			if(playerI.isHuman() and playerI.isHumanDisabled()):
+			if playerI.isHumanDisabled():
 				game.setForcedAIAutoPlay(idx, 0, True)
 
 	def doNewHuman( self, iNewPlayerID, iOldPlayerID ):
@@ -197,9 +196,7 @@ class AIAutoPlay :
 
 	def onSetPlayerAlive(self, argsList):
 		iPlayer, bNewValue, = argsList
-		print ("onSetPlayerAlive", argsList)
 		if not bNewValue and game.getAIAutoPlay(iPlayer) > 0 and iPlayer == game.getActivePlayer():
-			print "player dead"
 			popup = CyPopup(RevDefs.pickHumanPopup, EventContextTypes.EVENTCONTEXT_ALL, False)
 			popup.setHeaderString(localText.getText("TXT_KEY_AIAUTOPLAY_PICK_CIV", ()), 1<<2)
 			popup.setBodyString(localText.getText("TXT_KEY_AIAUTOPLAY_CIV_DIED", ()), 1<<0)
@@ -209,29 +206,30 @@ class AIAutoPlay :
 			n = 0
 			for i in range(gc.getMAX_CIV_PLAYERS()):
 				player = gc.getPlayer(i)
-				if player.isAlive() and not gc.getPlayer(playerID).isHuman() and not gc.getPlayer(playerID).isHumanDisabled():
-					popup.addPullDownString(localText.getText("TXT_KEY_AIAUTOPLAY_OF_THE", ())%(player.getName(),player.getCivilizationDescription(0)), i, 1)
+				if player.isAlive() and not player.isHuman() and not player.isHumanDisabled():
+					popup.addPullDownString(localText.getText("TXT_KEY_AIAUTOPLAY_OF_THE", ())%(player.getName(), player.getCivilizationDescription(0)), i, 1)
 					n += 1
 
+			# The pop up choice is pointless if there's only one AI alive.
 			if n > 1:
 				popup.addSeparator()
 				popup.addButton(localText.getText("TXT_KEY_AIAUTOPLAY_NONE", ()))
 				CvUtil.pyPrint('Launching pick human popup')
 				popup.launch(True, PopupStates.POPUPSTATE_IMMEDIATE)
 
-			game.setAIAutoPlay(iPlayer, 0)
+			game.setAIAutoPlay(i, 0)
 
 
-	def pickHumanHandler( self, iPlayerID, netUserData, popupReturn ) :
-		CvUtil.pyPrint('Handling pick human popup')
+	def pickHumanHandler( self, iPlayer, netUserData, popupReturn ) :
+
 		if popupReturn.getButtonClicked() == 0: # if you pressed cancel
 			return
-
-		game.changeHumanPlayer(iPlayerID, popupReturn.getSelectedPullDownValue(1))
+		iPlayerNew = popupReturn.getSelectedPullDownValue(1)
+		if iPlayerNew != iPlayer:
+			game.changeHumanPlayer(iPlayer, iPlayerNew)
 
 
 	def onBeginPlayerTurn(self, argsList):
-		print ("onBeginPlayerTurn", argsList)
 		iGameTurn, iPlayer = argsList
 
 		iAutoPlay = game.getAIAutoPlay(iPlayer);
@@ -240,7 +238,6 @@ class AIAutoPlay :
 
 
 	def onEndPlayerTurn(self, argsList):
-		print ("onEndPlayerTurn", argsList)
 		iGameTurn, iPlayer = argsList
 		# Can't use isHuman as isHuman has been deactivated by automation
 		if self.refortify and iPlayer == game.getActivePlayer() and game.getAIAutoPlay(iPlayer) == 1:
@@ -318,7 +315,6 @@ class AIAutoPlay :
 #-------------------------------------------------------------------------------------------------   
 
 	def onBeginGameTurn( self, argsList):
-		print ("onBeginGameTurn", argsList)
 		'Called at the beginning of the end of each turn'
 		iGameTurn = argsList[0]
 #-------------------------------------------------------------------------------------------------
@@ -471,8 +467,7 @@ class AIAutoPlay :
 		else:
 			self.abdicate(playerID, numTurns, voluntary)
 	 
-	def onModNetMessage( self, argsList) :
-		print ("onModNetMessage", argsList)
+	def onModNetMessage(self, argsList):
 		protocol, data1, data2, data3, data4 = argsList
 		if protocol == self.netAutoPlayPopupProtocol :
 			if(data1==0 and data2 != game.getActivePlayer()):
