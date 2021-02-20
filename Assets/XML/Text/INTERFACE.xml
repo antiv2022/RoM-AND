@@ -31786,19 +31786,6 @@ With this option OFF guilds work in a clearer and more realistic way: requiring 
         <Turkish>Oynanan Zaman</Turkish>
     </TEXT>
     <TEXT>
-        <Tag>TXT_KEY_INTERFACEMODE_ABOMBARD_HELP</Tag>
-        <English>"Archer Bombard" allows you to bombard an adjacent plot with your archers to damage enemy units.</English>
-        <French>"Bombardement d'archer" vous permet de 'bombarder' une case adjacente de flèches, pour endommager les unités ennemies.</French>
-        <German>"Bogenschützenbombardierung" ermöglicht es mit Bogenschützen benachbarte Geländefelder zu bombardieren um feindliche Einheiten zu beschädigen.</German>
-        <Italian>"Lancio di frecce a raffica" consente di attaccare con unità di arcieri una casella adiacente, per danneggiare unità nemiche.</Italian>
-        <Polish>"Atak łuczniczy" pozwala ostrzeliwaâ pobliskie pole za pomocá łuczników, aby zraniâ znajdujáce się tam jednostki.</Polish>
-        <Russian>"Дистанционный обстрел" позволяет лучникам обстреливать вражеские отряды, находящиеся на соседних клетках, не вступая в ближний бой.</Russian>
-        <Korean>"궁병 포격"은 적 유닛에게 피해를 주는 인접지역 포격을 허용한다.</Korean>
-        <Spanish>"Lluvia de flechas" le permite bombardear la casilla adyacente con tus arqueros para dañar las unidades enemigas.</Spanish>
-        <Ukrainian>"Обстріл лучниками" дозволяє обстрілювати лучниками сусідню ділянку, для пошкодження ворожих підрозділів.</Ukrainian>
-        <Turkish>"Okçu Bombardımanı", düşman birimlerine zarar vermek için okçuların bitişik bir kare üzerine bombardımanına izin verir.</Turkish>
-    </TEXT>
-    <TEXT>
         <Tag>TXT_KEY_INTERFACEMODE_AIRBOMB</Tag>
         <English>Air Bomb Mode</English>
         <French>Bombardement aérien</French>
@@ -32081,7 +32068,7 @@ With this option OFF guilds work in a clearer and more realistic way: requiring 
         <Turkish>Seçilen karede düşman birimlerine saldırmak için hava ünitesine emir verin</Turkish>
     </TEXT>
     <TEXT>
-        <Tag>TXT_KEY_INTERFACEMODE_BOMBARD_HELP</Tag>
+        <Tag>TXT_KEY_INTERFACEMODE_VOLLEY_HELP</Tag>
         <English>[H1]Ranged Bombardment[\H1] By selecting the bombard icon you can select whether to bombard units, improvements or cities. Bombarding is also possible from a range with heavy artillery.[PARAGRAPH:2]Range bombard works by inflicting standard BTS collateral damage. This renders it useless against single units or large stacks and the head defender is not injured. [PARAGRAPH:2]When bombarding cities, range bombarding also has a slight chance of hitting defenders not just defenses. Range bombarding from inside cities is much less effective than from properly constructed field structures like forts.</English>
         <French>[H1]Bombardement à distance [\H1][PARAGRAPH:2]Le bombardement à distance permet aux unités de siège d'effectuer des bombardements de terrain (par opposition aux bombardements de cités). En sélectionnant l'icone Bombardement vous pouvez choisir de bombarder des unités, des améliorations de terrain ou des villes. Le bombardement à distance est également possible. Dans "Les sentiers de la guerre", l'artillerie standard peut bombarder des cases adjacentes tandis que l'artillerie lourde est autorisée à tirer jusqu'à une distance de deux cases.[PARAGRAPH:2]</French>
         <German>[H1]Fernbombardierung[\H1]Durch Auswahl des Bombardierungssymbols kann man auswählen, ob Einheiten, Modernisierungen oder Städte bombardiert werden sollen. Auch mit schwerer Artillerie kann aus der Ferne bombardiert werden. [PARAGRAPH:2]Bei der Fernbombardierung wird der normale Kollateralschaden aus BTS angewandt. Sie ist somit sinnlos gegen einzelne Einheiten, große Einheitenstapel wenn der Hauptverteidger nicht beschädigt ist.[PARAGRAPH:2]Wenn Städte bombardiert werden, so hat die Fernbombardierung eine kleine Chance auch Verteidiger und nicht nur Gebäude oder Veteigungswerte zu treffen. Die Fernbombardierung aus Städten heraus ist viel ineffektiver als aus ordentlich gebauten Feldverteidigungsanlagen wie Forts.</German>

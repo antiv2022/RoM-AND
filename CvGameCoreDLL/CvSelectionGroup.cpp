@@ -909,18 +909,13 @@ CvPlot* CvSelectionGroup::lastMissionPlot()
 		case MISSION_AIRBOMB4:
 		case MISSION_AIRBOMB5:
 		// Dale - AB: Bombing END
-		// Dale - RB: Field Bombard START
-		case MISSION_RBOMBARD:
-		// Dale - RB: Field Bombard END
-		// Dale - ARB: Archer Bombard START
-		case MISSION_ABOMBARD:
-		// Dale - ARB: Archer Bombard END
 		// Dale - FE: Fighters START
 		case MISSION_FENGAGE:
 		// Dale - FE: Fighters END
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+		case MISSION_VOLLEY:
 /************************************************************************************************/
 /* Afforess	                  Start		 06/11/10                                               */
 /*                                                                                              */
@@ -1146,29 +1141,13 @@ bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvP
 				return true;
 			}
 			break;
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-		// Dale - RB: Field Bombard START
-		case MISSION_RBOMBARD:
-			if (pLoopUnit->canBombardAtRanged(pPlot, iData1, iData2))
-			{
-				return true;
-			}
-			break;
-		// Dale - RB: Field Bombard END
 
-		// Dale - ARB: Archer Bombard START
-		case MISSION_ABOMBARD:
+		case MISSION_VOLLEY:
 			if (pLoopUnit->canVolleyAt(pPlot, iData1, iData2))
 			{
 				return true;
 			}
 			break;
-		// Dale - ARB: Archer Bombard END
-/************************************************************************************************/
-/* DCM                                     END                                    Johny Smith  */
-/************************************************************************************************/
 
 		case MISSION_RANGE_ATTACK:
 			if (pLoopUnit->canRangeStrikeAt(pPlot, iData1, iData2))
@@ -1724,12 +1703,10 @@ bool CvSelectionGroup::startMission()
 		case MISSION_AIRBOMB4:
 		case MISSION_AIRBOMB5:
 		// Dale - AB: Bombing END
-		// Dale - RB: Field Bombard START
-		case MISSION_RBOMBARD:
-		// Dale - RB: Field Bombard END
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+		case MISSION_VOLLEY:
 /************************************************************************************************/
 /* Afforess	                  Start		 06/05/10                                               */
 /*                                                                                              */
@@ -1944,14 +1921,6 @@ bool CvSelectionGroup::startMission()
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
-					case MISSION_RBOMBARD:
-						// Dale - RB: Field Bombard START
-						if (pLoopUnit->bombardRanged(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
-						{
-							bAction = true;
-						}
-						break;
-
 					case MISSION_RANGE_ATTACK:
 						if (pLoopUnit->rangeStrike(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
 						{
@@ -2167,15 +2136,6 @@ bool CvSelectionGroup::startMission()
 						break;
 						// Dale - AB: Bombing END
 
-					case MISSION_ABOMBARD:
-						// Dale - ARB: Archer Bombard START
-						if (pLoopUnit->doVolley(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
-						{
-							bAction = true;
-						}
-						// Dale - ARB: Archer Bombard END
-						break;
-
 					// Dale - FE: Fighters START
 					case MISSION_FENGAGE:
 						if(GC.isDCM_FIGHTER_ENGAGE())
@@ -2190,6 +2150,12 @@ bool CvSelectionGroup::startMission()
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+					case MISSION_VOLLEY:
+						if (pLoopUnit->doVolley(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
+						{
+							bAction = true;
+						}
+						break;
 /************************************************************************************************/
 /* Afforess	                  Start		 02/14/10                                               */
 /*                                                                                              */
@@ -2718,9 +2684,6 @@ bool CvSelectionGroup::continueMission(int iSteps)
 				case MISSION_AIRBOMB4:
 				case MISSION_AIRBOMB5:
 				// Dale - AB: Bombing END
-				// Dale - RB: Field Bombard START
-				case MISSION_RBOMBARD:
-				// Dale - RB: Field Bombard END
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
@@ -2853,6 +2816,7 @@ bool CvSelectionGroup::continueMission(int iSteps)
 			case MISSION_LEAD:
 			case MISSION_ESPIONAGE:
 			case MISSION_DIE_ANIMATION:
+			case MISSION_VOLLEY:
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
@@ -2863,12 +2827,6 @@ bool CvSelectionGroup::continueMission(int iSteps)
 			case MISSION_AIRBOMB4:
 			case MISSION_AIRBOMB5:
 			// Dale - AB: Bombing END
-			// Dale - RB: Field Bombard START
-			case MISSION_RBOMBARD:
-			// Dale - RB: Field Bombard END
-			// Dale - ARB: Archer Bombard START
-			case MISSION_ABOMBARD:
-			// Dale - ARB: Archer Bombard END
 			// Dale - FE: Fighters START
 			case MISSION_FENGAGE:
 			// Dale - FE: Fighters END
@@ -3363,24 +3321,6 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 			break;
 		// Dale - AB: Bombing END
 
-		// Dale - RB: Field Bombard START
-		case INTERFACEMODE_BOMBARD:
-			if (pLoopUnit->canRBombard(pLoopUnit->plot()))
-			{
-				return true;
-			}
-			break;
-		// Dale - RB: Field Bombard END
-
-		// Dale - ARB: Archer Bombard START
-		case INTERFACEMODE_ABOMBARD:
-			if (pLoopUnit->canVolley())
-			{
-				return true;
-			}
-			break;
-		// Dale - ARB: Archer Bombard END
-
 		// Dale - FE: Fighters START
 		case INTERFACEMODE_FENGAGE:
 			if (pLoopUnit->canFEngage(pLoopUnit->plot()) && GC.isDCM_FIGHTER_ENGAGE())
@@ -3392,6 +3332,12 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+		case INTERFACEMODE_VOLLEY:
+			if (pLoopUnit->canVolley())
+			{
+				return true;
+			}
+			break;
 /************************************************************************************************/
 /* Afforess	                  Start		 09/16/10                                               */
 /*                                                                                              */
@@ -3591,24 +3537,6 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 			break;
 		// Dale - AB: Bombing END
 
-		// Dale - RB: Field Bombard START
-		case INTERFACEMODE_BOMBARD:
-			if (pLoopUnit != NULL && pLoopUnit->canBombardAtRanged(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
-			{
-				return true;
-			}
-			break;
-		// Dale - RB: Field Bombard END
-
-		// Dale - ARB: Archer Bombard START
-		case INTERFACEMODE_ABOMBARD:
-			if (pLoopUnit != NULL && pLoopUnit->canVolleyAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
-			{
-				return true;
-			}
-			break;
-		// Dale - ARB: Archer Bombard END
-
 		// Dale - FE: Fighters START
 		case INTERFACEMODE_FENGAGE:
 			if (pLoopUnit != NULL)
@@ -3626,11 +3554,19 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+		case INTERFACEMODE_VOLLEY:
+			if (pLoopUnit != NULL && pLoopUnit->canVolleyAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
+			{
+				return true;
+			}
+			break;
 /************************************************************************************************/
 /* Afforess	                  Start		 09/18/10                                               */
 /*                                                                                              */
 /* Advanced Automations                                                                         */
 /************************************************************************************************/
+
+
 		case INTERFACEMODE_SHADOW_UNIT:
 			if (pLoopUnit != NULL)
 			{
@@ -4310,7 +4246,7 @@ bool CvSelectionGroup::canBombard(const CvPlot* pPlot, bool bCheckCanReduceOnly)
 		}
 
 		// Dale - RB: Field Bombard START
-		if (!bCheckCanReduceOnly && pLoopUnit->canRBombard(pPlot))
+		if (!bCheckCanReduceOnly && pLoopUnit->canRBombard())
 		{
 			return true;
 		}
@@ -7644,9 +7580,8 @@ void CvSelectionGroup::read(FDataStreamBase* pStream)
 			case MISSION_AIRBOMB3:
 			case MISSION_AIRBOMB4:
 			case MISSION_AIRBOMB5:
-			case MISSION_RBOMBARD:
-			case MISSION_ABOMBARD:
 			case MISSION_FENGAGE:
+			case MISSION_VOLLEY:
 			case MISSION_CLAIM_TERRITORY:
 			case MISSION_PRETARGET_NUKE:
 				//	Fixup for viewports, old versions of which can leave things un-normalized

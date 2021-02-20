@@ -1144,7 +1144,7 @@ public:
 	bool airBomb5(int iX, int iY);
 // Dale - AB: Bombing END
 // Dale - RB: Field Bombard START
-	bool canRBombard(const CvPlot* pPlot) const;
+	bool canRBombard() const;
 	bool canBombardAtRanged(const CvPlot* pPlot, int iX, int iY) const;
 	bool bombardRanged(int iX, int iY, bool sAttack = false);
 	// RevolutionDCM - ranged bombard

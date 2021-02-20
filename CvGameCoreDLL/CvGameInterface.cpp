@@ -1523,9 +1523,8 @@ void CvGame::selectionListGameNetMessageInternal(int eMessage, int iData2, int i
 							case MISSION_AIRBOMB3:
 							case MISSION_AIRBOMB4:
 							case MISSION_AIRBOMB5:
-							case MISSION_RBOMBARD:
-							case MISSION_ABOMBARD:
 							case MISSION_FENGAGE:
+							case MISSION_VOLLEY:
 							case MISSION_CLAIM_TERRITORY:
 							case MISSION_PRETARGET_NUKE:
 								iData3 = GC.getCurrentViewport()->getMapXFromViewportX(iData3);

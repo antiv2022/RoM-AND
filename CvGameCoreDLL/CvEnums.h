@@ -267,12 +267,11 @@ enum InterfaceModeTypes			// Exposed to Python
 	INTERFACEMODE_AIRBOMB3,
 	INTERFACEMODE_AIRBOMB4,
 	INTERFACEMODE_AIRBOMB5,
-	INTERFACEMODE_BOMBARD,
-	INTERFACEMODE_ABOMBARD,
 	INTERFACEMODE_FENGAGE,
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+	INTERFACEMODE_VOLLEY,
 // BUG - Sentry Actions - start
 #ifdef _MOD_SENTRY
 	INTERFACEMODE_GO_TO_SENTRY,
@@ -1818,16 +1817,14 @@ enum MissionTypes				// Exposed to Python
 	MISSION_AIRBOMB3,
 	MISSION_AIRBOMB4,
 	MISSION_AIRBOMB5,
-	MISSION_RBOMBARD,
-	MISSION_ABOMBARD,
 	MISSION_FENGAGE,
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
-	//TSHEEP Assassin Mission
-	//MISSION_ASSASSIN,
-	//TSHEEP End
-
+	MISSION_VOLLEY,
+	//TSHEEP Assassin Mission 
+	//MISSION_ASSASSIN, 
+	//TSHEEP End 
 // BUG - Sentry Actions - start
 #ifdef _MOD_SENTRY
 	MISSION_MOVE_TO_SENTRY,

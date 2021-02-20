@@ -20947,9 +20947,9 @@ bool CvUnitAI::AI_blockade()
 /************************************************************************************************/
 			// RevolutionDCM - new field bombard ai
 			// Dale - RB: Field Bombard START
-			//if (canRBombard(plot()))
+			//if (canRBombard())
 			//{
-			//	getGroup()->pushMission(MISSION_RBOMBARD, pBestBlockadePlot->getX_INLINE(), pBestBlockadePlot->getY_INLINE(), 0, false, false, MISSIONAI_BLOCKADE, pBestBlockadePlot);
+			//	getGroup()->pushMission(MISSION_VOLLEY, pBestBlockadePlot->getX_INLINE(), pBestBlockadePlot->getY_INLINE(), 0, false, false, MISSIONAI_BLOCKADE, pBestBlockadePlot);
 			//}
 			// Dale - RB: Field Bombard END
 /************************************************************************************************/
@@ -31136,7 +31136,7 @@ bool CvUnitAI::AI_RbombardPlot(int iRange, int iBonusValueThreshold)
 	}
 	if (pBestPlot != NULL)
 	{
-		getGroup()->pushMission(MISSION_RBOMBARD, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+		getGroup()->pushMission(MISSION_VOLLEY, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
 		return true;
 	}
 	return false;
@@ -31216,7 +31216,7 @@ bool CvUnitAI::AI_RbombardUnit(int iRange, int iHighestOddsThreshold, int iMinSt
 	}
 	if (pBestPlot != NULL)
 	{
-		getGroup()->pushMission(MISSION_RBOMBARD, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+		getGroup()->pushMission(MISSION_VOLLEY, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
 		return true;
 	}
 	return false;
@@ -31250,7 +31250,7 @@ bool CvUnitAI::AI_RbombardCity(CvCity* pCity)
 		{
 			if (pDefender->isRbombardable(3) && getGroup()->getBombardTurns(pCity) < 3)
 			{
-				getGroup()->pushMission(MISSION_RBOMBARD, pPlot->getX_INLINE(),pPlot->getY_INLINE());
+				getGroup()->pushMission(MISSION_VOLLEY, pPlot->getX_INLINE(),pPlot->getY_INLINE());
 				return true;
 			}
 		}
@@ -31327,7 +31327,7 @@ bool CvUnitAI::AI_RbombardNaval()
 	int iBestValue;
 	int iDX, iDY;
 
-	if(!canRBombard(plot()))
+	if(!canRBombard())
 	{
 		return false;
 	}
@@ -31385,7 +31385,7 @@ bool CvUnitAI::AI_RbombardNaval()
 		}
 		if (pBestPlot != NULL)
 		{
-			getGroup()->pushMission(MISSION_RBOMBARD, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+			getGroup()->pushMission(MISSION_VOLLEY, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
 			return true;
 		}
 	}
@@ -31444,7 +31444,7 @@ bool CvUnitAI::AI_Abombard()
 	}
 	if (pBestPlot != NULL)
 	{
-		getGroup()->pushMission(MISSION_ABOMBARD, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+		getGroup()->pushMission(MISSION_VOLLEY, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
 		return true;
 	}
 	return false;
