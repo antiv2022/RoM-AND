@@ -8120,28 +8120,18 @@ CvCity* CvUnit::bombardTarget(const CvPlot* pPlot) const
 		{
 			CvCity* pLoopCity = pLoopPlot->getPlotCity();
 
-			if (pLoopCity != NULL)
+			if (pLoopCity != NULL && pLoopCity->isBombardable(this))
 			{
-				if (pLoopCity->isBombardable(this))
+				const int iValue = pLoopCity->getDefenseDamage();
+
+				if (iValue < iBestValue)
 				{
-					int iValue = pLoopCity->getDefenseDamage();
-
-					// always prefer cities we are at war with
-					if (isEnemy(pLoopCity->getTeam(), pPlot))
-					{
-						iValue *= 128;
-					}
-
-					if (iValue < iBestValue)
-					{
-						iBestValue = iValue;
-						pBestCity = pLoopCity;
-					}
+					iBestValue = iValue;
+					pBestCity = pLoopCity;
 				}
 			}
 		}
 	}
-
 	return pBestCity;
 }
 
@@ -8149,6 +8139,11 @@ CvCity* CvUnit::bombardTarget(const CvPlot* pPlot) const
 bool CvUnit::canBombard(const CvPlot* pPlot, bool bIgnoreHasAttacked) const
 {
 	if (bombardRate() <= 0)
+	{
+		return false;
+	}
+
+	if (getDomainType() == DOMAIN_AIR)
 	{
 		return false;
 	}
@@ -8218,18 +8213,11 @@ bool CvUnit::bombard()
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES", getNameKey(), pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false));
 			AddDLLMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE());
 		}
-/************************************************************************************************/
-/* Afforess	                  Start		 07/22/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+
 		if (GC.getGameINLINE().isModderGameOption(MODDERGAMEOPTION_IMPROVED_XP))
 		{
 			 setExperience100(getExperience100() + getRandomMinExperienceTimes100(), -1);
 		}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 
 		if (pPlot->isActiveVisible(false))
 		{
@@ -13872,7 +13860,7 @@ bool CvUnit::hasSubCombatType(UnitCombatTypes eCombatType) const
 
 int CvUnit::collateralDamage() const
 {
-	return std::max(0, (m_pUnitInfo->getCollateralDamage()));
+	return std::max(0, m_pUnitInfo->getCollateralDamage());
 }
 
 
@@ -19214,72 +19202,45 @@ bool CvUnit::canAdvance(const CvPlot* pPlot, int iThreshold) const
 
 void CvUnit::collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit)
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	CvUnit* pBestUnit;
-	CvWString szBuffer;
-	int iTheirStrength;
-	int iStrengthFactor;
-	int iCollateralDamage;
-	int iUnitDamage;
-	int iDamageCount;
-	int iPossibleTargets;
-	int iCount;
-	int iValue;
-	int iBestValue;
-	std::map<CvUnit*, int> mapUnitDamage;
-	std::map<CvUnit*, int>::iterator it;
-
-	int iCollateralStrength = (getDomainType() == DOMAIN_AIR ? airBaseCombatStr() : baseCombatStr()) * collateralDamage() / 100;
+	const bool bAirDomain = getDomainType() == DOMAIN_AIR;
+	const int iCollateralStrength = (bAirDomain ? airBaseCombatStr() : baseCombatStr()) * collateralDamage() / 100;
+	const int iExtraCollateralDamage = getExtraCollateralDamage();
 	// UNOFFICIAL_PATCH Start
 	// * Barrage promotions made working again on Tanks and other units with no base collateral ability
-	if (iCollateralStrength == 0 && getExtraCollateralDamage() == 0)
+	if (iCollateralStrength == 0 && iExtraCollateralDamage == 0)
 	// UNOFFICIAL_PATCH End
 	{
 		return;
 	}
+	int iBestValue;
+	std::map<CvUnit*, int> mapUnitDamage;
+	std::map<CvUnit*, int>::iterator it;
 
-	iPossibleTargets = std::min((pPlot->getNumVisibleEnemyDefenders(this) - 1), collateralDamageMaxUnits());
+	const int iPossibleTargets = std::min((pPlot->getNumVisibleEnemyDefenders(this) - 1), collateralDamageMaxUnits());
 
-	pUnitNode = pPlot->headUnitNode();
+	CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
 
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = pPlot->nextUnitNode(pUnitNode);
 
-		if (pLoopUnit != pSkipUnit)
+		if (pLoopUnit != pSkipUnit && isEnemy(pLoopUnit->getTeam(), pPlot)
+		&& !pLoopUnit->isInvisible(getTeam(), false) && pLoopUnit->canDefend())
 		{
-			if (isEnemy(pLoopUnit->getTeam(), pPlot))
-			{
-				if (!(pLoopUnit->isInvisible(getTeam(), false)))
-				{
-					if (pLoopUnit->canDefend())
-					{
-						iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "Collateral Damage"));
-
-						iValue *= pLoopUnit->currHitPoints();
-
-						mapUnitDamage[pLoopUnit] = iValue;
-					}
-				}
-			}
+			mapUnitDamage[pLoopUnit] = pLoopUnit->currHitPoints() * (1 + GC.getGameINLINE().getSorenRandNum(10000, "Collateral Damage"));
 		}
 	}
 
-	CvCity* pCity = NULL;
-	if (getDomainType() == DOMAIN_AIR)
-	{
-		pCity = pPlot->getPlotCity();
-	}
+	const CvCity* pCity = bAirDomain ? pPlot->getPlotCity() : NULL;
 
-	iDamageCount = 0;
-	iCount = 0;
+	int iDamageCount = 0;
+	int iCount = 0;
 
 	while (iCount < iPossibleTargets)
 	{
 		iBestValue = 0;
-		pBestUnit = NULL;
+		CvUnit* pBestUnit = NULL;
 
 		for (it = mapUnitDamage.begin(); it != mapUnitDamage.end(); ++it)
 		{
@@ -19290,64 +19251,65 @@ void CvUnit::collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit)
 			}
 		}
 
-		if (pBestUnit != NULL)
-		{
-			mapUnitDamage.erase(pBestUnit);
-
-			if (NO_UNITCOMBAT == getUnitCombatType() || !pBestUnit->getUnitInfo().getUnitCombatCollateralImmune(getUnitCombatType()))
-			{
-				iTheirStrength = pBestUnit->baseCombatStr();
-
-				iStrengthFactor = ((iCollateralStrength + iTheirStrength + 1) / 2);
-
-				iCollateralDamage = (GC.getDefineINT("COLLATERAL_COMBAT_DAMAGE") * (iCollateralStrength + iStrengthFactor)) / (iTheirStrength + iStrengthFactor);
-
-				iCollateralDamage *= 100 + getExtraCollateralDamage();
-
-				iCollateralDamage *= std::max(0, 100 - pBestUnit->getCollateralDamageProtection());
-				iCollateralDamage /= 100;
-
-				if (pCity != NULL)
-				{
-					iCollateralDamage *= 100 + pCity->getAirModifier();
-					iCollateralDamage /= 100;
-				}
-
-				iCollateralDamage /= 100;
-
-				iCollateralDamage = std::max(0, iCollateralDamage);
-
-				int iMaxDamage = std::min(collateralDamageLimit(), (collateralDamageLimit() * (iCollateralStrength + iStrengthFactor)) / (iTheirStrength + iStrengthFactor));
-				iUnitDamage = std::max(pBestUnit->getDamage(), std::min(pBestUnit->getDamage() + iCollateralDamage, iMaxDamage));
-
-				if (pBestUnit->getDamage() != iUnitDamage)
-				{
-// BUG - Combat Events - start
-					int iDamageDone = iUnitDamage - pBestUnit->getDamage();
-					pBestUnit->setDamage(iUnitDamage, getOwnerINLINE());
-					CvEventReporter::getInstance().combatLogCollateral(this, pBestUnit, iDamageDone);
-// BUG - Combat Events - end
-					iDamageCount++;
-				}
-			}
-
-			iCount++;
-		}
-		else
+		if (pBestUnit == NULL)
 		{
 			break;
 		}
+		mapUnitDamage.erase(pBestUnit);
+
+		if (NO_UNITCOMBAT == getUnitCombatType() || !pBestUnit->getUnitInfo().getUnitCombatCollateralImmune(getUnitCombatType()))
+		{
+			const int iTheirStrength = pBestUnit->baseCombatStr();
+			const int iStrengthFactor = (iCollateralStrength + iTheirStrength + 1) / 2;
+
+			int iCollateralDamage = GC.getDefineINT("COLLATERAL_COMBAT_DAMAGE") * (iCollateralStrength + iStrengthFactor) / (iTheirStrength + iStrengthFactor);
+
+			iCollateralDamage *= 100 + iExtraCollateralDamage;
+
+			iCollateralDamage *= std::max(0, 100 - pBestUnit->getCollateralDamageProtection());
+			iCollateralDamage /= 100;
+
+			if (pCity != NULL)
+			{
+				iCollateralDamage *= 100 + pCity->getAirModifier();
+				iCollateralDamage /= 100;
+			}
+
+			iCollateralDamage /= 100;
+
+			iCollateralDamage = std::max(0, iCollateralDamage);
+
+			int iMaxDamage = std::min(collateralDamageLimit(), (collateralDamageLimit() * (iCollateralStrength + iStrengthFactor)) / (iTheirStrength + iStrengthFactor));
+			const int iUnitDamage = std::max(pBestUnit->getDamage(), std::min(pBestUnit->getDamage() + iCollateralDamage, iMaxDamage));
+
+			if (pBestUnit->getDamage() != iUnitDamage)
+			{
+				// BUG - Combat Events - start
+				int iDamageDone = iUnitDamage - pBestUnit->getDamage();
+				pBestUnit->setDamage(iUnitDamage, getOwnerINLINE());
+				CvEventReporter::getInstance().combatLogCollateral(this, pBestUnit, iDamageDone);
+				// BUG - Combat Events - end
+				iDamageCount++;
+			}
+		}
+		iCount++;
 	}
 
 	if (iDamageCount > 0)
 	{
 		MEMORY_TRACK_EXEMPT();
-
-		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_SUFFER_COL_DMG", iDamageCount);
-		AddMessage(pSkipUnit->getOwnerINLINE(), (pSkipUnit->getDomainType() != DOMAIN_AIR), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pSkipUnit->getX_INLINE(), pSkipUnit->getY_INLINE(), true, true);
-
-		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_INFLICT_COL_DMG", getNameKey(), iDamageCount);
-		AddMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pSkipUnit->getX_INLINE(), pSkipUnit->getY_INLINE());
+		AddMessage(
+			pSkipUnit->getOwnerINLINE(), pSkipUnit->getDomainType() != DOMAIN_AIR, GC.getEVENT_MESSAGE_TIME(),
+			gDLL->getText("TXT_KEY_MISC_YOU_SUFFER_COL_DMG", iDamageCount),
+			"AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+			pSkipUnit->getX_INLINE(), pSkipUnit->getY_INLINE(), true, true
+		);
+		AddMessage(
+			getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+			gDLL->getText("TXT_KEY_MISC_YOU_INFLICT_COL_DMG", getNameKey(), iDamageCount),
+			"AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+			pSkipUnit->getX_INLINE(), pSkipUnit->getY_INLINE()
+		);
 	}
 }
 
@@ -21637,7 +21599,7 @@ bool CvUnit::airBomb5(int iX, int iY)
 // Dale - RB: Field Bombard START
 bool CvUnit::canRBombard() const
 {
-	if (getVolleyRange() <= 0 || bombardRate() <= 0)
+	if (getVolleyRange() < 1 || bombardRate() < 1)
 	{
 		return false;
 	}
@@ -21705,7 +21667,6 @@ bool CvUnit::canBombardAtRanged(const CvPlot* pPlot, int iX, int iY) const
 // RevolutionDCM - significant chances to this function
 bool CvUnit::bombardRanged(int iX, int iY, bool sAttack)
 {
-
 	if (!canBombardAtRanged(plot(), iX, iY))
 	{
 		return false;
@@ -21715,22 +21676,10 @@ bool CvUnit::bombardRanged(int iX, int iY, bool sAttack)
 	CvWString szBuffer;
 	CvUnit* pLoopUnit = NULL;
 
-	int modified_accuracy = GC.getDCM_RB_CITY_INACCURACY();
-	if (modified_accuracy <= 0)
-	{
-		modified_accuracy = 350; // default
-	}
-
-	int modified_miss = GC.getDCM_RB_CITYBOMBARD_CHANCE();
-	if (modified_miss <= 0)
-	{
-		modified_miss = 5; // default
-	}
-
 	CvCity* pCity = pPlot->getPlotCity();
 	if (pCity != NULL)
 	{
-		int bombardCity = GC.getGameINLINE().getSorenRandNum(modified_miss, "Range Bombard City");
+		int bombardCity = GC.getGameINLINE().getSorenRandNum(10, "Range Bombard City");
 		// Introduce a slight chance that ranged bombardment hits city defenders rather than defenses
 		if(pCity->isBombardable(this) && bombardCity > 0)
 		{
@@ -21768,7 +21717,7 @@ bool CvUnit::bombardRanged(int iX, int iY, bool sAttack)
 		else
 		{
 			// Give a reduced chance of range bombarding city defenders by default
-			int odds = modified_accuracy;
+			int odds = 200;
 			// Occasionally give city bombard a better chance at hitting city defenders if the city defenses
 			// are still bombardable. This produces differentiation from standard bombard that seige also have
 			// available to them as an option, and compensates range bombard for not lowering city defenses.
@@ -21816,7 +21765,7 @@ bool CvUnit::bombardRanged(int iX, int iY, bool sAttack)
 		int odds = 100;
 		if (plot()->getPlotCity() != NULL)
 		{
-			odds = modified_accuracy;
+			odds = 200;
 		}
 		// standard odds made worse if greater than one tile out
 		int shotDistance = plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
@@ -22474,13 +22423,13 @@ void CvUnit::doOpportunityFire()
 	//action.  Once I get to focusing in on the Bombard function and adding some more dynamics there to address the above noted issues,
 	//I'll have to enforce those mechanisms onto this Opportunity Fire process as well.
 
-	if (!GC.isDCM_OPP_FIRE() || !canVolley() || bombardRate() <= 0 || getFortifyTurns() < 0)
+	if (!GC.isDCM_OPP_FIRE() || !canVolley() || getFortifyTurns() < 0)
 	{
 		return;
 	}
 	CvPlot* pAttackPlot = NULL;
 	CvUnit* pDefender = NULL;
-	int ipDefenderStr = 0;
+	int iBest = 0;
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
 		CvPlot* pLoopPlot = plotDirection(plot()->getX_INLINE(), plot()->getY_INLINE(), ((DirectionTypes)iI));
@@ -22492,11 +22441,11 @@ void CvUnit::doOpportunityFire()
 			{
 				const int iBestUnitStr = pBestUnit->currCombatStr(pLoopPlot, this, NULL, true);
 
-				if (iBestUnitStr > ipDefenderStr)
+				if (iBestUnitStr > iBest)
 				{
 					pDefender = pBestUnit;
 					pAttackPlot = pLoopPlot;
-					ipDefenderStr = iBestUnitStr;
+					iBest = iBestUnitStr;
 				}
 			}
 		}
@@ -22608,7 +22557,7 @@ void CvUnit::doActiveDefense()
 }
 // Dale - SA: Active Defense END
 
-// Dale - ARB: Archer Bombard START
+
 bool CvUnit::canVolley() const
 {
 	if (getVolleyRange() < 1)
@@ -22630,14 +22579,15 @@ bool CvUnit::canVolley() const
 	return true;
 }
 
-bool CvUnit::canVolleyAt(const CvPlot* pPlot, int iX, int iY) const
+bool CvUnit::canVolleyAt(const CvPlot* pFromPlot, int iX, int iY) const
 {
-	if (!canVolley() || iX < 0 || iY < 0)
+	// Toffer - Invalidators
+	if (iX < 0 || iY < 0 || !canVolley())
 	{
 		return false;
 	}
 	{
-		const int iDistance = plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iX, iY);
+		const int iDistance = plotDistance(pFromPlot->getX_INLINE(), pFromPlot->getY_INLINE(), iX, iY);
 		if (iDistance == 0 || iDistance > getVolleyRange())
 		{
 			return false;
@@ -22649,11 +22599,30 @@ bool CvUnit::canVolleyAt(const CvPlot* pPlot, int iX, int iY) const
 	{
 		return false;
 	}
-	if (pTargetPlot->getNumVisibleEnemyDefenders(this) == 0)
+	// Toffer - Validators
+	// Can always target units with volley
+	if (pTargetPlot->getNumVisibleEnemyDefenders(this) > 0)
 	{
-		return false;
+		return true;
 	}
-	return true;
+	// Can we target city?
+	if (bombardRate() > 0)
+	{
+		CvCity* pCity = pTargetPlot->getPlotCity();
+
+		if (pCity != NULL && pCity->isBombardable(this))
+		{
+			return true;
+		}
+	}
+	// Can we target improvement?
+	if (collateralDamage() > 0 && pTargetPlot->getImprovementType() != NO_IMPROVEMENT
+	&& !GC.getImprovementInfo(pTargetPlot->getImprovementType()).isPermanent()
+	&& GC.getImprovementInfo(pTargetPlot->getImprovementType()).getAirBombDefense() > -1)
+	{
+		return true;
+	}
+	return false;
 }
 
 bool CvUnit::doVolley(int iX, int iY, bool supportAttack)
@@ -22784,12 +22753,12 @@ bool CvUnit::doVolley(int iX, int iY, bool supportAttack)
 	}
 	return true;
 }
-// Dale - ARB: Archer Bombard END
+
 
 // Dale - FE: Fighters START
 bool CvUnit::canFEngage(const CvPlot* pPlot) const
 {
-	if(!GC.isDCM_FIGHTER_ENGAGE())
+	if (!GC.isDCM_FIGHTER_ENGAGE())
 	{
 		return false;
 	}

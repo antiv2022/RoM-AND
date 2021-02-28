@@ -39,7 +39,6 @@ void CyGlobalContextPythonInterface2(python::class_<CyGlobalContext>& x)
 		.def("getMAX_BATTLE_TURNS", &CyGlobalContext::getMAX_BATTLE_TURNS, "int ()")
 
 		.def("isDCM_AIR_BOMBING", &CyGlobalContext::isDCM_AIR_BOMBING, "bool ()")
-		.def("getDCM_RB_CITY_INACCURACY", &CyGlobalContext::getDCM_RB_CITY_INACCURACY, "int ()")
 		.def("getDCM_RB_CITYBOMBARD_CHANCE", &CyGlobalContext::getDCM_RB_CITYBOMBARD_CHANCE, "int ()")
 		.def("isDCM_ATTACK_SUPPORT", &CyGlobalContext::isDCM_ATTACK_SUPPORT, "bool ()")
 		.def("isDCM_STACK_ATTACK", &CyGlobalContext::isDCM_STACK_ATTACK, "bool ()")

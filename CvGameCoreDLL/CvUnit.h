@@ -1159,11 +1159,9 @@ private:
 	int m_iDCMBombAccuracy;
 public:
 // Dale - RB: Field Bombard END
-// Dale - ARB: Archer Bombard START
 	bool canVolley() const;
 	bool canVolleyAt(const CvPlot* pPlot, int iX, int iY) const;
 	bool doVolley(int iX, int iY, bool supportAttack = false);
-// Dale - ARB: Archer Bombard END
 // Dale - SA: Stack Attack START
 	void updateStackCombat(bool bQuick = false);
 // Dale - SA: Stack Attack END

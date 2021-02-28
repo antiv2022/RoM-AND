@@ -1043,7 +1043,6 @@ public:
 	int getMAX_BATTLE_TURNS();
 
 	bool isDCM_AIR_BOMBING();
-	int getDCM_RB_CITY_INACCURACY();
 	int getDCM_RB_CITYBOMBARD_CHANCE();
 	bool isDCM_ATTACK_SUPPORT();
 	bool isDCM_STACK_ATTACK();
@@ -1682,7 +1681,6 @@ protected:
 	int m_iMAX_BATTLE_TURNS;
 
 	bool m_bDCM_AIR_BOMBING;
-	int m_iDCM_RB_CITY_INACCURACY;
 	int m_iDCM_RB_CITYBOMBARD_CHANCE;
 	bool m_bDCM_ATTACK_SUPPORT;
 	bool m_bDCM_STACK_ATTACK;

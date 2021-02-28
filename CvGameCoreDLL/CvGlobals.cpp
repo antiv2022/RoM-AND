@@ -207,7 +207,6 @@ m_iBATTLE_EFFECTS_MINIMUM_TURN_INCREMENTS(0),
 m_iMAX_BATTLE_TURNS(0),
 
 m_bDCM_AIR_BOMBING(false),
-m_iDCM_RB_CITY_INACCURACY(0),
 m_iDCM_RB_CITYBOMBARD_CHANCE(0),
 m_bDCM_ATTACK_SUPPORT(false),
 m_bDCM_STACK_ATTACK(false),
@@ -3665,7 +3664,6 @@ void cvInternalGlobals::cacheGlobals()
 	m_iMAX_BATTLE_TURNS = getDefineINT("MAX_BATTLE_TURNS");
 
 	m_bDCM_AIR_BOMBING = (getDefineINT("DCM_AIR_BOMBING") > 0) ? true : false;
-	m_iDCM_RB_CITY_INACCURACY = getDefineINT("DCM_RB_CITY_INACCURACY");
 	m_iDCM_RB_CITYBOMBARD_CHANCE = getDefineINT("DCM_RB_CITYBOMBARD_CHANCE");
 	m_bDCM_ATTACK_SUPPORT = (getDefineINT("DCM_ATTACK_SUPPORT") > 0) ? true : false;
 	m_bDCM_STACK_ATTACK = (getDefineINT("DCM_STACK_ATTACK") > 0) ? true : false;
@@ -5918,11 +5916,6 @@ int cvInternalGlobals::getMAX_BATTLE_TURNS()
 bool cvInternalGlobals::isDCM_AIR_BOMBING()
 {
 	return m_bDCM_AIR_BOMBING;
-}
-
-int cvInternalGlobals::getDCM_RB_CITY_INACCURACY()
-{
-	return m_iDCM_RB_CITY_INACCURACY;
 }
 
 int cvInternalGlobals::getDCM_RB_CITYBOMBARD_CHANCE()

@@ -284,17 +284,14 @@ protected:
 	bool AI_RbombardPlot(int iRange, int iBonusValueThreshold); // RevolutionDCM
 	bool AI_RbombardUnit(int iRange, int iHighestOddsThreshold, int iMinStack, int iSeigeDiff, int iPowerThreshold);
 	bool AI_RbombardCity(CvCity* pCity);
-	bool AI_RbombardNaval();
 // Dale - RB: Field Bombard END
-// Dale - ARB: Archer Bombard START
-	bool AI_Abombard();
-// Dale - ARB: Archer Bombard END
 // Dale - FE: Fighters START
 	bool AI_FEngage();
 // Dale - FE: Fighters END
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+	bool AI_Volley();
 	bool AI_rangeAttack(int iRange);
 	bool AI_leaveAttack(int iRange, int iThreshold, int iStrengthThreshold, bool bIgnoreCity = false, bool bStayInBorders = false); //Afforess added bool bIgnoreCity = false, bool bStayInBorders = false
 	bool AI_blockade();
