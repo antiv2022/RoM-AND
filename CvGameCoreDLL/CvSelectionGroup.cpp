@@ -4232,7 +4232,9 @@ bool CvSelectionGroup::hasCollateralDamage(void) const
 	return false;
 }
 
-bool CvSelectionGroup::canBombard(const CvPlot* pPlot, bool bCheckCanReduceOnly)
+
+// Toffer - Ranged combat
+bool CvSelectionGroup::canReduceCityDefense(const CvPlot* pFromPlot, bool bIgnoreMadeAttack)
 {
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
@@ -4240,19 +4242,31 @@ bool CvSelectionGroup::canBombard(const CvPlot* pPlot, bool bCheckCanReduceOnly)
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
-		if (pLoopUnit->canBombard(pPlot, bCheckCanReduceOnly))
-		{
-			return true;
-		}
-
-		if (!bCheckCanReduceOnly && pLoopUnit->canVolley())
+		if (pLoopUnit->canReduceCityDefense(pFromPlot, bIgnoreMadeAttack))
 		{
 			return true;
 		}
 	}
-
 	return false;
 }
+
+bool CvSelectionGroup::canVolleyAt(const CvPlot* pFromPlot, int iX, int iY)
+{
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
+
+		if (pLoopUnit->canVolleyAt(pFromPlot, iX, iY))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+// ! Toffer - Ranged combat
+
 
 bool CvSelectionGroup::canPillage(const CvPlot* pPlot)
 {
@@ -4263,23 +4277,6 @@ bool CvSelectionGroup::canPillage(const CvPlot* pPlot)
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (pLoopUnit->canPillage(pPlot))
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool CvSelectionGroup::canBombardAtRanged(const CvPlot* pPlot, int iX, int iY)
-{
-	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-	while (pUnitNode != NULL)
-	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = nextUnitNode(pUnitNode);
-
-		if (pLoopUnit->canBombardAtRanged(pPlot, iX, iY))
 		{
 			return true;
 		}

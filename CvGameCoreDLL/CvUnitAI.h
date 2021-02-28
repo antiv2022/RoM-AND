@@ -281,9 +281,7 @@ protected:
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
 // Dale - RB: Field Bombard START
-	bool AI_RbombardPlot(int iRange, int iBonusValueThreshold); // RevolutionDCM
 	bool AI_RbombardUnit(int iRange, int iHighestOddsThreshold, int iMinStack, int iSeigeDiff, int iPowerThreshold);
-	bool AI_RbombardCity(CvCity* pCity);
 // Dale - RB: Field Bombard END
 // Dale - FE: Fighters START
 	bool AI_FEngage();
@@ -291,7 +289,7 @@ protected:
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
-	bool AI_Volley();
+	bool AI_Volley(const bool bForced = false, const int iImprovementThreshold = -1);
 	bool AI_rangeAttack(int iRange);
 	bool AI_leaveAttack(int iRange, int iThreshold, int iStrengthThreshold, bool bIgnoreCity = false, bool bStayInBorders = false); //Afforess added bool bIgnoreCity = false, bool bStayInBorders = false
 	bool AI_blockade();

@@ -13416,8 +13416,7 @@ bool CvCity::isBombardable(const CvUnit* pUnit) const
 	{
 		return false;
 	}
-
-	return (getDefenseModifier(false) > 0);
+	return getDefenseModifier(false) > 0;
 }
 
 

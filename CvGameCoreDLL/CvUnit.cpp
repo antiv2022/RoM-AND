@@ -8138,12 +8138,12 @@ CvCity* CvUnit::bombardTarget(const CvPlot* pPlot) const
 
 bool CvUnit::canBombard(const CvPlot* pPlot, bool bIgnoreHasAttacked) const
 {
-	if (bombardRate() <= 0)
+	if (bombardRate() <= 0 || bombardTarget(pPlot) == NULL)
 	{
 		return false;
 	}
 
-	if (getDomainType() == DOMAIN_AIR)
+	if (isCargo() || getDomainType() == DOMAIN_AIR)
 	{
 		return false;
 	}
@@ -8152,17 +8152,6 @@ bool CvUnit::canBombard(const CvPlot* pPlot, bool bIgnoreHasAttacked) const
 	{
 		return false;
 	}
-
-	if (isCargo())
-	{
-		return false;
-	}
-
-	if (bombardTarget(pPlot) == NULL)
-	{
-		return false;
-	}
-
 	return true;
 }
 
@@ -8183,37 +8172,33 @@ bool CvUnit::bombard()
 	{
 		CvPlot* pTargetPlot = pBombardCity->plot();
 
-		if (!isEnemy(pTargetPlot->getTeam()))
-		{
-			getGroup()->groupDeclareWar(pTargetPlot, true);
-		}
+		const int iBombardDefense = ignoreBuildingDefense() ? 0 : pBombardCity->getBuildingBombardDefense();
 
-		if (!isEnemy(pTargetPlot->getTeam()))
-		{
-			return false;
-		}
-
-		int iBombardModifier = 0;
-		if (!ignoreBuildingDefense())
-		{
-			iBombardModifier -= pBombardCity->getBuildingBombardDefense();
-		}
-
-		pBombardCity->changeDefenseModifier(-(bombardRate() * std::max(0, 100 + iBombardModifier)) / 100);
+		pBombardCity->changeDefenseModifier(-bombardRate() * std::max(0, 100 - iBombardDefense) / 100);
 
 		setMadeAttack(true);
 		changeMoves(GC.getMOVE_DENOMINATOR());
-
 		{
 			MEMORY_TRACK_EXEMPT();
-
-			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO", pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false), GET_PLAYER(getOwnerINLINE()).getNameKey());
-			AddDLLMessage(pBombardCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE(), true, true);
-
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES", getNameKey(), pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false));
-			AddDLLMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE());
+			AddDLLMessage(
+				pBombardCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText(
+					"TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO",
+					pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false), GET_PLAYER(getOwnerINLINE()).getNameKey()
+				),
+				"AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+				pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE(), true, true
+			);
+			AddDLLMessage(
+				getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText(
+					"TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES",
+					getNameKey(), pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false)
+				),
+				"AS2D_BOMBARD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+				pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE()
+			);
 		}
-
 		if (GC.getGameINLINE().isModderGameOption(MODDERGAMEOPTION_IMPROVED_XP))
 		{
 			 setExperience100(getExperience100() + getRandomMinExperienceTimes100(), -1);
@@ -8223,7 +8208,7 @@ bool CvUnit::bombard()
 		{
 			CvUnit *pDefender = pBombardCity->plot()->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
 
-			if ( pDefender != NULL && !pDefender->isUsingDummyEntities() )
+			if (pDefender != NULL && !pDefender->isUsingDummyEntities())
 			{
 				// Bombard entity mission
 				CvMissionDefinition kDefiniton;
@@ -21597,6 +21582,56 @@ bool CvUnit::airBomb5(int iX, int iY)
 // Dale - AB: Bombing END
 
 // Dale - RB: Field Bombard START
+
+bool CvUnit::canReduceCityDefense(const CvPlot* pFromPlot, const bool bIgnoreMadeAttack) const
+{
+	if (bombardRate() < 1 || getDomainType() == DOMAIN_AIR)
+	{
+		return false;
+	}
+
+	if (!bIgnoreMadeAttack && isMadeAttack())
+	{
+		return false;
+	}
+
+	if (isCargo())
+	{
+		return false;
+	}
+
+	if (pFromPlot != NULL)
+	{
+		if (getVolleyRange() > 0)
+		{
+			const int iSearchRange = getVolleyRange();
+
+			for (int iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
+			{
+				for (int iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
+				{
+					CvPlot* plotX = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+
+					if (plotX != NULL)
+					{
+						CvCity* city = plotX->getPlotCity();
+						if (city != NULL && city->isBombardable(this))
+						{
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
+		else if (bombardTarget(pFromPlot) == NULL)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 bool CvUnit::canRBombard() const
 {
 	if (getVolleyRange() < 1 || bombardRate() < 1)
@@ -21608,7 +21643,6 @@ bool CvUnit::canRBombard() const
 	{
 		return false;
 	}
-	// RevolutionDCM - end
 
 	if (isMadeAttack())
 	{
@@ -21623,51 +21657,11 @@ bool CvUnit::canRBombard() const
 	return true;
 }
 
-bool CvUnit::canBombardAtRanged(const CvPlot* pPlot, int iX, int iY) const
-{
-	if (!canRBombard())
-	{
-		return false;
-	}
-
-	CvPlot* pTargetPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-	if (pTargetPlot == NULL)
-	{
-		return false;
-	}
-	if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE()) > getVolleyRange())
-	{
-		return false;
-	}
-
-	if (pTargetPlot->isOwned() && pTargetPlot->getTeam() != getTeam() && !atWar(pTargetPlot->getTeam(), getTeam()))
-	{
-		return false;
-	}
-	CvCity* pCity = pTargetPlot->getPlotCity();
-	if (pCity != NULL)
-	{
-		if (!pCity->isBombardable(this) && pTargetPlot->getNumVisibleEnemyDefenders(this) == 0)
-		{
-			return false;
-		}
-	}
-	else if (pTargetPlot->getNumVisibleEnemyDefenders(this) == 0)
-	{
-		if (pTargetPlot->getImprovementType() == NO_IMPROVEMENT
-		|| GC.getImprovementInfo(pTargetPlot->getImprovementType()).isPermanent()
-		|| GC.getImprovementInfo(pTargetPlot->getImprovementType()).getAirBombDefense() == -1)
-		{
-			return false;
-		}
-	}
-	return true;
-}
 
 // RevolutionDCM - significant chances to this function
 bool CvUnit::bombardRanged(int iX, int iY, bool sAttack)
 {
-	if (!canBombardAtRanged(plot(), iX, iY))
+	if (!canVolleyAt(plot(), iX, iY))
 	{
 		return false;
 	}
@@ -21911,7 +21905,7 @@ int CvUnit::getRbombardSeigeCount(CvPlot* pPlot)
 
 int CvUnit::getVolleyRange() const
 {
-	return GC.getUnitInfo(getUnitType()).getVolleyRange();
+	return std::max(0, GC.getUnitInfo(getUnitType()).getVolleyRange());
 }
 
 int CvUnit::getVolleyAccuracy() const

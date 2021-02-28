@@ -1145,7 +1145,6 @@ public:
 // Dale - AB: Bombing END
 // Dale - RB: Field Bombard START
 	bool canRBombard() const;
-	bool canBombardAtRanged(const CvPlot* pPlot, int iX, int iY) const;
 	bool bombardRanged(int iX, int iY, bool sAttack = false);
 	// RevolutionDCM - ranged bombard
 	bool isRbombardable(int iMinStack);
@@ -1159,8 +1158,9 @@ private:
 	int m_iDCMBombAccuracy;
 public:
 // Dale - RB: Field Bombard END
+	bool canReduceCityDefense(const CvPlot* pFromPlot = NULL, const bool bIgnoreMadeAttack = false) const;
 	bool canVolley() const;
-	bool canVolleyAt(const CvPlot* pPlot, int iX, int iY) const;
+	bool canVolleyAt(const CvPlot* pFromPlot, int iX, int iY) const;
 	bool doVolley(int iX, int iY, bool supportAttack = false);
 // Dale - SA: Stack Attack START
 	void updateStackCombat(bool bQuick = false);
