@@ -4,22 +4,17 @@
 
 *.suo
 
-CvGameCoreDLL/project/Debug/
-
-CvGameCoreDLL/project/Release/
-
-CvGameCoreDLL/project/Release-fast/
-
 CvGameCoreDLL/project/temp_files/
 
+CvGameCoreDLL/project/Debug/
+CvGameCoreDLL/project/Debug-fast/
+CvGameCoreDLL/project/Assert/
+CvGameCoreDLL/project/Assert-fast/
+CvGameCoreDLL/project/Release/
+CvGameCoreDLL/project/Release-fast/
 CvGameCoreDLL/project/Final_Release/
-
 CvGameCoreDLL/project/Final_Release-fast/
 
 CvGameCoreDLL/project/obj/
 
-CvGameCoreDLL/project/Assert/
 
-CvGameCoreDLL/project/Assert-fast/
-
-CvGameCoreDLL/project/Debug-fast/
