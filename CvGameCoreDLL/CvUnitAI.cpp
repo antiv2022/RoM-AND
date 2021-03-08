@@ -3133,29 +3133,9 @@ void CvUnitAI::AI_attackMove()
 				return;
 			}
 
-			if (getGroup()->hasCollateralDamage())
+			if (getGroup()->hasCollateralDamage() && AI_anyAttack(1, 45, 3))
 			{
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                               Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-				// RevolutionDCM - ranged bombardment AI
-				// In theory trebs can be set to UNITAI_ATTACK
-				// Dale - RB: Field Bombard START
-				if (AI_RbombardUnit(1, 50, 3, 1, 120))
-				{
-					return;
-				}
-				// RevolutionDCM - end
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                    Glider1    */
-/************************************************************************************************/
-
-				if (AI_anyAttack(1, 45, 3))
-				{
-					return;
-				}
+				return;
 			}
 		}
 
@@ -4577,22 +4557,6 @@ void CvUnitAI::AI_collateralMove()
 		return;
 	}
 
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                                Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment AI
-	// Dale - RB: Field Bombard START
-	if (AI_RbombardUnit(1, 50, 3, 1, 100))
-	{
-		return;
-	}
-	// RevolutionDCM - end	
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                     Glider1    */
-/************************************************************************************************/
-	
 	if (AI_anyAttack(1, 45, 3))
 	{
 		return;
@@ -4602,21 +4566,6 @@ void CvUnitAI::AI_collateralMove()
 	{
 		return;
 	}
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                                Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment AI
-	// Dale - RB: Field Bombard START
-	if (AI_RbombardUnit(1, 40, 3, 0, 100))
-	{
-		return;
-	}
-	// RevolutionDCM - end
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                    Glider1    */
-/************************************************************************************************/
 
 	if (AI_anyAttack(1, 35, 3))
 	{
@@ -4627,21 +4576,7 @@ void CvUnitAI::AI_collateralMove()
 	{
 		return;
 	}
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                                Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment AI
-	// Dale - RB: Field Bombard START
-	if (AI_RbombardUnit(1, 25, 5, 0, 80))
-	{
-		return;
-	}
-	// RevolutionDCM - end
-/************************************************************************************************/
-/* REVOLUTIONDCM                              END                                    Glider1    */
-/************************************************************************************************/
+
 	if (AI_anyAttack(1, 20, 5))
 	{
 		return;
@@ -4659,21 +4594,6 @@ void CvUnitAI::AI_collateralMove()
 			return;
 		}
 	}
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                                Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment AI
-	// Dale - RB: Field Bombard START
-	if (AI_RbombardUnit(getVolleyRange(), 40, 3, 0, 100))
-	{
-		return;
-	}
-	// RevolutionDCM - end
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                     Glider1    */
-/************************************************************************************************/
 
 	if (AI_anyAttack(2, 55, 3))
 	{
@@ -20136,25 +20056,9 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 {
 	PROFILE_FUNC();
 	MEMORY_TRACK();
-
-	CvPlot* pLoopPlot;
-	CvPlot* pBestPlot;
-	int iSearchRange;
-	int iPathTurns = 0;
-	int iValue;
-	int iBestValue;
-
-
 	FAssert(canMove());
 
-	if (bFollow)
-	{
-		iSearchRange = 1;
-	}
-	else
-	{
-		iSearchRange = AI_searchRange(iRange);
-	}
+	const int iSearchRange = bFollow ? 1 : AI_searchRange(iRange);
 
 #ifdef USE_REACHABLE_ENUMERATION
 	CvReachablePlotSet plotSet(getGroup(), MOVE_THROUGH_ENEMY, iSearchRange);
@@ -20204,8 +20108,9 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
-	iBestValue = 0;
-	pBestPlot = NULL;
+	int iBestValue = 0;
+	CvPlot* pBestPlot = NULL;
+	int iPathTurns = 0;
 
 #ifdef USE_REACHABLE_ENUMERATION
 	for(CvReachablePlotSet::const_iterator itr = plotSet.begin(); itr != plotSet.end(); ++itr)
@@ -20221,7 +20126,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 			}
 		}
 
-		pLoopPlot = itr.plot();
+		CvPlot* pLoopPlot = itr.plot();
 
 		if ( CvSelectionGroup::getPathGenerator()->haveRouteLength(pLoopPlot, getGroup(), 0, iPathTurns) && iPathTurns > iRange )
 		{
@@ -20239,7 +20144,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 						bool bWinLikely = false;
 
 						PROFILE("CvUnitAI::AI_anyAttack.FoundTarget");
-						iValue = getGroup()->AI_attackOdds(pLoopPlot, true, false, &bWinLikely, iOddsThreshold);
+						int iValue = getGroup()->AI_attackOdds(pLoopPlot, true, false, &bWinLikely, iOddsThreshold);
 
 						//	Increase value on our territory since we really want to get rid of enemies there even
 						//	if it costs us a few losses
@@ -20298,13 +20203,13 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 	lastBoundary->Add(plot()->getX_INLINE(), plot()->getY_INLINE());
 	visited.Set(plot()->getX_INLINE(), plot()->getY_INLINE());
 
-	for( int iDist = 1; iDist <= iSearchRange; iDist++ )
+	for (int iDist = 1; iDist <= iSearchRange; iDist++)
 	{
-		for(int j = 0; j < lastBoundary->m_boundaryLen; j++)
+		for (int j = 0; j < lastBoundary->m_boundaryLen; j++)
 		{
 			for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 			{
-				pLoopPlot = plotDirection(lastBoundary->m_boundary[j].x, lastBoundary->m_boundary[j].y, ((DirectionTypes)iI));
+				CvPlot* pLoopPlot = plotDirection(lastBoundary->m_boundary[j].x, lastBoundary->m_boundary[j].y, ((DirectionTypes)iI));
 				if ( pLoopPlot != NULL && !visited.IsSet(pLoopPlot->getX_INLINE(),pLoopPlot->getY_INLINE()) )
 				{
 					visited.Set(pLoopPlot->getX_INLINE(),pLoopPlot->getY_INLINE());
@@ -20327,7 +20232,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 								if (pLoopPlot->getNumVisibleEnemyDefenders(this) >= iMinStack)
 								{
 									PROFILE("CvUnitAI::AI_anyAttack.FoundTarget");
-									iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
+									const int iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
 
 									if (iValue > iBestValue && iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold))
 									{
@@ -20379,44 +20284,32 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 	iBestValue = 0;
 	pBestPlot = NULL;
 
+	for (iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
 	{
-		for (iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
+		for (iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
 		{
-			for (iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
+			CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+
+			if (pLoopPlot != NULL && AI_plotValid(pLoopPlot) && (bAllowCities || !pLoopPlot->isCity(false))
+			&& (pLoopPlot->isVisibleEnemyUnit(this) || pLoopPlot->isCity() && AI_potentialEnemy(pLoopPlot->getTeam()))
+			&& pLoopPlot->getNumVisibleEnemyDefenders(this) >= iMinStack)
 			{
-				pLoopPlot	= plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+				PROFILE("CvUnitAI::AI_anyAttack.FoundTarget");
+				const int iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
 
-				if (pLoopPlot != NULL)
+				if (iValue > iBestValue && iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold))
 				{
-					if (AI_plotValid(pLoopPlot))
+					PROFILE("CvUnitAI::AI_anyAttack.SearchPath");
+					if (!atPlot(pLoopPlot) && ((bFollow) ? getGroup()->canMoveInto(pLoopPlot, true) : (generatePath(pLoopPlot, 0, true, &iPathTurns) )))
 					{
-						if( ((bAllowCities) || !(pLoopPlot->isCity(false))) )
+						PROFILE("CvUnitAI::AI_anyAttack.SuccessfulPath");
+						if (iPathTurns <= iRange)
 						{
-							if (pLoopPlot->isVisibleEnemyUnit(this) || (pLoopPlot->isCity() && AI_potentialEnemy(pLoopPlot->getTeam())))
-							{
-								if (pLoopPlot->getNumVisibleEnemyDefenders(this) >= iMinStack)
-								{
-									PROFILE("CvUnitAI::AI_anyAttack.FoundTarget");
-									iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
+							PROFILE("CvUnitAI::AI_anyAttack.SuccessfulPath.InRange");
 
-									if (iValue > iBestValue && iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold))
-									{
-										PROFILE("CvUnitAI::AI_anyAttack.SearchPath");
-										if (!atPlot(pLoopPlot) && ((bFollow) ? getGroup()->canMoveInto(pLoopPlot, true) : (generatePath(pLoopPlot, 0, true, &iPathTurns) )))
-										{
-											PROFILE("CvUnitAI::AI_anyAttack.SuccessfulPath");
-											if (iPathTurns <= iRange)
-											{
-												PROFILE("CvUnitAI::AI_anyAttack.SuccessfulPath.InRange");
-
-												iBestValue = iValue;
-												pBestPlot = ((bFollow) ? pLoopPlot : getPathEndTurnPlot());
-												FAssert(!atPlot(pBestPlot));
-											}
-										}
-									}
-								}
-							}
+							iBestValue = iValue;
+							pBestPlot = ((bFollow) ? pLoopPlot : getPathEndTurnPlot());
+							FAssert(!atPlot(pBestPlot));
 						}
 					}
 				}
@@ -30843,28 +30736,17 @@ bool CvUnitAI::AI_RbombardUnit(int iRange, int iHighestOddsThreshold, int iMinSt
 							if (pLoopPlot->getNumVisibleEnemyDefenders(this) >= iMinStack)
 							{
 								pDefender = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-								if (pDefender->isRbombardable(iMinStack))
+								iValue = AI_attackOdds(pLoopPlot, true);
+								if (iValue <= iHighestOddsThreshold && iValue < iBestValue)
 								{
-									iValue = AI_attackOdds(pLoopPlot, true);
-									if (iValue <= iHighestOddsThreshold)
+									int ourStrength = GET_PLAYER(getOwner()).AI_getOurPlotStrength(plot(), iRange, false, false) * 100;
+									int theirStrength = GET_PLAYER(getOwner()).AI_getEnemyPlotStrength(plot(), iRange, false, false);
+									if (theirStrength < 1) theirStrength = 1;
+									int strengthRatio = ourStrength / theirStrength;
+									if (strengthRatio >= iPowerThreshold && theirStrength > 1)
 									{
-										int ourSeige = getRbombardSeigeCount(plot());
-										int theirSeige = pDefender->getRbombardSeigeCount(pLoopPlot);
-										if ((ourSeige - theirSeige) >= iSeigeDiff)
-										{
-											int ourStrength = GET_PLAYER(getOwner()).AI_getOurPlotStrength(plot(), iRange, false, false) * 100;
-											int theirStrength = GET_PLAYER(getOwner()).AI_getEnemyPlotStrength(plot(), iRange, false, false);
-											if (theirStrength <= 0) theirStrength = 1;
-											int strengthRatio = (ourStrength / theirStrength);
-											if ((strengthRatio >= iPowerThreshold) && (theirStrength > 1))
-											{
-												if (iValue < iBestValue)
-												{
-													iBestValue = iValue;
-													pBestPlot = pLoopPlot;
-												}
-											}
-										}
+										iBestValue = iValue;
+										pBestPlot = pLoopPlot;
 									}
 								}
 							}

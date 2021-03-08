@@ -21844,65 +21844,6 @@ bool CvUnit::bombardRanged(int iX, int iY, bool sAttack)
 	return true;
 }
 
-// RevolutionDCM - ranged bombard
-// Estimate if a unit stack is worth range bombarding
-bool CvUnit::isRbombardable(int iMinStack)
-{
-	const int unitCount = plot()->getNumUnits();
-
-	if (unitCount >= iMinStack)
-	{
-		int averageDamage = 0;
-		int averageProtection = 0;
-		int seigeCount = 0;
-
-		for (int i = 0; i < unitCount; i++)
-		{
-			CvUnit* nextUnit = plot()->getUnitByIndex(i);
-			if (nextUnit != NULL)
-			{
-				if (nextUnit->canRBombard())
-				{
-					seigeCount++;
-				}
-				averageDamage += nextUnit->getDamage();
-				averageProtection += nextUnit->getCollateralDamageProtection();
-			}
-		}
-		if (unitCount > 0)
-		{
-			const int iCollateralCount = unitCount - seigeCount;
-			averageDamage /= unitCount;
-			averageProtection /= unitCount;
-			if (iCollateralCount > 1 && iCollateralCount < 8 && averageDamage < 40 && averageProtection < 10)
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-int CvUnit::getRbombardSeigeCount(CvPlot* pPlot)
-{
-	if (pPlot == NULL)
-	{
-		return 0;
-	}
-	int unitCount = pPlot->getNumUnits();
-	int seigeCount = 0;
-	for (int i = 0; i < unitCount; i++)
-	{
-		CvUnit* nextUnit = pPlot->getUnitByIndex(i);
-		if (nextUnit != NULL && nextUnit->canRBombard())
-		{
-			seigeCount++;
-		}
-	}
-	return seigeCount;
-}
-// RevolutionDCM - end
-
 int CvUnit::getVolleyRange() const
 {
 	return std::max(0, GC.getUnitInfo(getUnitType()).getVolleyRange());

@@ -1146,13 +1146,9 @@ public:
 // Dale - RB: Field Bombard START
 	bool canRBombard() const;
 	bool bombardRanged(int iX, int iY, bool sAttack = false);
-	// RevolutionDCM - ranged bombard
-	bool isRbombardable(int iMinStack);
-	int getRbombardSeigeCount(CvPlot* pPlot);
-	// RevolutionDCM - end
 
-	DllExport int getVolleyRange() const;
-	DllExport int getVolleyAccuracy() const;
+	int getVolleyRange() const;
+	int getVolleyAccuracy() const;
 private:
 	int m_iDCMBombRange;
 	int m_iDCMBombAccuracy;
