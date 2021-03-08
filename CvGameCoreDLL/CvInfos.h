@@ -1471,24 +1471,25 @@ protected:
 	std::vector<CvWString> m_aszCivilizationNamesValueforPass3;
 
 	BoolExpr* m_pExprTrainCondition;
-	
-public:
+
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
-
+// Toffer - New range combat
+public:
+	int getVolleyRange() const;
+	int getVolleyAccuracy() const;
+	int getVolleyAccuracyMin() const;
+protected:
+	int m_iVolleyRange;
+	int m_iVolleyAccuracy;
+	int m_iVolleyAccuracyMin;
+// ! Toffer
 
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
-	// Dale - RB: Field Bombard START
-	int getVolleyRange() const;
-	int getVolleyAccuracy() const;
-protected:
-	int m_iVolleyRange;
-	int m_iVolleyAccuracy;
 public:
-	// Dale - RB: Field Bombard END
 	// Dale - AB: Bombing START
 	bool getDCMAirBomb1() const;
 	bool getDCMAirBomb2() const;

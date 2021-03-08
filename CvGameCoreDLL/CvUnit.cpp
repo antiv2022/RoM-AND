@@ -21720,14 +21720,14 @@ bool CvUnit::bombardRanged(int iX, int iY, bool sAttack)
 				odds = 100;
 			}
 			// standard odds made worse if greater than one tile out
-			int shotDistance = plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-			odds += (shotDistance - 1) * 50;
+			int iDistance = plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			odds += (iDistance - 1) * 50;
 
 			pLoopUnit = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
 			if (pLoopUnit != NULL)
 			{
 				// RevolutionDCM - change proposal to ranged bombardment. Only collateral damage can be issued.
-				if (GC.getGameINLINE().getSorenRandNum(odds, "Bombard Accuracy") <= getVolleyAccuracy())
+				if (GC.getGameINLINE().getSorenRandNum(odds, "Bombard Accuracy") <= getVolleyAccuracy(iDistance))
 				{
 					{
 						MEMORY_TRACK_EXEMPT();
@@ -21762,14 +21762,14 @@ bool CvUnit::bombardRanged(int iX, int iY, bool sAttack)
 			odds = 200;
 		}
 		// standard odds made worse if greater than one tile out
-		int shotDistance = plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-		odds += (shotDistance - 1) * 50;
+		int iDistance = plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+		odds += (iDistance - 1) * 50;
 
 		pLoopUnit = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
 		if (pLoopUnit != NULL)
 		{
 			//RevolutionDCM - change proposal to ranged bombardment. Only collateral damage can be issued.
-			if (GC.getGameINLINE().getSorenRandNum(odds, "Bombard Accuracy") <= getVolleyAccuracy())
+			if (GC.getGameINLINE().getSorenRandNum(odds, "Bombard Accuracy") <= getVolleyAccuracy(iDistance))
 			{
 				{
 					MEMORY_TRACK_EXEMPT();
@@ -21849,9 +21849,29 @@ int CvUnit::getVolleyRange() const
 	return std::max(0, GC.getUnitInfo(getUnitType()).getVolleyRange());
 }
 
-int CvUnit::getVolleyAccuracy() const
+int CvUnit::getVolleyAccuracy(const int iDistance) const
 {
-	return GC.getUnitInfo(getUnitType()).getVolleyAccuracy();
+	// Toffer - Perhaps I took the value safety "if" statements a bit far... Better safe than sorry.
+	if (iDistance < 1)
+	{
+		return 0;
+	}
+	if (iDistance == 1)
+	{
+		return m_pUnitInfo->getVolleyAccuracy();
+	}
+	const int iRange = m_pUnitInfo->getVolleyRange();
+	if (iRange < 1 || iDistance > iRange)
+	{
+		return 0;
+	}
+	if (iDistance == iRange)
+	{
+		return m_pUnitInfo->getVolleyAccuracyMin();
+	}
+	const int iBase = m_pUnitInfo->getVolleyAccuracy();
+
+	return iBase - (iDistance - 1) * (iBase - m_pUnitInfo->getVolleyAccuracyMin()) / (iRange - 1);
 }
 
 // Dale - SA: Stack Attack START
@@ -22570,8 +22590,9 @@ bool CvUnit::doVolley(int iX, int iY, bool supportAttack)
 
 	// RevolutionDCM - getBestDefender() now used in all cases
 	CvUnit* pLoopUnit = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
+	const int iDistance = plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), iX, iY);
 
-	if (GC.getGameINLINE().getSorenRandNum(100, "Bombard Accuracy") <= getVolleyAccuracy())
+	if (GC.getGameINLINE().getSorenRandNum(100, "Bombard Accuracy") <= getVolleyAccuracy(iDistance))
 	{
 		const int iMyFirePower = currFirepower(NULL, NULL);
 		const int iAvgPowerRatio = (1 + iMyFirePower + pLoopUnit->currFirepower(NULL, NULL)) / 2;

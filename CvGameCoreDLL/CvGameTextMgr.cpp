@@ -1530,7 +1530,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 		}
 
 		// Dale - RB: Field Bombard
-		if (pUnit->getVolleyRange() > 0 || pUnit->getVolleyAccuracy() > 0)
+		if (pUnit->getVolleyRange() > 0 || pUnit->getVolleyAccuracy(1) > 0)
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_IS_DCM_BOMBARD"));
@@ -1540,10 +1540,10 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_IS_RANGE_BOMBARD", pUnit->getVolleyRange()));
 		}
-		if (pUnit->getVolleyAccuracy() > 0)
+		if (pUnit->getVolleyAccuracy(1) > 0)
 		{
 			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_IS_ACCURACY_BOMBARD", pUnit->getVolleyAccuracy()));
+			szString.append(gDLL->getText("TXT_KEY_IS_ACCURACY_BOMBARD", pUnit->getVolleyAccuracy(1)));
 		}
 
 		if (pUnit->bombardRate() > 0)

@@ -1148,7 +1148,7 @@ public:
 	bool bombardRanged(int iX, int iY, bool sAttack = false);
 
 	int getVolleyRange() const;
-	int getVolleyAccuracy() const;
+	int getVolleyAccuracy(const int iDistance) const;
 private:
 	int m_iDCMBombRange;
 	int m_iDCMBombAccuracy;
