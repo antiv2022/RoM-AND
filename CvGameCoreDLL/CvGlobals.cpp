@@ -506,6 +506,7 @@ m_cszModDir("NONE")
 ,m_bLFBUseCombatOdds(true)
 ,m_iCOMBAT_DIE_SIDES(-1)
 ,m_iCOMBAT_DAMAGE(-1)
+,m_iVOLLEY_STRENGTH(0)
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -3827,6 +3828,7 @@ void cvInternalGlobals::cacheGlobals()
 	m_bLFBUseCombatOdds = !(getDefineINT("LFB_USECOMBATODDS") == 0);
 	m_iCOMBAT_DIE_SIDES = getDefineINT("COMBAT_DIE_SIDES");
 	m_iCOMBAT_DAMAGE = getDefineINT("COMBAT_DAMAGE");
+	m_iVOLLEY_STRENGTH = getDefineINT("VOLLEY_STRENGTH");
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -5643,6 +5645,11 @@ int cvInternalGlobals::getCOMBAT_DIE_SIDES()
 int cvInternalGlobals::getCOMBAT_DAMAGE()
 {
 	return m_iCOMBAT_DAMAGE;
+}
+
+int cvInternalGlobals::getVOLLEY_STRENGTH()
+{
+	return m_iVOLLEY_STRENGTH;
 }
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */

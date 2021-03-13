@@ -1952,6 +1952,7 @@ public:
 	bool getLFBUseCombatOdds();
 	int getCOMBAT_DIE_SIDES();
 	int getCOMBAT_DAMAGE();
+	int getVOLLEY_STRENGTH();
 
 protected:
 	bool m_bLFBEnable;
@@ -1966,6 +1967,7 @@ protected:
 	bool m_bLFBUseCombatOdds;
 	int m_iCOMBAT_DIE_SIDES;
 	int m_iCOMBAT_DAMAGE;
+	int m_iVOLLEY_STRENGTH;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/

@@ -1149,15 +1149,16 @@ public:
 
 	int getVolleyRange() const;
 	int getVolleyAccuracy(const int iDistance) const;
+	int getVolleyDamage(const CvUnit* pVictim) const;
+	bool canReduceCityDefense(const CvPlot* pFromPlot = NULL, const bool bIgnoreMadeAttack = false) const;
+	bool canVolley() const;
+	bool canVolleyAt(const CvPlot* pFromPlot, int iX, int iY) const;
+	bool doVolley(int iX, int iY, bool supportAttack = false);
 private:
 	int m_iDCMBombRange;
 	int m_iDCMBombAccuracy;
 public:
 // Dale - RB: Field Bombard END
-	bool canReduceCityDefense(const CvPlot* pFromPlot = NULL, const bool bIgnoreMadeAttack = false) const;
-	bool canVolley() const;
-	bool canVolleyAt(const CvPlot* pFromPlot, int iX, int iY) const;
-	bool doVolley(int iX, int iY, bool supportAttack = false);
 // Dale - SA: Stack Attack START
 	void updateStackCombat(bool bQuick = false);
 // Dale - SA: Stack Attack END

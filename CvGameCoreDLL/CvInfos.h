@@ -1396,11 +1396,6 @@ public:
 	//ls612: Can't enter non-Owned cities
 	bool isNoNonOwnedEntry() const;
 
-/************************************************************************************************/
-/* Afforess	                  Start		 12/9/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/	
 	void setPowerValue(int iNewValue);
 	int getPrereqVicinityBonus() const;
 	bool isRequiresStateReligionInCity() const;
@@ -1472,18 +1467,17 @@ protected:
 
 	BoolExpr* m_pExprTrainCondition;
 
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 // Toffer - New range combat
 public:
 	int getVolleyRange() const;
 	int getVolleyAccuracy() const;
 	int getVolleyAccuracyMin() const;
+	int getVolleyEfficiency() const;
 protected:
 	int m_iVolleyRange;
 	int m_iVolleyAccuracy;
 	int m_iVolleyAccuracyMin;
+	int m_iVolleyEfficiency;
 // ! Toffer
 
 /************************************************************************************************/
