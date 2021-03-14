@@ -219,8 +219,6 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iOrderPriority>0</iOrderPriority>
 			<!-- RevDCM DCM options -->
-			<iVolleyRange>0</iVolleyRange>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<bDCMAirBomb1>0</bDCMAirBomb1>
 			<bDCMAirBomb2>0</bDCMAirBomb2>
 			<bDCMAirBomb3>0</bDCMAirBomb3>
@@ -468,8 +466,6 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iOrderPriority>0</iOrderPriority>
 			<!-- RevDCM DCM options -->
-			<iVolleyRange>0</iVolleyRange>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<bDCMAirBomb1>0</bDCMAirBomb1>
 			<bDCMAirBomb2>0</bDCMAirBomb2>
 			<bDCMAirBomb3>0</bDCMAirBomb3>
@@ -5383,8 +5379,6 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iOrderPriority>0</iOrderPriority>
 			<!-- RevDCM DCM options -->
-			<iVolleyRange>0</iVolleyRange>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<bDCMAirBomb1>0</bDCMAirBomb1>
 			<bDCMAirBomb2>0</bDCMAirBomb2>
 			<bDCMAirBomb3>0</bDCMAirBomb3>
@@ -5873,8 +5867,6 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iOrderPriority>0</iOrderPriority>
 			<!-- RevDCM DCM options -->
-			<iVolleyRange>0</iVolleyRange>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<bDCMAirBomb1>0</bDCMAirBomb1>
 			<bDCMAirBomb2>0</bDCMAirBomb2>
 			<bDCMAirBomb3>0</bDCMAirBomb3>
@@ -6394,8 +6386,6 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iOrderPriority>0</iOrderPriority>
 			<!-- RevDCM DCM options -->
-			<iVolleyRange>0</iVolleyRange>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<bDCMAirBomb1>0</bDCMAirBomb1>
 			<bDCMAirBomb2>0</bDCMAirBomb2>
 			<bDCMAirBomb3>0</bDCMAirBomb3>
@@ -6876,8 +6866,6 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iOrderPriority>0</iOrderPriority>
 			<!-- RevDCM DCM options -->
-			<iVolleyRange>0</iVolleyRange>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<bDCMAirBomb1>0</bDCMAirBomb1>
 			<bDCMAirBomb2>0</bDCMAirBomb2>
 			<bDCMAirBomb3>0</bDCMAirBomb3>
@@ -7392,8 +7380,6 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iOrderPriority>0</iOrderPriority>
 			<!-- RevDCM DCM options -->
-			<iVolleyRange>0</iVolleyRange>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<bDCMAirBomb1>0</bDCMAirBomb1>
 			<bDCMAirBomb2>0</bDCMAirBomb2>
 			<bDCMAirBomb3>0</bDCMAirBomb3>
@@ -7883,8 +7869,6 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iOrderPriority>0</iOrderPriority>
 			<!-- RevDCM DCM options -->
-			<iVolleyRange>0</iVolleyRange>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<bDCMAirBomb1>0</bDCMAirBomb1>
 			<bDCMAirBomb2>0</bDCMAirBomb2>
 			<bDCMAirBomb3>0</bDCMAirBomb3>
@@ -19684,7 +19668,6 @@
 			</FreePromotions>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<CivilizationNames/>
 		</UnitInfo>
 		<UnitInfo>
@@ -21908,7 +21891,8 @@
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
-			<iVolleyAccuracy>70</iVolleyAccuracy>
+			<iVolleyAccuracy>60</iVolleyAccuracy>
+			<iVolleyEfficiency>100</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_INFANTRY</Class>
@@ -22305,7 +22289,8 @@
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
-			<iVolleyAccuracy>90</iVolleyAccuracy>
+			<iVolleyAccuracy>75</iVolleyAccuracy>
+			<iVolleyEfficiency>100</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_BAZOOKA</Class>
@@ -25650,7 +25635,8 @@
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
-			<iVolleyAccuracy>25</iVolleyAccuracy>
+			<iVolleyAccuracy>40</iVolleyAccuracy>
+			<iVolleyEfficiency>60</iVolleyEfficiency>
 			<CivilizationNames>
 				<CivilizationName>
 					<CivilizationType>CIVILIZATION_GREECE</CivilizationType>
@@ -25844,6 +25830,7 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
 			<iVolleyAccuracy>50</iVolleyAccuracy>
+			<iVolleyEfficiency>60</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_ARCHER</Class>
@@ -26031,6 +26018,7 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
 			<iVolleyAccuracy>50</iVolleyAccuracy>
+			<iVolleyEfficiency>60</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_ARCHER</Class>
@@ -26223,6 +26211,7 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
 			<iVolleyAccuracy>50</iVolleyAccuracy>
+			<iVolleyEfficiency>60</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_LONGBOWMAN</Class>
@@ -26405,6 +26394,7 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
 			<iVolleyAccuracy>60</iVolleyAccuracy>
+			<iVolleyEfficiency>60</iVolleyEfficiency>
 			<CivilizationNames>
 				<CivilizationName>
 					<CivilizationType>CIVILIZATION_ENGLAND</CivilizationType>
@@ -26602,6 +26592,7 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
 			<iVolleyAccuracy>60</iVolleyAccuracy>
+			<iVolleyEfficiency>60</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_CROSSBOWMAN</Class>
@@ -26797,6 +26788,7 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
 			<iVolleyAccuracy>70</iVolleyAccuracy>
+			<iVolleyEfficiency>60</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_CROSSBOWMAN</Class>
@@ -26992,6 +26984,7 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
 			<iVolleyAccuracy>70</iVolleyAccuracy>
+			<iVolleyEfficiency>60</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_CHARIOT</Class>
@@ -33775,7 +33768,6 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<CivilizationNames/>
 		</UnitInfo>
 		<UnitInfo>
@@ -33976,7 +33968,6 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<CivilizationNames/>
 		</UnitInfo>
 		<UnitInfo>
@@ -37965,7 +37956,7 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
 			<iVolleyAccuracy>60</iVolleyAccuracy>
-			<CivilizationNames/>
+			<iVolleyEfficiency>70</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_CATAPULT</Class>
@@ -38156,8 +38147,8 @@
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
-			<iVolleyAccuracy>70</iVolleyAccuracy>
-			<CivilizationNames/>
+			<iVolleyAccuracy>60</iVolleyAccuracy>
+			<iVolleyEfficiency>70</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_BATTERING_RAM</Class>
@@ -38339,8 +38330,6 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyRange>0</iVolleyRange>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_CATAPULT</Class>
@@ -38549,6 +38538,7 @@
 			<iLeaderExperience>0</iLeaderExperience>
 			<iVolleyRange>1</iVolleyRange>
 			<iVolleyAccuracy>70</iVolleyAccuracy>
+			<iVolleyEfficiency>70</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_TREBUCHET</Class>
@@ -38742,8 +38732,10 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyRange>1</iVolleyRange>
+			<iVolleyRange>2</iVolleyRange>
 			<iVolleyAccuracy>70</iVolleyAccuracy>
+			<iVolleyAccuracyMin>30</iVolleyAccuracyMin>
+			<iVolleyEfficiency>70</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_BOMBARD</Class>
@@ -38933,8 +38925,10 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyRange>1</iVolleyRange>
+			<iVolleyRange>2</iVolleyRange>
 			<iVolleyAccuracy>70</iVolleyAccuracy>
+			<iVolleyAccuracyMin>30</iVolleyAccuracyMin>
+			<iVolleyEfficiency>70</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_CANNON</Class>
@@ -39127,8 +39121,10 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyRange>1</iVolleyRange>
+			<iVolleyRange>2</iVolleyRange>
 			<iVolleyAccuracy>70</iVolleyAccuracy>
+			<iVolleyAccuracyMin>30</iVolleyAccuracyMin>
+			<iVolleyEfficiency>70</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_GATLING_GUN</Class>
@@ -39886,8 +39882,10 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyRange>1</iVolleyRange>
-			<iVolleyAccuracy>70</iVolleyAccuracy>
+			<iVolleyRange>3</iVolleyRange>
+			<iVolleyAccuracy>80</iVolleyAccuracy>
+			<iVolleyAccuracyMin>20</iVolleyAccuracyMin>
+			<iVolleyEfficiency>80</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_ARTILLERY</Class>
@@ -40085,8 +40083,10 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyRange>1</iVolleyRange>
+			<iVolleyRange>3</iVolleyRange>
 			<iVolleyAccuracy>80</iVolleyAccuracy>
+			<iVolleyAccuracyMin>20</iVolleyAccuracyMin>
+			<iVolleyEfficiency>80</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_MOBILE_ARTILLERY</Class>
@@ -40283,8 +40283,10 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyRange>2</iVolleyRange>
+			<iVolleyRange>3</iVolleyRange>
 			<iVolleyAccuracy>80</iVolleyAccuracy>
+			<iVolleyAccuracyMin>20</iVolleyAccuracyMin>
+			<iVolleyEfficiency>80</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_ROCKET_ARTILLERY</Class>
@@ -40482,8 +40484,10 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyRange>2</iVolleyRange>
-			<iVolleyAccuracy>80</iVolleyAccuracy>
+			<iVolleyRange>4</iVolleyRange>
+			<iVolleyAccuracy>85</iVolleyAccuracy>
+			<iVolleyAccuracyMin>20</iVolleyAccuracyMin>
+			<iVolleyEfficiency>100</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_NLOS_CANNON</Class>
@@ -44670,7 +44674,6 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_IRONCLAD</Class>
@@ -68084,7 +68087,6 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<CivilizationNames/>
 		</UnitInfo>
 		<UnitInfo>
@@ -68288,7 +68290,6 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<CivilizationNames/>
 		</UnitInfo>
 		<UnitInfo>
@@ -68488,7 +68489,6 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<CivilizationNames/>
 		</UnitInfo>
 		<UnitInfo>
@@ -68683,7 +68683,6 @@
 			</FreePromotions>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<CivilizationNames/>
 		</UnitInfo>
 		<UnitInfo>
@@ -68870,7 +68869,6 @@
 			</FreePromotions>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<CivilizationNames/>
 		</UnitInfo>
 		<UnitInfo>
@@ -69056,7 +69054,6 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
-			<iVolleyAccuracy>0</iVolleyAccuracy>
 			<CivilizationNames/>
 		</UnitInfo>
 		<UnitInfo>

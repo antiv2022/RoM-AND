@@ -22388,7 +22388,7 @@ bool CvUnit::doVolley(int iX, int iY)
 					gDLL->getText(
 						"TXT_KEY_MISC_YOU_ATTACK_BY_AIR",
 						getNameKey(), pVictim->getNameKey(),
-						-((iUnitDamage - pVictim->getDamage()) * 100 / pVictim->maxHitPoints())
+						-iUnitDamage * 100 / pVictim->maxHitPoints()
 					),
 					"AS2D_AIR_ATTACKED", MESSAGE_TYPE_INFO, pVictim->getButton(),
 					(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE()
@@ -22398,7 +22398,7 @@ bool CvUnit::doVolley(int iX, int iY)
 					gDLL->getText(
 						"TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR",
 						pVictim->getNameKey(), getNameKey(),
-						-((iUnitDamage - pVictim->getDamage()) * 100 / pVictim->maxHitPoints())
+						-iUnitDamage * 100 / pVictim->maxHitPoints()
 					),
 					"AS2D_AIR_ATTACK", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
 					pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true
@@ -22508,20 +22508,34 @@ int CvUnit::getVolleyAccuracy(const int iDistance) const
 
 int CvUnit::getVolleyDamage(const CvUnit* pVictim) const
 {
+	// Toffer - Some units may be able to reduce city defense without damaging any units
+	const int iVolleyEfficiency = m_pUnitInfo->getVolleyEfficiency();
+	if (iVolleyEfficiency < 1)
+	{
+		return 0;
+	}
 	const int iMyFirePower = currFirepower(NULL, NULL);
-
-	// Toffer - No defense modifier included for the victim for the average,
-	// this to make the defense modifier a bit less significant than the pure strength when calculating iUnitDamage.
-	// i.e. if defense double your unit strength, this would reduce damage less than if your unit actually had twice the strength.
-	const int iAvgPowerRatio = (iMyFirePower + pVictim->currFirepower(NULL, NULL)) / 2;
+	if (iMyFirePower < 1)
+	{
+		return 0;
+	}
 
 	const int iUnitDamage =
 	(
-		m_pUnitInfo->getVolleyEfficiency() * iMyFirePower
+		GC.getVOLLEY_STRENGTH() * iVolleyEfficiency * iMyFirePower
 		/
-		std::max(1, pVictim->currFirepower(pVictim->plot(), this) + iAvgPowerRatio)
+		(
+			100 // divisor for iVolleyEfficiency, VOLLEY_STRENGTH is just a scaling parameter.
+			*
+			std::max(
+				1,
+				pVictim->currFirepower(pVictim->plot(), this)
+				+
+				(iMyFirePower + pVictim->currFirepower(NULL, NULL)) / 2
+			)
+		)
 	);
-	return std::max(1, iUnitDamage * GC.getVOLLEY_STRENGTH() / 100);
+	return std::max(1, iUnitDamage);
 }
 // ! Toffer - RCO
 
