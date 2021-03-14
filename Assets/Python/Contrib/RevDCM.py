@@ -57,8 +57,6 @@ def changedReset (option, value):
 #DCM
 def changedDCM_STACK_ATTACK (option, value):
 	gc.setDefineINT("DCM_STACK_ATTACK", RevDCMOpt.isDCM_STACK_ATTACK())
-def changedDCM_ATTACK_SUPPORT (option, value):
-	gc.setDefineINT("DCM_ATTACK_SUPPORT", RevDCMOpt.isDCM_ATTACK_SUPPORT())
 def changedDCM_OPP_FIRE (option, value):
 	gc.setDefineINT("DCM_OPP_FIRE", RevDCMOpt.isDCM_OPP_FIRE())
 def changedDCM_AIR_BOMBING (option, value):
@@ -109,7 +107,6 @@ def setXMLOptionsfromIniFile():
 	print "Reinitialising RevDCM SDK variables"
 	#DCM
 	gc.setDefineINT("DCM_STACK_ATTACK", RevDCMOpt.isDCM_STACK_ATTACK())
-	gc.setDefineINT("DCM_ATTACK_SUPPORT", RevDCMOpt.isDCM_ATTACK_SUPPORT())
 	gc.setDefineINT("DCM_OPP_FIRE", RevDCMOpt.isDCM_OPP_FIRE())
 	gc.setDefineINT("DCM_AIR_BOMBING", RevDCMOpt.isDCM_AIR_BOMBING())
 	gc.setDefineINT("DCM_ACTIVE_DEFENSE", RevDCMOpt.isDCM_ACTIVE_DEFENSE())

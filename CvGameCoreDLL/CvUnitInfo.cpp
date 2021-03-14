@@ -37,6 +37,7 @@ m_iVolleyRange(0),
 m_iVolleyAccuracy(0),
 m_iVolleyAccuracyMin(0),
 m_iVolleyEfficiency(0),
+m_iVolleyRounds(1),
 // ! Toffer
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
@@ -426,6 +427,11 @@ int CvUnitInfo::getVolleyAccuracyMin() const
 int CvUnitInfo::getVolleyEfficiency() const
 {
 	return m_iVolleyEfficiency;
+}
+
+int CvUnitInfo::getVolleyRounds() const
+{
+	return m_iVolleyRounds;
 }
 
 
@@ -2009,6 +2015,7 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iVolleyAccuracy);
 	stream->Read(&m_iVolleyAccuracyMin);
 	stream->Read(&m_iVolleyEfficiency);
+	stream->Read(&m_iVolleyRounds);
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
@@ -2756,6 +2763,7 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iVolleyAccuracy);
 	stream->Write(m_iVolleyAccuracyMin);
 	stream->Write(m_iVolleyEfficiency);
+	stream->Write(m_iVolleyRounds);
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
@@ -3574,6 +3582,7 @@ void CvUnitInfo::getCheckSum(unsigned int &iSum)
 	CheckSum(iSum, m_iVolleyAccuracy);
 	CheckSum(iSum, m_iVolleyAccuracyMin);
 	CheckSum(iSum, m_iVolleyEfficiency);
+	CheckSum(iSum, m_iVolleyRounds);
 
 	CheckSum(iSum, m_bDCMAirBomb1);
 	CheckSum(iSum, m_bDCMAirBomb2);
@@ -4348,6 +4357,8 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iVolleyAccuracy, "iVolleyAccuracy");
 	pXML->GetChildXmlValByName(&m_iVolleyAccuracyMin, "iVolleyAccuracyMin");
 	pXML->GetChildXmlValByName(&m_iVolleyEfficiency, "iVolleyEfficiency");
+	pXML->GetChildXmlValByName(&m_iVolleyRounds, "iVolleyRounds");
+	if ( m_iVolleyRounds < 1 ) m_iVolleyRounds = 1;
 	// ! Toffer
 
 	// Dale - AB: Bombing START
@@ -5004,6 +5015,8 @@ void CvUnitInfo::copyNonDefaults(CvUnitInfo* pClassInfo, CvXMLLoadUtility* pXML)
 	if ( m_iVolleyAccuracy == iDefault ) m_iVolleyAccuracy = pClassInfo->getVolleyAccuracy();
 	if ( m_iVolleyAccuracyMin == iDefault ) m_iVolleyAccuracyMin = pClassInfo->getVolleyAccuracyMin();
 	if ( m_iVolleyEfficiency == iDefault ) m_iVolleyEfficiency = pClassInfo->getVolleyEfficiency();
+	if ( m_iVolleyRounds == 1 ) m_iVolleyRounds = pClassInfo->getVolleyRounds();
+	if ( m_iVolleyRounds < 1 ) m_iVolleyRounds = 1;
 
 	/********************************************************************************/
 	/*		REVOLUTION_MOD							2/12/09				Afforess    */

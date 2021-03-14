@@ -1473,11 +1473,13 @@ public:
 	int getVolleyAccuracy() const;
 	int getVolleyAccuracyMin() const;
 	int getVolleyEfficiency() const;
+	int getVolleyRounds() const;
 protected:
 	int m_iVolleyRange;
 	int m_iVolleyAccuracy;
 	int m_iVolleyAccuracyMin;
 	int m_iVolleyEfficiency;
+	int m_iVolleyRounds;
 // ! Toffer
 
 /************************************************************************************************/

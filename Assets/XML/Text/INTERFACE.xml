@@ -14581,31 +14581,6 @@
         <Turkish>Gelişmiş Hava Bombardımanı</Turkish>
     </TEXT>
     <TEXT>
-        <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_ATTACK_SUPPORT_HOVER</Tag>
-        <English>Enables both offensive and defensive bombard units to bombard assist the attacking/defending unit while retaining their turn; is dependent on whether archer and ranged bombardment are enabled</English>
-        <French>Permet aux unités de bombardement (offensif et défensif) d'assister les attaquants ou défenseurs, tout les privant alors de la possibilité d'effectuer d'autres actions. Cette option dépend des choix concernant les options de bombardement et d'attaque à distance des archers.</French>
-        <German>Ermöglicht es, offensiven und defensiven Bombardierungseinheiten andere angreifende oder verteidigende Einheiten durch Bombardement zu unterstützen und dabei keinen Bewegungspunkt zu verlieren; hängt davon ab, ob Bogenschützen- und Fernbombardierung aktiviert sind</German>
-        <Spanish>Habilita a las unidades capaces de bombardeo a distancia, el apoyo tanto al ataque como a la defensa de otras unidades mientras permanezcan en su turno; depende de si está habilitado el bombardeo a distancia de arqueros y unidades de asedio.</Spanish>
-        <Polish>Pozwala atakujácym i broniácym się jednostkom majácych zdolnoäâ ataku dystansowego na wsparcie w ataku/obronie innej jednostki. To jest eksperymentalna opcja, symulujaca prawdziwa bitwe ládowa, gdzie jednostki oblęënicze i łucznicy po obu stronach dokonuja ostrzału linii frontu</Polish>
-        <Korean>유닛이 공격과 방어중 포격에 도움을 주는 공격적, 방어적 포격을 활성화 한다. 궁병과 원거리 포격의 활성여부에 의존한다.</Korean>
-        <Brazilian>Permite às unidades de bombardeio ofensivas e defensivas, bombardear ajudando a unidade atacando/defendendo enquanto estiver no seu turno; depende se o arqueiro e o bombardeio à distância estão permitidos</Brazilian>
-        <Ukrainian>Дозволяє атакуючим і захисним підрозділам з дистанційною атакою обстрілювати для підтримки атакуючого/захисного підрозділу, коли підходить їхній хід; для лучників це залежить від того, ви увімкнений у них дистанційних обстріл</Ukrainian>
-        <Turkish>Saldırı / savunma birimine hücumunu sürdürürken hücum ve savunma bombardıman birimlerine bombardıman yapmalarını sağlar; Okçu ve menzil bombardımanının etkin olup olmadığına bağlıdır</Turkish>
-    </TEXT>
-    <TEXT>
-        <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_ATTACK_SUPPORT_TEXT</Tag>
-        <English>Attack Support</English>
-        <French>Support d'attaques</French>
-        <German>Angriffsunterstützung</German>
-        <Spanish>Apoyo al Ataque</Spanish>
-        <Polish>Wsparcie</Polish>
-        <Korean>공격 지원</Korean>
-        <Czech>Podpora útoku</Czech>
-        <Brazilian>Suporte de Ataque</Brazilian>
-        <Ukrainian>Підтримка атаки</Ukrainian>
-        <Turkish>Saldırı Desteği</Turkish>
-    </TEXT>
-    <TEXT>
         <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_BATTLE_EFFECTS_HOVER</Tag>
         <English>Causes "Battlefield Terrain", which significantly reduces productivity and mobility on plots where a battle is fought</English>
         <French>Transforme les cases qui sont le théâtre d'un combat en "champs de bataille", réduisant de manière significative leur productivité et la mobilité des unités y accédant.</French>

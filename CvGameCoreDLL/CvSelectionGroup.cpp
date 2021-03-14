@@ -5050,67 +5050,6 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 /************************************************************************************************/
 /* DCM                      Battle Effects END                                                  */
 /************************************************************************************************/
-					// RevolutionDCM - attack support
-					if (GC.isDCM_ATTACK_SUPPORT())
-					{
-						if (pDestPlot->getNumUnits() < 1)
-						{
-							return bAttack;
-						}
-						pUnitNode = pDestPlot->headUnitNode();
-						while (pUnitNode != NULL)
-						{
-							pLoopUnit = ::getUnit(pUnitNode->m_data);
-							pUnitNode = pDestPlot->nextUnitNode(pUnitNode);
-							if (pLoopUnit == NULL) break;
-
-							if (plot() != NULL && GET_TEAM(pLoopUnit->getTeam()).isAtWar(getTeam()))
-							{
-								if (pLoopUnit->getDomainType() == DOMAIN_AIR)
-								{
-									if (!pLoopUnit->isSuicide())
-									{
-										pLoopUnit->updateAirStrike(plot(), false, true);//airStrike(plot()))
-									}
-								}
-								else if (pLoopUnit->canVolleyAt(pDestPlot, plot()->getX_INLINE(), plot()->getY_INLINE()))
-								{
-									pLoopUnit->doVolley(plot()->getX_INLINE(), plot()->getY_INLINE(), true);
-								}
-								pLoopUnit->setMadeAttack(false);
-							}
-						}
-
-						if (pOrigPlot->getNumUnits() < 1)
-						{
-							return bAttack;
-						}
-						pUnitNode = pOrigPlot->headUnitNode();
-						while (pUnitNode != NULL)
-						{
-							pLoopUnit = ::getUnit(pUnitNode->m_data);
-							pUnitNode = pOrigPlot->nextUnitNode(pUnitNode);
-
-							if (pLoopUnit != NULL && pDestPlot != NULL && plot() != NULL
-							&& pLoopUnit->getOwnerINLINE() == getOwnerINLINE())
-							{
-								if (pLoopUnit->getDomainType() == DOMAIN_AIR)
-								{
-									if (!pLoopUnit->isSuicide()
-									&& plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()) == 1)
-									{
-										pLoopUnit->updateAirStrike(pDestPlot, false, false);//airStrike(pDestPlot))
-									}
-								}
-								else if (pLoopUnit->canVolleyAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
-								{
-									pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), true);
-								}
-								pLoopUnit->setMadeAttack(false);
-							}
-						}
-					}
-					// RevolutionDCM - attack support end
 /************************************************************************************************/
 /* RevolutionDCM                               END                                              */
 /************************************************************************************************/
@@ -5152,7 +5091,7 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 										&& pLoopUnit->canVolleyAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
 										{
 											bFoundBombard = true;
-											pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), false);
+											pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE());
 										}
 									}
 								}
@@ -7688,74 +7627,6 @@ bool CvSelectionGroup::groupStackAttack(int iX, int iY, int iFlags, bool& bFaile
 /* RevolutionDCM	             Battle Effects END                                             */
 /************************************************************************************************/
 
-					// RevolutionDCM - attack support
-					if (GC.isDCM_ATTACK_SUPPORT())
-					{
-						if (pDestPlot->getNumUnits() < 1)
-						{
-							return bAttack;
-						}
-						pUnitNode = pDestPlot->headUnitNode();
-						while (pUnitNode != NULL)
-						{
-							pLoopUnit = ::getUnit(pUnitNode->m_data);
-							pUnitNode = pDestPlot->nextUnitNode(pUnitNode);
-							if (pLoopUnit == NULL)
-								break;
-							if (GET_TEAM(pLoopUnit->getTeam()).isAtWar(getTeam()))
-							{
-								if (plot() != NULL)
-								{
-									if (pLoopUnit->getDomainType() == DOMAIN_AIR)
-									{
-										if (!pLoopUnit->isSuicide())
-										{
-											pLoopUnit->updateAirStrike(plot(), false, true);//airStrike(plot()))
-										}
-									}
-									else if (pLoopUnit->canVolleyAt(pDestPlot, plot()->getX_INLINE(), plot()->getY_INLINE()))
-									{
-										if (pLoopUnit->doVolley(plot()->getX_INLINE(), plot()->getY_INLINE(), true))
-										{
-											bAction = true;
-										}
-									}
-									pLoopUnit->setMadeAttack(false);
-								}
-							}
-						}
-
-						if (pOrigPlot->getNumUnits() < 1)
-						{
-							return bAttack;
-						}
-						pUnitNode = pOrigPlot->headUnitNode();
-						while (pUnitNode != NULL)
-						{
-							pLoopUnit = ::getUnit(pUnitNode->m_data);
-							pUnitNode = pOrigPlot->nextUnitNode(pUnitNode);
-							if (pLoopUnit->getOwnerINLINE() == getOwnerINLINE())
-							{
-								if (pLoopUnit != NULL && this != NULL && pDestPlot != NULL && plot() != NULL)
-								{
-									if (pLoopUnit->getDomainType() == DOMAIN_AIR)
-									{
-										if (!pLoopUnit->isSuicide()
-										&& plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()) == 1)
-										{
-											pLoopUnit->updateAirStrike(pDestPlot, false, false);//airStrike(pDestPlot))
-										}
-									}
-									else if (pLoopUnit->canVolleyAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE())
-									&& pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), true))
-									{
-										bAction = true;
-									}
-									pLoopUnit->setMadeAttack(false);
-								}
-							}
-						}
-					}
 					// RevolutionDCM - attack support end
 					bool bBombardExhausted = false;
 					while (true)
@@ -7792,7 +7663,7 @@ bool CvSelectionGroup::groupStackAttack(int iX, int iY, int iFlags, bool& bFaile
 										&& pLoopUnit->canVolleyAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
 										{
 											bFoundBombard = true;
-											pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), false);
+											pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE());
 										}
 									}
 								}

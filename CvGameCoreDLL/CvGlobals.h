@@ -1044,7 +1044,6 @@ public:
 
 	bool isDCM_AIR_BOMBING();
 	int getDCM_RB_CITYBOMBARD_CHANCE();
-	bool isDCM_ATTACK_SUPPORT();
 	bool isDCM_STACK_ATTACK();
 	bool isDCM_OPP_FIRE();
 	bool isDCM_ACTIVE_DEFENSE();
@@ -1682,7 +1681,6 @@ protected:
 
 	bool m_bDCM_AIR_BOMBING;
 	int m_iDCM_RB_CITYBOMBARD_CHANCE;
-	bool m_bDCM_ATTACK_SUPPORT;
 	bool m_bDCM_STACK_ATTACK;
 	bool m_bDCM_OPP_FIRE;
 	bool m_bDCM_ACTIVE_DEFENSE;
@@ -1953,6 +1951,7 @@ public:
 	int getCOMBAT_DIE_SIDES();
 	int getCOMBAT_DAMAGE();
 	int getVOLLEY_STRENGTH();
+	int getVOLLEY_MIN_ACCURACY();
 
 protected:
 	bool m_bLFBEnable;
@@ -1968,6 +1967,7 @@ protected:
 	int m_iCOMBAT_DIE_SIDES;
 	int m_iCOMBAT_DAMAGE;
 	int m_iVOLLEY_STRENGTH;
+	int m_iVOLLEY_MIN_ACCURACY;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/

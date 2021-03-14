@@ -20,7 +20,6 @@
 /*                                                                                              */
 /************************************************************************************************/
 // Dale - DCM: Globals START
-#define	USE_DCM_ATTACK_SUPPORT							GC.isDCM_ATTACK_SUPPORT()
 #define	USE_BATTLE_EFFECTS								GC.isDCM_BATTLE_EFFECTS()
 #define	USE_DCM_AIR_BOMBING								GC.isDCM_AIR_BOMBING()
 #define	USE_DCM_CIV_CHANGER								GC.isDCM_CIV_CHANGER()

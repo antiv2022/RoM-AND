@@ -1153,7 +1153,7 @@ public:
 	bool canReduceCityDefense(const CvPlot* pFromPlot = NULL, const bool bIgnoreMadeAttack = false) const;
 	bool canVolley() const;
 	bool canVolleyAt(const CvPlot* pFromPlot, int iX, int iY) const;
-	bool doVolley(int iX, int iY, bool supportAttack = false);
+	bool doVolley(int iX, int iY);
 private:
 	int m_iDCMBombRange;
 	int m_iDCMBombAccuracy;

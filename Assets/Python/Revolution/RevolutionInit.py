@@ -255,9 +255,6 @@ class RevolutionInit :
 		if RevDCMOpt.isDCM_STACK_ATTACK():
 			revComponentsText += self.optionFormat + localText.getText("TXT_KEY_REV_MOD_INITIALIZING_STACK_ATTACK",())
 			anyOption = True
-		if RevDCMOpt.isDCM_ATTACK_SUPPORT():
-			revComponentsText += self.optionFormat + localText.getText("TXT_KEY_REV_MOD_INITIALIZING_ATTACK_SUPPORT",())
-			anyOption = True
 		if RevDCMOpt.isDCM_OPP_FIRE():
 			revComponentsText += self.optionFormat + localText.getText("TXT_KEY_REV_MOD_INITIALIZING_OPP_FIRE",())
 			anyOption = True
