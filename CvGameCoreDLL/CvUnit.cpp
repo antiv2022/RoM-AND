@@ -22414,7 +22414,6 @@ void CvUnit::doOpportunityFire()
 	}
 	if (pDefender != NULL)
 	{
-		setBattlePlot(pAttackPlot, pDefender);
 		pDefender->changeDamage(GC.getGameINLINE().getSorenRandNum(bombardRate(), "Bombard damage") * 5, getOwner());
 		{
 			MEMORY_TRACK_EXEMPT();
@@ -22672,7 +22671,6 @@ bool CvUnit::doVolley(int iX, int iY)
 					pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true
 				);
 			}
-			setBattlePlot(pPlot, pVictim);
 		}
 		else
 		{
