@@ -1143,27 +1143,18 @@ public:
 	bool canAirBomb5At(const CvPlot* pPlot, int iX, int iY) const;
 	bool airBomb5(int iX, int iY);
 // Dale - AB: Bombing END
-// Dale - RB: Field Bombard START
-	bool canRBombard(const CvPlot* pPlot) const;
-	bool canBombardAtRanged(const CvPlot* pPlot, int iX, int iY) const;
-	bool bombardRanged(int iX, int iY, bool sAttack = false);
-	// RevolutionDCM - ranged bombard
-	bool isRbombardable(int iMinStack);
-	int getRbombardSeigeCount(CvPlot* pPlot);
-	// RevolutionDCM - end
 
-	DllExport int getDCMBombRange() const;
-	DllExport int getDCMBombAccuracy() const;
+	int getVolleyRange() const;
+	int getVolleyAccuracy(const int iDistance) const;
+	int getVolleyDamage(const CvUnit* pVictim) const;
+	bool canReduceCityDefense(const CvPlot* pFromPlot = NULL, const bool bIgnoreMadeAttack = false) const;
+	bool canVolley() const;
+	bool canVolleyAt(const CvPlot* pFromPlot, int iX, int iY) const;
+	bool doVolley(int iX, int iY);
 private:
-	int m_iDCMBombRange;
-	int m_iDCMBombAccuracy;
+	int m_iVolleyRange;
+	int m_iVolleyAccuracy;
 public:
-// Dale - RB: Field Bombard END
-// Dale - ARB: Archer Bombard START
-	bool canArcherBombard(const CvPlot* pPlot) const;
-	bool canArcherBombardAt(const CvPlot* pPlot, int iX, int iY) const;
-	bool archerBombard(int iX, int iY, bool supportAttack = false);
-// Dale - ARB: Archer Bombard END
 // Dale - SA: Stack Attack START
 	void updateStackCombat(bool bQuick = false);
 // Dale - SA: Stack Attack END

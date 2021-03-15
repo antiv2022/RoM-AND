@@ -474,16 +474,9 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 	// Uninit class
 	uninit();
 
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-	// Dale - RB: Field Bombard START
-	m_iDCMBombRange = 0;
-	m_iDCMBombAccuracy = 0;
-	// Dale - RB: Field Bombard END
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
+	m_iVolleyRange = 0;
+	m_iVolleyAccuracy = 0;
+
 	// < M.A.D. Nukes Start >
 	m_bMADEnabled = false;
 	m_bForcedMove = false;
@@ -8120,35 +8113,30 @@ CvCity* CvUnit::bombardTarget(const CvPlot* pPlot) const
 		{
 			CvCity* pLoopCity = pLoopPlot->getPlotCity();
 
-			if (pLoopCity != NULL)
+			if (pLoopCity != NULL && pLoopCity->isBombardable(this))
 			{
-				if (pLoopCity->isBombardable(this))
+				const int iValue = pLoopCity->getDefenseDamage();
+
+				if (iValue < iBestValue)
 				{
-					int iValue = pLoopCity->getDefenseDamage();
-
-					// always prefer cities we are at war with
-					if (isEnemy(pLoopCity->getTeam(), pPlot))
-					{
-						iValue *= 128;
-					}
-
-					if (iValue < iBestValue)
-					{
-						iBestValue = iValue;
-						pBestCity = pLoopCity;
-					}
+					iBestValue = iValue;
+					pBestCity = pLoopCity;
 				}
 			}
 		}
 	}
-
 	return pBestCity;
 }
 
 
 bool CvUnit::canBombard(const CvPlot* pPlot, bool bIgnoreHasAttacked) const
 {
-	if (bombardRate() <= 0)
+	if (bombardRate() <= 0 || bombardTarget(pPlot) == NULL)
+	{
+		return false;
+	}
+
+	if (isCargo() || getDomainType() == DOMAIN_AIR)
 	{
 		return false;
 	}
@@ -8157,17 +8145,6 @@ bool CvUnit::canBombard(const CvPlot* pPlot, bool bIgnoreHasAttacked) const
 	{
 		return false;
 	}
-
-	if (isCargo())
-	{
-		return false;
-	}
-
-	if (bombardTarget(pPlot) == NULL)
-	{
-		return false;
-	}
-
 	return true;
 }
 
@@ -8188,54 +8165,43 @@ bool CvUnit::bombard()
 	{
 		CvPlot* pTargetPlot = pBombardCity->plot();
 
-		if (!isEnemy(pTargetPlot->getTeam()))
-		{
-			getGroup()->groupDeclareWar(pTargetPlot, true);
-		}
+		const int iBombardDefense = ignoreBuildingDefense() ? 0 : pBombardCity->getBuildingBombardDefense();
 
-		if (!isEnemy(pTargetPlot->getTeam()))
-		{
-			return false;
-		}
-
-		int iBombardModifier = 0;
-		if (!ignoreBuildingDefense())
-		{
-			iBombardModifier -= pBombardCity->getBuildingBombardDefense();
-		}
-
-		pBombardCity->changeDefenseModifier(-(bombardRate() * std::max(0, 100 + iBombardModifier)) / 100);
+		pBombardCity->changeDefenseModifier(-bombardRate() * std::max(0, 100 - iBombardDefense) / 100);
 
 		setMadeAttack(true);
 		changeMoves(GC.getMOVE_DENOMINATOR());
-
 		{
 			MEMORY_TRACK_EXEMPT();
-
-			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO", pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false), GET_PLAYER(getOwnerINLINE()).getNameKey());
-			AddDLLMessage(pBombardCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE(), true, true);
-
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES", getNameKey(), pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false));
-			AddDLLMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE());
+			AddDLLMessage(
+				pBombardCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText(
+					"TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO",
+					pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false), GET_PLAYER(getOwnerINLINE()).getNameKey()
+				),
+				"AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+				pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE(), true, true
+			);
+			AddDLLMessage(
+				getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText(
+					"TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES",
+					getNameKey(), pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false)
+				),
+				"AS2D_BOMBARD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+				pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE()
+			);
 		}
-/************************************************************************************************/
-/* Afforess	                  Start		 07/22/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
 		if (GC.getGameINLINE().isModderGameOption(MODDERGAMEOPTION_IMPROVED_XP))
 		{
 			 setExperience100(getExperience100() + getRandomMinExperienceTimes100(), -1);
 		}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 
 		if (pPlot->isActiveVisible(false))
 		{
 			CvUnit *pDefender = pBombardCity->plot()->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
 
-			if ( pDefender != NULL && !pDefender->isUsingDummyEntities() )
+			if (pDefender != NULL && !pDefender->isUsingDummyEntities())
 			{
 				// Bombard entity mission
 				CvMissionDefinition kDefiniton;
@@ -12214,15 +12180,10 @@ BuildTypes CvUnit::getBuildType() const
 		case MISSION_AIRBOMB4:
 		case MISSION_AIRBOMB5:
 		// Dale - AB: Bombing END
-		// Dale - RB: Field Bombard START
-		case MISSION_RBOMBARD:
-		// Dale - RB: Field Bombard END
-		// Dale - ARB: Archer Bombard START
-		case MISSION_ABOMBARD:
-		// Dale - ARB: Archer Bombard END
 		// Dale - FE: Fighters START
 		case MISSION_FENGAGE:
 		// Dale - FE: Fighters END
+		case MISSION_VOLLEY:
 /************************************************************************************************/
 /* Afforess	                  Start		 06/05/10                                               */
 /*                                                                                              */
@@ -13877,7 +13838,7 @@ bool CvUnit::hasSubCombatType(UnitCombatTypes eCombatType) const
 
 int CvUnit::collateralDamage() const
 {
-	return std::max(0, (m_pUnitInfo->getCollateralDamage()));
+	return std::max(0, m_pUnitInfo->getCollateralDamage());
 }
 
 
@@ -14583,7 +14544,7 @@ bool CvUnit::canJoinGroup(const CvPlot* pPlot, CvSelectionGroup* pSelectionGroup
 	return true;
 }
 
-//Original code - START 
+//Original code - START
 void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, bool bRejoin)
 {
 	if (GC.getGameINLINE().isNetworkMultiPlayer())
@@ -18338,8 +18299,8 @@ void CvUnit::resync(bool bWrite, ByteBuffer* pBuffer)
 	RESYNC_INT(bWrite, pBuffer, m_iY);
 	RESYNC_INT_WITH_CAST(bWrite, pBuffer, m_eFacingDirection, DirectionTypes);
 
-	RESYNC_INT(bWrite, pBuffer, m_iDCMBombRange);
-	RESYNC_INT(bWrite, pBuffer, m_iDCMBombAccuracy);
+	RESYNC_INT(bWrite, pBuffer, m_iVolleyRange);
+	RESYNC_INT(bWrite, pBuffer, m_iVolleyAccuracy);
 	RESYNC_BOOL(bWrite, pBuffer, m_bMADEnabled);
 	RESYNC_INT(bWrite, pBuffer, m_iMADTargetPlotX);
 	RESYNC_INT(bWrite, pBuffer, m_iMADTargetPlotY);
@@ -18465,16 +18426,9 @@ void CvUnit::read(FDataStreamBase* pStream)
 	uint uiFlag=0;
 	WRAPPER_READ(wrapper, "CvUnit", &uiFlag);	// flags for expansion
 
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-	// Dale - RB: Field Bombard START
-	WRAPPER_READ(wrapper, "CvUnit", &m_iDCMBombRange);
-	WRAPPER_READ(wrapper, "CvUnit", &m_iDCMBombAccuracy);
-	// Dale - RB: Field Bombard END
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
+	WRAPPER_READ(wrapper, "CvUnit", &m_iVolleyRange);
+	WRAPPER_READ(wrapper, "CvUnit", &m_iVolleyAccuracy);
+
 	// < M.A.D. Nukes Start >
 	WRAPPER_READ(wrapper, "CvUnit", &m_bMADEnabled);
 	WRAPPER_READ(wrapper, "CvUnit", &m_iMADTargetPlotX);
@@ -18966,16 +18920,9 @@ void CvUnit::write(FDataStreamBase* pStream)
 	uint uiFlag=4;
 	WRAPPER_WRITE(wrapper, "CvUnit", uiFlag);		// flag for expansion
 
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-	// Dale - RB: Field Bombard START
-	WRAPPER_WRITE(wrapper, "CvUnit", m_iDCMBombRange);
-	WRAPPER_WRITE(wrapper, "CvUnit", m_iDCMBombAccuracy);
-	// Dale - RB: Field Bombard END
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
+	WRAPPER_WRITE(wrapper, "CvUnit", m_iVolleyRange);
+	WRAPPER_WRITE(wrapper, "CvUnit", m_iVolleyAccuracy);
+
 	// < M.A.D. Nukes Start >
 	WRAPPER_WRITE(wrapper, "CvUnit", m_bMADEnabled);
 	WRAPPER_WRITE(wrapper, "CvUnit", m_iMADTargetPlotX);
@@ -19223,72 +19170,45 @@ bool CvUnit::canAdvance(const CvPlot* pPlot, int iThreshold) const
 
 void CvUnit::collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit)
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	CvUnit* pBestUnit;
-	CvWString szBuffer;
-	int iTheirStrength;
-	int iStrengthFactor;
-	int iCollateralDamage;
-	int iUnitDamage;
-	int iDamageCount;
-	int iPossibleTargets;
-	int iCount;
-	int iValue;
-	int iBestValue;
-	std::map<CvUnit*, int> mapUnitDamage;
-	std::map<CvUnit*, int>::iterator it;
-
-	int iCollateralStrength = (getDomainType() == DOMAIN_AIR ? airBaseCombatStr() : baseCombatStr()) * collateralDamage() / 100;
+	const bool bAirDomain = getDomainType() == DOMAIN_AIR;
+	const int iCollateralStrength = (bAirDomain ? airBaseCombatStr() : baseCombatStr()) * collateralDamage() / 100;
+	const int iExtraCollateralDamage = getExtraCollateralDamage();
 	// UNOFFICIAL_PATCH Start
 	// * Barrage promotions made working again on Tanks and other units with no base collateral ability
-	if (iCollateralStrength == 0 && getExtraCollateralDamage() == 0)
+	if (iCollateralStrength == 0 && iExtraCollateralDamage == 0)
 	// UNOFFICIAL_PATCH End
 	{
 		return;
 	}
+	int iBestValue;
+	std::map<CvUnit*, int> mapUnitDamage;
+	std::map<CvUnit*, int>::iterator it;
 
-	iPossibleTargets = std::min((pPlot->getNumVisibleEnemyDefenders(this) - 1), collateralDamageMaxUnits());
+	const int iPossibleTargets = std::min((pPlot->getNumVisibleEnemyDefenders(this) - 1), collateralDamageMaxUnits());
 
-	pUnitNode = pPlot->headUnitNode();
+	CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
 
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = pPlot->nextUnitNode(pUnitNode);
 
-		if (pLoopUnit != pSkipUnit)
+		if (pLoopUnit != pSkipUnit && isEnemy(pLoopUnit->getTeam(), pPlot)
+		&& !pLoopUnit->isInvisible(getTeam(), false) && pLoopUnit->canDefend())
 		{
-			if (isEnemy(pLoopUnit->getTeam(), pPlot))
-			{
-				if (!(pLoopUnit->isInvisible(getTeam(), false)))
-				{
-					if (pLoopUnit->canDefend())
-					{
-						iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "Collateral Damage"));
-
-						iValue *= pLoopUnit->currHitPoints();
-
-						mapUnitDamage[pLoopUnit] = iValue;
-					}
-				}
-			}
+			mapUnitDamage[pLoopUnit] = pLoopUnit->currHitPoints() * (1 + GC.getGameINLINE().getSorenRandNum(10000, "Collateral Damage"));
 		}
 	}
 
-	CvCity* pCity = NULL;
-	if (getDomainType() == DOMAIN_AIR)
-	{
-		pCity = pPlot->getPlotCity();
-	}
+	const CvCity* pCity = bAirDomain ? pPlot->getPlotCity() : NULL;
 
-	iDamageCount = 0;
-	iCount = 0;
+	int iDamageCount = 0;
+	int iCount = 0;
 
 	while (iCount < iPossibleTargets)
 	{
 		iBestValue = 0;
-		pBestUnit = NULL;
+		CvUnit* pBestUnit = NULL;
 
 		for (it = mapUnitDamage.begin(); it != mapUnitDamage.end(); ++it)
 		{
@@ -19299,64 +19219,65 @@ void CvUnit::collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit)
 			}
 		}
 
-		if (pBestUnit != NULL)
-		{
-			mapUnitDamage.erase(pBestUnit);
-
-			if (NO_UNITCOMBAT == getUnitCombatType() || !pBestUnit->getUnitInfo().getUnitCombatCollateralImmune(getUnitCombatType()))
-			{
-				iTheirStrength = pBestUnit->baseCombatStr();
-
-				iStrengthFactor = ((iCollateralStrength + iTheirStrength + 1) / 2);
-
-				iCollateralDamage = (GC.getDefineINT("COLLATERAL_COMBAT_DAMAGE") * (iCollateralStrength + iStrengthFactor)) / (iTheirStrength + iStrengthFactor);
-
-				iCollateralDamage *= 100 + getExtraCollateralDamage();
-
-				iCollateralDamage *= std::max(0, 100 - pBestUnit->getCollateralDamageProtection());
-				iCollateralDamage /= 100;
-
-				if (pCity != NULL)
-				{
-					iCollateralDamage *= 100 + pCity->getAirModifier();
-					iCollateralDamage /= 100;
-				}
-
-				iCollateralDamage /= 100;
-
-				iCollateralDamage = std::max(0, iCollateralDamage);
-
-				int iMaxDamage = std::min(collateralDamageLimit(), (collateralDamageLimit() * (iCollateralStrength + iStrengthFactor)) / (iTheirStrength + iStrengthFactor));
-				iUnitDamage = std::max(pBestUnit->getDamage(), std::min(pBestUnit->getDamage() + iCollateralDamage, iMaxDamage));
-
-				if (pBestUnit->getDamage() != iUnitDamage)
-				{
-// BUG - Combat Events - start
-					int iDamageDone = iUnitDamage - pBestUnit->getDamage();
-					pBestUnit->setDamage(iUnitDamage, getOwnerINLINE());
-					CvEventReporter::getInstance().combatLogCollateral(this, pBestUnit, iDamageDone);
-// BUG - Combat Events - end
-					iDamageCount++;
-				}
-			}
-
-			iCount++;
-		}
-		else
+		if (pBestUnit == NULL)
 		{
 			break;
 		}
+		mapUnitDamage.erase(pBestUnit);
+
+		if (NO_UNITCOMBAT == getUnitCombatType() || !pBestUnit->getUnitInfo().getUnitCombatCollateralImmune(getUnitCombatType()))
+		{
+			const int iTheirStrength = pBestUnit->baseCombatStr();
+			const int iStrengthFactor = (iCollateralStrength + iTheirStrength + 1) / 2;
+
+			int iCollateralDamage = GC.getDefineINT("COLLATERAL_COMBAT_DAMAGE") * (iCollateralStrength + iStrengthFactor) / (iTheirStrength + iStrengthFactor);
+
+			iCollateralDamage *= 100 + iExtraCollateralDamage;
+
+			iCollateralDamage *= std::max(0, 100 - pBestUnit->getCollateralDamageProtection());
+			iCollateralDamage /= 100;
+
+			if (pCity != NULL)
+			{
+				iCollateralDamage *= 100 + pCity->getAirModifier();
+				iCollateralDamage /= 100;
+			}
+
+			iCollateralDamage /= 100;
+
+			iCollateralDamage = std::max(0, iCollateralDamage);
+
+			int iMaxDamage = std::min(collateralDamageLimit(), (collateralDamageLimit() * (iCollateralStrength + iStrengthFactor)) / (iTheirStrength + iStrengthFactor));
+			const int iUnitDamage = std::max(pBestUnit->getDamage(), std::min(pBestUnit->getDamage() + iCollateralDamage, iMaxDamage));
+
+			if (pBestUnit->getDamage() != iUnitDamage)
+			{
+				// BUG - Combat Events - start
+				int iDamageDone = iUnitDamage - pBestUnit->getDamage();
+				pBestUnit->setDamage(iUnitDamage, getOwnerINLINE());
+				CvEventReporter::getInstance().combatLogCollateral(this, pBestUnit, iDamageDone);
+				// BUG - Combat Events - end
+				iDamageCount++;
+			}
+		}
+		iCount++;
 	}
 
 	if (iDamageCount > 0)
 	{
 		MEMORY_TRACK_EXEMPT();
-
-		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_SUFFER_COL_DMG", iDamageCount);
-		AddMessage(pSkipUnit->getOwnerINLINE(), (pSkipUnit->getDomainType() != DOMAIN_AIR), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pSkipUnit->getX_INLINE(), pSkipUnit->getY_INLINE(), true, true);
-
-		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_INFLICT_COL_DMG", getNameKey(), iDamageCount);
-		AddMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pSkipUnit->getX_INLINE(), pSkipUnit->getY_INLINE());
+		AddMessage(
+			pSkipUnit->getOwnerINLINE(), pSkipUnit->getDomainType() != DOMAIN_AIR, GC.getEVENT_MESSAGE_TIME(),
+			gDLL->getText("TXT_KEY_MISC_YOU_SUFFER_COL_DMG", iDamageCount),
+			"AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+			pSkipUnit->getX_INLINE(), pSkipUnit->getY_INLINE(), true, true
+		);
+		AddMessage(
+			getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+			gDLL->getText("TXT_KEY_MISC_YOU_INFLICT_COL_DMG", getNameKey(), iDamageCount),
+			"AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+			pSkipUnit->getX_INLINE(), pSkipUnit->getY_INLINE()
+		);
 	}
 }
 
@@ -21643,415 +21564,6 @@ bool CvUnit::airBomb5(int iX, int iY)
 }
 // Dale - AB: Bombing END
 
-// Dale - RB: Field Bombard START
-bool CvUnit::canRBombard(const CvPlot* pPlot) const
-{
-
-	if (!GC.isDCM_RANGE_BOMBARD())
-	{
-		return false;
-	}
-
-	if(getDCMBombRange() <= 0)
-	{
-        return false;
-	}
-
-	if (getDomainType() == DOMAIN_AIR)
-	{
-		return false;
-	}
-	// RevolutionDCM - end
-
-	if (bombardRate() <= 0)
-	{
-		return false;
-	}
-
-	if (isMadeAttack())
-	{
-		return false;
-	}
-
-	if (isCargo())
-	{
-		return false;
-	}
-
-	return true;
-}
-
-bool CvUnit::canBombardAtRanged(const CvPlot* pPlot, int iX, int iY) const
-{
-	CvCity* pCity;
-	CvPlot* pTargetPlot;
-	if (!canRBombard(pPlot))
-	{
-		return false;
-	}
-
-	if(iX < 0 || iY < 0)
-	{
-		return false;
-	}
-	pTargetPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-
-	if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE()) > getDCMBombRange())
-	{
-		return false;
-	}
-
-	if (pTargetPlot->isOwned())
-	{
-		if(pTargetPlot->getTeam() != getTeam())
-		{
-			if (!atWar(pTargetPlot->getTeam(), getTeam()))
-			{
-				return false;
-			}
-		}
-	}
-	pCity = pTargetPlot->getPlotCity();
-	if (pCity != NULL)
-	{
-		if (!(pCity->isBombardable(this)))
-		{
-			if(pTargetPlot->getNumVisibleEnemyDefenders(this) == 0)
-			{
-                return false;
-			}
-		}
-	} else {
-		if(pTargetPlot->getNumVisibleEnemyDefenders(this) == 0)
-		{
-			if (pTargetPlot->getImprovementType() == NO_IMPROVEMENT)
-			{
-				return false;
-			}
-			if (GC.getImprovementInfo(pTargetPlot->getImprovementType()).isPermanent())
-			{
-				return false;
-			}
-			if (GC.getImprovementInfo(pTargetPlot->getImprovementType()).getAirBombDefense() == -1)
-			{
-				return false;
-			}
-		}
-	}
-	return true;
-}
-
-// RevolutionDCM - significant chances to this function
-bool CvUnit::bombardRanged(int iX, int iY, bool sAttack)
-{
-	CvCity* pCity;
-	CvPlot* pPlot;
-	CvWString szBuffer;
-	CvUnit* pLoopUnit = NULL;
-
-	if (!canBombardAtRanged(plot(), iX, iY))
-	{
-		return false;
-	}
-
-	pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-	if (pPlot == NULL)
-	{
-		return false;
-	}
-
-	int modified_accuracy = GC.getDCM_RB_CITY_INACCURACY();
-	if (modified_accuracy <= 0)
-	{
-		modified_accuracy = 350; // default
-	}
-
-	int modified_miss = GC.getDCM_RB_CITYBOMBARD_CHANCE();
-	if (modified_miss <= 0)
-	{
-		modified_miss = 5; // default
-	}
-
-	pCity = pPlot->getPlotCity();
-	if (pCity != NULL)
-	{
-		int bombardCity = GC.getGameINLINE().getSorenRandNum(modified_miss, "Range Bombard City");
-		// Introduce a slight chance that ranged bombardment hits city defenders rather than defenses
-		if(pCity->isBombardable(this) && bombardCity > 0)
-		{
-			// RevolutionDCM - city bombard no different from vanilla in essense.
-			int iBombardModifier = 0;
-
-			if (!ignoreBuildingDefense())
-			{
-				iBombardModifier -= pCity->getBuildingBombardDefense();
-			}
-			// RevolutionDCM - only difference to standard city bombardment is to scale back
-			// bombard damage according to distance from the city.
-			int distance = plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-			if (distance > 1)
-			{
-				iBombardModifier = -50;
-			}
-
-			pCity->changeDefenseModifier(-(bombardRate() * std::max(0, 100 + iBombardModifier)) / 100);
-
-			setMadeAttack(true);
-			changeMoves(GC.getMOVE_DENOMINATOR());
-
-			{
-				MEMORY_TRACK_EXEMPT();
-
-				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO", pCity->getNameKey(), pCity->getDefenseModifier(false), GET_PLAYER(getOwnerINLINE()).getNameKey());
-				AddMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX_INLINE(), pCity->getY_INLINE(), true, true);
-
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES", getNameKey(), pCity->getNameKey(), pCity->getDefenseModifier(false));
-				AddMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX_INLINE(), pCity->getY_INLINE());
-			}
-/************************************************************************************************/
-/* RevolutionDCM	                  Start		 05/31/10                        Afforess       */
-/*                                                                                              */
-/* Battle Effects                                                                               */
-/************************************************************************************************/
-			setBattlePlot(pPlot);
-/************************************************************************************************/
-/* RevolutionDCM	             Battle Effects END                                             */
-/************************************************************************************************/
-		} else
-		{
-			// Give a reduced chance of range bombarding city defenders by default
-			int odds = modified_accuracy;
-			// Occasionally give city bombard a better chance at hitting city defenders if the city defenses
-			// are still bombardable. This produces differentiation from standard bombard that seige also have
-			// available to them as an option, and compensates range bombard for not lowering city defenses.
-			if (pCity->isBombardable(this) && bombardCity == 0)
-			{
-				odds = 100;
-			}
-			// standard odds made worse if greater than one tile out
-			int shotDistance = plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-			odds += (shotDistance - 1) * 50;
-
-			pLoopUnit = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-			if (pLoopUnit != NULL)
-			{
-				// RevolutionDCM - change proposal to ranged bombardment. Only collateral damage can be issued.
-				if (GC.getGameINLINE().getSorenRandNum(odds, "Bombard Accuracy") <= getDCMBombAccuracy())
-				{
-					{
-						MEMORY_TRACK_EXEMPT();
-
-						szBuffer = gDLL->getText("TXT_KEY_HAS_RANGED_BOMBARD_ATTACKED", getNameKey());
-						AddMessage(getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE());
-						szBuffer = gDLL->getText("TXT_KEY_HAS_BEEN_RANGED_BOMBARD_ATTACKED", getNameKey());
-						AddMessage(pLoopUnit->getOwnerINLINE(), false, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
-					}
-					collateralCombat(pPlot, pLoopUnit);
-				}
-				else
-				{
-					MEMORY_TRACK_EXEMPT();
-
-					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_BOMB_MISSED", getNameKey());
-					AddMessage(getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE());
-					szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_BOMB_MISSED", getNameKey());
-					AddMessage(pLoopUnit->getOwnerINLINE(), false, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE(), true, true);
-				}
-			}
-/************************************************************************************************/
-/* RevolutionDCM	                  Start		 05/31/10                        Afforess       */
-/*                                                                                              */
-/* Battle Effects                                                                               */
-/************************************************************************************************/
-			setBattlePlot(pPlot);
-/************************************************************************************************/
-/* RevolutionDCM	             Battle Effects END                                             */
-/************************************************************************************************/
-		}
-	} else
-	{
-		// Field bombard case. If bombarding from a city, odds of success are reduced
-		// For the sake of game balance by default.
-		int odds = 100;
-		if (plot()->getPlotCity() != NULL)
-		{
-			odds = modified_accuracy;
-		}
-		// standard odds made worse if greater than one tile out
-		int shotDistance = plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-		odds += (shotDistance - 1) * 50;
-
-		pLoopUnit = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-		if (pLoopUnit != NULL)
-		{
-			//RevolutionDCM - change proposal to ranged bombardment. Only collateral damage can be issued.
-			if (GC.getGameINLINE().getSorenRandNum(odds, "Bombard Accuracy") <= getDCMBombAccuracy())
-			{
-				{
-					MEMORY_TRACK_EXEMPT();
-
-					szBuffer = gDLL->getText("TXT_KEY_HAS_RANGED_BOMBARD_ATTACKED", getNameKey());
-					AddMessage(getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE());
-					szBuffer = gDLL->getText("TXT_KEY_HAS_BEEN_RANGED_BOMBARD_ATTACKED", getNameKey());
-					AddMessage(pLoopUnit->getOwnerINLINE(), false, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
-				}
-				collateralCombat(pPlot, pLoopUnit);
-			}
-			else
-			{
-				MEMORY_TRACK_EXEMPT();
-
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_BOMB_MISSED", getNameKey());
-				AddMessage(getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE());
-				szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_BOMB_MISSED", getNameKey());
-				AddMessage(pLoopUnit->getOwnerINLINE(), false, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE(), true, true);
-			}
-/************************************************************************************************/
-/* RevolutionDCM	                  Start		 05/31/10                        Afforess       */
-/*                                                                                              */
-/* Battle Effects                                                                               */
-/************************************************************************************************/
-			setBattlePlot(pPlot);
-/************************************************************************************************/
-/* RevolutionDCM	             Battle Effects END                                             */
-/************************************************************************************************/
-		} else
-		{
-			// Plot bombardment
-			if (pPlot->getImprovementType() != NO_IMPROVEMENT)
-			{
-				if (GC.getGameINLINE().getSorenRandNum(bombardRate(), "Bomb - Offense") >=
-						GC.getGameINLINE().getSorenRandNum(GC.getImprovementInfo(pPlot->getImprovementType()).getAirBombDefense(), "Bomb - Defense"))
-				{
-					{
-						MEMORY_TRACK_EXEMPT();
-
-						szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_IMP", getNameKey(), GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
-						AddMessage(getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-						if (pPlot->isOwned())
-						{
-							szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_IMP_WAS_DESTROYED", GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide(), getNameKey(), GET_PLAYER(getOwnerINLINE()).getCivilizationAdjectiveKey());
-							AddMessage(pPlot->getOwnerINLINE(), false, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
-						}
-					}
-					pPlot->setImprovementType((ImprovementTypes)(GC.getImprovementInfo(pPlot->getImprovementType()).getImprovementPillage()));
-				}
-				else
-				{
-					MEMORY_TRACK_EXEMPT();
-
-					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_FAIL_DESTROY_IMP", getNameKey(), GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
-					AddMessage(getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMB_FAILS", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-				}
-			}
-/************************************************************************************************/
-/* RevolutionDCM	                  Start		 05/31/10                        Afforess       */
-/*                                                                                              */
-/* Battle Effects                                                                               */
-/************************************************************************************************/
-			setBattlePlot(pPlot);
-/************************************************************************************************/
-/* RevolutionDCM	             Battle Effects END                                             */
-/************************************************************************************************/
-		}
-	}
-	if (!sAttack)
-	{
-		setMadeAttack(true);
-		changeMoves(GC.getMOVE_DENOMINATOR());
-	}
-
-	if (pPlot->isActiveVisible(false))
-	{
-		// Bombard entity mission
-		CvMissionDefinition kDefiniton;
-		kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_RBOMBARD).getTime() * gDLL->getSecsPerTurn());
-		kDefiniton.setMissionType(MISSION_BOMBARD);
-		kDefiniton.setPlot(pPlot);
-		kDefiniton.setUnit(BATTLE_UNIT_ATTACKER, this);
-		kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, pLoopUnit);
-		addMission(&kDefiniton);
-	}
-	return true;
-}
-
-// RevolutionDCM - ranged bombard
-// Estimate if a unit stack is worth range bombarding
-bool CvUnit::isRbombardable(int iMinStack)
-{
-	int collateralCount = 0;
-	int averageDamage = 0;
-	int averageProtection = 0;
-	int seigeCount = 0;
-
-	CvUnit* nextUnit = NULL;
-	int unitCount = plot()->getNumUnits();
-	if (unitCount >= iMinStack)
-	{
-		for (int i = 0; i < unitCount; i++)
-		{
-			nextUnit = plot()->getUnitByIndex(i);
-			if (nextUnit != NULL)
-			{
-				if (nextUnit->canRBombard(plot()))
-				{
-					seigeCount++;
-				}
-				averageDamage += nextUnit->getDamage();
-				averageProtection += nextUnit->getCollateralDamageProtection();
-			}
-		}
-		if (unitCount > 0)
-		{
-			collateralCount = unitCount - seigeCount;
-			averageDamage /= unitCount;
-			averageProtection /= unitCount;
-			if (collateralCount > 1 && collateralCount < 8 && averageDamage < 40 && averageProtection < 10)
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-int CvUnit::getRbombardSeigeCount(CvPlot* pPlot)
-{
-	CvUnit* nextUnit = NULL;
-	int seigeCount = 0;
-
-	if (pPlot == NULL)
-	{
-		return 0;
-	}
-
-	int unitCount = pPlot->getNumUnits();
-	for (int i = 0; i < unitCount; i++)
-	{
-		nextUnit = pPlot->getUnitByIndex(i);
-		if (nextUnit != NULL)
-		{
-			if (nextUnit->canRBombard(pPlot))
-			{
-				seigeCount++;
-			}
-		}
-	}
-	return seigeCount;
-}
-// RevolutionDCM - end
-
-int CvUnit::getDCMBombRange() const
-{
-	return GC.getUnitInfo(getUnitType()).getDCMBombRange();
-}
-
-int CvUnit::getDCMBombAccuracy() const
-{
-	return GC.getUnitInfo(getUnitType()).getDCMBombAccuracy();
-}
-// Dale - RB: Field Bombard END
-
 // Dale - SA: Stack Attack START
 void CvUnit::updateStackCombat(bool bQuick)
 {
@@ -22555,85 +22067,62 @@ void CvUnit::doOpportunityFire()
 	//There is absolutely zero resistability to this damage and no potential for failure to strike, making it far more powerful than any player determined
 	//action.  Once I get to focusing in on the Bombard function and adding some more dynamics there to address the above noted issues,
 	//I'll have to enforce those mechanisms onto this Opportunity Fire process as well.
-	int iI;
-	int iUnitDamage = 0;
-	int iVolumeDefenders = 0;
-	int iBestUnitStr = 0;
-	int ipDefenderStr = 0;
-	CvPlot* pLoopPlot;
+
+	if (!GC.isDCM_OPP_FIRE() || !canVolley() || getFortifyTurns() < 0)
+	{
+		return;
+	}
 	CvPlot* pAttackPlot = NULL;
 	CvUnit* pDefender = NULL;
-	CvWString szBuffer;
-	CvUnit* pBestUnit;
+	int iBest = 0;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+	{
+		CvPlot* pLoopPlot = plotDirection(plot()->getX_INLINE(), plot()->getY_INLINE(), ((DirectionTypes)iI));
 
-	if (!GC.isDCM_OPP_FIRE())
-	{
-		return;
-	}
-	if (bombardRate() <= 0 || getDCMBombRange() <= 0)
-	{
-		return;
-	}
-
-	if (getFortifyTurns() > 0)
-	{
-		for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+		if (pLoopPlot != NULL && pLoopPlot->getNumUnits() > 0)
 		{
-			pLoopPlot = plotDirection(plot()->getX_INLINE(), plot()->getY_INLINE(), ((DirectionTypes)iI));
-			if (pLoopPlot != NULL)
+			CvUnit* pBestUnit = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
+			if (pBestUnit != NULL)
 			{
-				iVolumeDefenders = pLoopPlot->getNumUnits();
-				if (iVolumeDefenders > 0)
+				const int iBestUnitStr = pBestUnit->currCombatStr(pLoopPlot, this, NULL, true);
+
+				if (iBestUnitStr > iBest)
 				{
-					pBestUnit = NULL;
-					pBestUnit = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-					if (pBestUnit != NULL)
-					{
-						iBestUnitStr = pBestUnit->currCombatStr(pLoopPlot, this, NULL, true);
-						if (pDefender != NULL)
-						{
-							if (iBestUnitStr > ipDefenderStr)
-							{
-								pDefender = pBestUnit;
-								pAttackPlot = pLoopPlot;
-								ipDefenderStr = pDefender->currCombatStr(pLoopPlot, this, NULL, true);
-							}
-						}
-						else
-						{
-							pDefender = pBestUnit;
-							pAttackPlot = pLoopPlot;
-							ipDefenderStr = pDefender->currCombatStr(pLoopPlot, this, NULL, true);
-						}
-					}
+					pDefender = pBestUnit;
+					pAttackPlot = pLoopPlot;
+					iBest = iBestUnitStr;
 				}
 			}
 		}
-		if (pDefender != NULL)
+	}
+	if (pDefender != NULL)
+	{
+		pDefender->changeDamage(GC.getGameINLINE().getSorenRandNum(bombardRate(), "Bombard damage") * 5, getOwner());
 		{
-			setBattlePlot(pAttackPlot, pDefender);
-			iUnitDamage = (GC.getGameINLINE().getSorenRandNum(bombardRate(), "Bombard damage") * 5);
-			pDefender->changeDamage(iUnitDamage, getOwner());
-
-			{
-				MEMORY_TRACK_EXEMPT();
-
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_OPP_FIRE", getNameKey(), pDefender->getNameKey());
-				AddMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_OUR_WITHDRAWL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pAttackPlot->getX_INLINE(), pAttackPlot->getY_INLINE(), true, true);
-				szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_OPP_FIRE", getNameKey(), pDefender->getNameKey());
-				AddMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_THEIR_WITHDRAWL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pAttackPlot->getX_INLINE(), pAttackPlot->getY_INLINE(), true, true);
-			}
-			if (pAttackPlot->isActiveVisible(false) && !pDefender->isUsingDummyEntities())
-			{
-				// Bombard entity mission
-				CvMissionDefinition kDefiniton;
-				kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_BOMBARD).getTime() * gDLL->getSecsPerTurn());
-				kDefiniton.setMissionType(MISSION_BOMBARD);
-				kDefiniton.setPlot(pAttackPlot);
-				kDefiniton.setUnit(BATTLE_UNIT_ATTACKER, this);
-				kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, pDefender);
-				addMission(&kDefiniton);
-			}
+			MEMORY_TRACK_EXEMPT();
+			AddMessage(
+				getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText("TXT_KEY_MISC_YOU_OPP_FIRE", getNameKey(), pDefender->getNameKey()),
+				"AS2D_OUR_WITHDRAWL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+				pAttackPlot->getX_INLINE(), pAttackPlot->getY_INLINE(), true, true
+			);
+			AddMessage(
+				pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText("TXT_KEY_MISC_ENEMY_OPP_FIRE", getNameKey(), pDefender->getNameKey()),
+				"AS2D_THEIR_WITHDRAWL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+				pAttackPlot->getX_INLINE(), pAttackPlot->getY_INLINE(), true, true
+			);
+		}
+		if (pAttackPlot->isActiveVisible(false) && !pDefender->isUsingDummyEntities())
+		{
+			// Bombard entity mission
+			CvMissionDefinition kDefiniton;
+			kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_BOMBARD).getTime() * gDLL->getSecsPerTurn());
+			kDefiniton.setMissionType(MISSION_BOMBARD);
+			kDefiniton.setPlot(pAttackPlot);
+			kDefiniton.setUnit(BATTLE_UNIT_ATTACKER, this);
+			kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, pDefender);
+			addMission(&kDefiniton);
 		}
 	}
 }
@@ -22712,14 +22201,63 @@ void CvUnit::doActiveDefense()
 }
 // Dale - SA: Active Defense END
 
-// Dale - ARB: Archer Bombard START
-bool CvUnit::canArcherBombard(const CvPlot* pPlot) const
+// Toffer - Ranged Combat Overhaul (RCO)
+bool CvUnit::canReduceCityDefense(const CvPlot* pFromPlot, const bool bIgnoreMadeAttack) const
 {
-	if(!GC.isDCM_ARCHER_BOMBARD())
+	if (bombardRate() < 1 || getDomainType() == DOMAIN_AIR)
 	{
 		return false;
 	}
-	if (getDCMBombRange() <= 0)
+
+	if (!bIgnoreMadeAttack && isMadeAttack())
+	{
+		return false;
+	}
+
+	if (isCargo())
+	{
+		return false;
+	}
+
+	if (pFromPlot != NULL)
+	{
+		if (getVolleyRange() > 0)
+		{
+			const int iSearchRange = getVolleyRange();
+
+			for (int iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
+			{
+				for (int iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
+				{
+					CvPlot* plotX = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+
+					if (plotX != NULL)
+					{
+						CvCity* city = plotX->getPlotCity();
+						if (city != NULL && city->isBombardable(this))
+						{
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
+		else if (bombardTarget(pFromPlot) == NULL)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool CvUnit::canVolley() const
+{
+	if (getVolleyRange() < 1)
+	{
+		return false;
+	}
+	if (getDomainType() == DOMAIN_AIR)
 	{
 		return false;
 	}
@@ -22734,164 +22272,338 @@ bool CvUnit::canArcherBombard(const CvPlot* pPlot) const
 	return true;
 }
 
-bool CvUnit::canArcherBombardAt(const CvPlot* pPlot, int iX, int iY) const
+bool CvUnit::canVolleyAt(const CvPlot* pFromPlot, int iX, int iY) const
 {
-	CvPlot* pTargetPlot;
-	if (!canArcherBombard(pPlot))
+	// Toffer - Invalidators
+	if (iX < 0 || iY < 0 || !canVolley())
 	{
 		return false;
 	}
-
-	if(iX < 0 || iY < 0)
 	{
-		return false;
-	}
-	pTargetPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-
-	if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE()) > 1)
-	{
-		return false;
-	}
-	if(pTargetPlot->getNumVisibleEnemyDefenders(this) == 0)
-	{
-		return false;
-	}
-	if (pTargetPlot->isOwned())
-	{
-		if(pTargetPlot->getTeam() != getTeam())
+		const int iDistance = plotDistance(pFromPlot->getX_INLINE(), pFromPlot->getY_INLINE(), iX, iY);
+		if (iDistance == 0 || iDistance > getVolleyRange())
 		{
-			if (!atWar(pTargetPlot->getTeam(), getTeam()))
-			{
-				return false;
-			}
+			return false;
 		}
 	}
-	return true;
+	const CvPlot* pTargetPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+
+	if (!pTargetPlot->isVisible(getTeam(), false))
+	{
+		return false;
+	}
+
+	if (pTargetPlot->isOwned() && pTargetPlot->getTeam() != getTeam() && !atWar(pTargetPlot->getTeam(), getTeam()))
+	{
+		return false;
+	}
+	// Toffer - Validators
+	// Can always target units with volley
+	if (pTargetPlot->getNumVisibleEnemyDefenders(this) > 0)
+	{
+		return true;
+	}
+	// Can we target city?
+	if (bombardRate() > 0)
+	{
+		CvCity* pCity = pTargetPlot->getPlotCity();
+
+		if (pCity != NULL && pCity->isBombardable(this))
+		{
+			return true;
+		}
+		// Can we target improvement?
+		if (pTargetPlot->getImprovementType() != NO_IMPROVEMENT
+		&& !GC.getImprovementInfo(pTargetPlot->getImprovementType()).isPermanent()
+		&& GC.getImprovementInfo(pTargetPlot->getImprovementType()).getAirBombDefense() > -1)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
-bool CvUnit::archerBombard(int iX, int iY, bool supportAttack)
+bool CvUnit::doVolley(int iX, int iY)
 {
-	CvPlot* pPlot;
-	CvWString szBuffer;
-	CvUnit* pLoopUnit = NULL;
-	int iDefenderNum, iUnitDamage;
-	bool bTarget = false;
-	if (!canArcherBombardAt(plot(), iX, iY))
+	if (!canVolleyAt(plot(), iX, iY))
 	{
 		return false;
 	}
-	pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-	iDefenderNum = pPlot->getNumVisibleEnemyDefenders(this);
-	if(iDefenderNum == 0)
-	{
-		return false;
-	}
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 
-	// RevolutionDCM - getBestDefender() now used in all cases
-	pLoopUnit = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
+	CvUnit* pVictim = NULL;
+	const int iDistance = plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), iX, iY);
 
-	if (GC.getGameINLINE().getSorenRandNum(100, "Bombard Accuracy") <= getDCMBombAccuracy())
+	for (int iI = m_pUnitInfo->getVolleyRounds(); iI > 0; iI--)
 	{
-		bTarget = true;
-	}
-	else
-	{
-		MEMORY_TRACK_EXEMPT();
+		// RevolutionDCM - getBestDefender() now used in all cases
+		pVictim = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
 
-		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_BOMB_MISSED", getNameKey());
-		AddMessage(getOwnerINLINE(), false, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
-		szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_BOMB_MISSED", getNameKey());
-		// RevolutionDCM - Archer Bombard fix - text display
-		AddMessage(pLoopUnit->getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE());
-	}
-	if (bTarget)
-	{
-		//RevolutionDCM - Archer Bombard fix - report killed units
-		iUnitDamage = std::max(1, ((GC.getDefineINT("COMBAT_DAMAGE") * (currFirepower(NULL, NULL) + ((currFirepower(NULL, NULL) + pLoopUnit->currFirepower(NULL, NULL) + 1) / 2))) / (pLoopUnit->currFirepower(pPlot, this) + ((currFirepower(NULL, NULL) + pLoopUnit->currFirepower(NULL, NULL) + 1) / 2))));
-		pLoopUnit->setupPreCombatDamage();
-		pLoopUnit->changeDamage(iUnitDamage, getOwner());
-		if (pLoopUnit->isDead())
+		if (GC.getGameINLINE().getSorenRandNum(100, "Bombard Accuracy") <= getVolleyAccuracy(iDistance))
 		{
-			if (pLoopUnit->isBarbarian())
+			if (pVictim != NULL)
 			{
-				GET_PLAYER(getOwnerINLINE()).changeWinsVsBarbs(1);
-			}
-			if ((!m_pUnitInfo->isHiddenNationality() && !pLoopUnit->getUnitInfo().isHiddenNationality()) && !isPirate())
-			{
-				int	attackerPreCombatDamage = getPreCombatDamage();
-				int defenderPreCombatDamage = pLoopUnit->getPreCombatDamage();
-
-				int	defenderWarWearinessChangeTimes100 = std::max(1, (GC.getDefineINT("WW_UNIT_KILLED_DEFENDING")*(pLoopUnit->maxHitPoints() - defenderPreCombatDamage))/pLoopUnit->maxHitPoints());
-				GET_TEAM(pLoopUnit->getTeam()).changeWarWearinessTimes100(getTeam(), *pPlot, defenderWarWearinessChangeTimes100);
-
-				GET_TEAM(getTeam()).AI_changeWarSuccess(pLoopUnit->getTeam(), GC.getDefineINT("WAR_SUCCESS_ATTACKING"));
-			}
-
-			{
-				MEMORY_TRACK_EXEMPT();
-
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_ENEMY", getNameKey(), pLoopUnit->getNameKey());
-				AddMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(GC.getGameINLINE().getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-				if (getVisualOwner(pLoopUnit->getTeam()) != getOwnerINLINE())
+				const int iUnitDamage = getVolleyDamage(pVictim);
+				if (iUnitDamage > 0)
 				{
-					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED_UNKNOWN", pLoopUnit->getNameKey(), getNameKey());
+					pVictim->setupPreCombatDamage();
+					pVictim->changeDamage(iUnitDamage, getOwner());
+
+					//RevolutionDCM - Report killed units
+					if (pVictim->isDead())
+					{
+						if (!m_pUnitInfo->isHiddenNationality() && !pVictim->getUnitInfo().isHiddenNationality() && !isPirate())
+						{
+							const int iDefenderWarWearChange100 =
+							(
+								std::max(1, GC.getDefineINT("WW_UNIT_KILLED_DEFENDING") * (pVictim->maxHitPoints() - pVictim->getPreCombatDamage()) / pVictim->maxHitPoints())
+							);
+							GET_TEAM(pVictim->getTeam()).changeWarWearinessTimes100(getTeam(), *pPlot, iDefenderWarWearChange100);
+							GET_TEAM(getTeam()).AI_changeWarSuccess(pVictim->getTeam(), GC.getDefineINT("WAR_SUCCESS_ATTACKING"));
+						}
+
+						{
+							MEMORY_TRACK_EXEMPT();
+							CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_ENEMY", getNameKey(), pVictim->getNameKey());
+							AddMessage(
+								getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+								GC.getEraInfo(GC.getGameINLINE().getCurrentEra()).getAudioUnitVictoryScript(),
+								MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+								pPlot->getX_INLINE(), pPlot->getY_INLINE()
+							);
+							if (getVisualOwner(pVictim->getTeam()) != getOwnerINLINE())
+							{
+								szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED_UNKNOWN", pVictim->getNameKey(), getNameKey());
+							}
+							else szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED", pVictim->getNameKey(), getNameKey(), getVisualCivAdjective(pVictim->getTeam()));
+
+							AddMessage(
+								pVictim->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+								GC.getEraInfo(GC.getGameINLINE().getCurrentEra()).getAudioUnitDefeatScript(),
+								MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+								pPlot->getX_INLINE(), pPlot->getY_INLINE()
+							);
+						}
+						// report event to Python, along with some other key state
+						CvEventReporter::getInstance().combatResult(this, pVictim);
+						pVictim->getUnitInfo().getKillOutcomeList()->execute(*this, pVictim->getOwnerINLINE(), pVictim->getUnitType());
+					}
+					else
+					{
+						MEMORY_TRACK_EXEMPT();
+						AddMessage(
+							getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+							gDLL->getText(
+								"TXT_KEY_MISC_YOU_ATTACK_BY_AIR",
+								getNameKey(), pVictim->getNameKey(),
+								-iUnitDamage * 100 / pVictim->maxHitPoints()
+							),
+							"AS2D_AIR_ATTACKED", MESSAGE_TYPE_INFO, pVictim->getButton(),
+							(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE()
+						);
+						AddMessage(
+							pVictim->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(),
+							gDLL->getText(
+								"TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR",
+								pVictim->getNameKey(), getNameKey(),
+								-iUnitDamage * 100 / pVictim->maxHitPoints()
+							),
+							"AS2D_AIR_ATTACK", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+							pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true
+						);
+					}
 				}
-				else
-				{
-					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED", pLoopUnit->getNameKey(), getNameKey(), getVisualCivAdjective(pLoopUnit->getTeam()));
-				}
-				AddMessage(pLoopUnit->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer,GC.getEraInfo(GC.getGameINLINE().getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+				collateralCombat(pPlot, pVictim);
 			}
 
-			// report event to Python, along with some other key state
-			CvEventReporter::getInstance().combatResult(this, pLoopUnit);
-			pLoopUnit->getUnitInfo().getKillOutcomeList()->execute(*this, pLoopUnit->getOwnerINLINE(), pLoopUnit->getUnitType());
+			if (bombardRate() > 0)
+			{
+				CvCity* pCity = pPlot->getPlotCity();
+				if (pCity != NULL)
+				{
+					if (pCity->isBombardable(this))
+					{
+						const int iBombardModifier = ignoreBuildingDefense() ? 0 : pCity->getBuildingBombardDefense();
+
+						pCity->changeDefenseModifier(-std::max(1, bombardRate() * std::max(1, 100 - iBombardModifier) / 100));
+
+						MEMORY_TRACK_EXEMPT();
+						AddMessage(
+							pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(),
+							gDLL->getText(
+								"TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO",
+								pCity->getNameKey(), pCity->getDefenseModifier(false), GET_PLAYER(getOwnerINLINE()).getNameKey()
+							),
+							"AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+							pCity->getX_INLINE(), pCity->getY_INLINE(), true, true
+						);
+						AddMessage(
+							getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+							gDLL->getText(
+								"TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES",
+								getNameKey(), pCity->getNameKey(), pCity->getDefenseModifier(false)
+							),
+							"AS2D_BOMBARD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+							pCity->getX_INLINE(), pCity->getY_INLINE()
+						);
+					}
+				}
+				else if (pVictim == NULL && pPlot->getImprovementType() != NO_IMPROVEMENT)
+				{
+					if (GC.getGameINLINE().getSorenRandNum(bombardRate(), "Bomb - Offense") >= GC.getGameINLINE().getSorenRandNum(GC.getImprovementInfo(pPlot->getImprovementType()).getAirBombDefense(), "Bomb - Defense"))
+					{
+						{
+							MEMORY_TRACK_EXEMPT();
+							AddMessage(
+								getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"),
+								gDLL->getText(
+									"TXT_KEY_MISC_YOU_UNIT_DESTROYED_IMP",
+									getNameKey(), GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide()
+								),
+								"AS2D_PILLAGE", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(),
+								(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE()
+							);
+						}
+						if (pPlot->isOwned())
+						{
+							MEMORY_TRACK_EXEMPT();
+							AddMessage(
+								pPlot->getOwnerINLINE(), false, GC.getDefineINT("EVENT_MESSAGE_TIME"),
+								gDLL->getText(
+									"TXT_KEY_MISC_YOU_IMP_WAS_DESTROYED",
+									GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide(),
+									getNameKey(), GET_PLAYER(getOwnerINLINE()).getCivilizationAdjectiveKey()
+								),
+								"AS2D_PILLAGE", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(),
+								(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true
+							);
+						}
+						pPlot->setImprovementType((ImprovementTypes)(GC.getImprovementInfo(pPlot->getImprovementType()).getImprovementPillage()));
+					}
+					else
+					{
+						MEMORY_TRACK_EXEMPT();
+						AddMessage(
+							getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"),
+							gDLL->getText(
+								"TXT_KEY_MISC_YOU_UNIT_FAIL_DESTROY_IMP",
+								getNameKey(), GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide()
+							),
+							"AS2D_BOMB_FAILS", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(),
+							(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE()
+						);
+					}
+				}
+			}
 		}
 		else
 		{
 			MEMORY_TRACK_EXEMPT();
-
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", getNameKey(), pLoopUnit->getNameKey(), -(((iUnitDamage - pLoopUnit->getDamage()) * 100) / pLoopUnit->maxHitPoints()));
-			AddMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_AIR_ATTACKED", MESSAGE_TYPE_INFO, pLoopUnit->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR", pLoopUnit->getNameKey(), getNameKey(), -(((iUnitDamage - pLoopUnit->getDamage()) * 100) / pLoopUnit->maxHitPoints()));
-			AddMessage(pLoopUnit->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_AIR_ATTACK", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+			AddMessage(
+				getOwnerINLINE(), false, GC.getDefineINT("EVENT_MESSAGE_TIME"),
+				gDLL->getText("TXT_KEY_MISC_YOU_BOMB_MISSED", getNameKey()),
+				"AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(),
+				(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true
+			);
+			AddMessage(
+				pVictim->getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"),
+				gDLL->getText("TXT_KEY_MISC_ENEMY_BOMB_MISSED", getNameKey()),
+				"AS2D_BOMBARD", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE()
+			);
 		}
-		// RevolutionDCM - end
-/************************************************************************************************/
-/* RevolutionDCM	                  Start		 05/31/10                        Afforess       */
-/*                                                                                              */
-/* Battle Effects                                                                               */
-/************************************************************************************************/
-		setBattlePlot(pPlot, pLoopUnit);
-/************************************************************************************************/
-/* RevolutionDCM	             Battle Effects END                                             */
-/************************************************************************************************/
 	}
+	setMadeAttack(true);
+	changeMoves(GC.getMOVE_DENOMINATOR());
 
-	if (!supportAttack)
-	{
-		setMadeAttack(true);
-		changeMoves(GC.getMOVE_DENOMINATOR());
-	}
-	if (pPlot->isActiveVisible(false) && !pLoopUnit->isUsingDummyEntities())
+	if (pPlot->isActiveVisible(false) && pVictim != NULL && !pVictim->isUsingDummyEntities())
 	{
 		// Bombard entity mission
 		CvMissionDefinition kDefiniton;
-		kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_ABOMBARD).getTime() * gDLL->getSecsPerTurn());
+		kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_VOLLEY).getTime() * gDLL->getSecsPerTurn());
 		kDefiniton.setMissionType(MISSION_BOMBARD);
 		kDefiniton.setPlot(pPlot);
 		kDefiniton.setUnit(BATTLE_UNIT_ATTACKER, this);
-		kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, pLoopUnit);
+		kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, pVictim);
 		addMission(&kDefiniton);
 	}
 	return true;
 }
-// Dale - ARB: Archer Bombard END
+
+int CvUnit::getVolleyRange() const
+{
+	return std::max(0, GC.getUnitInfo(getUnitType()).getVolleyRange());
+}
+
+int CvUnit::getVolleyAccuracy(const int iDistance) const
+{
+	// Sanity checks
+	if (iDistance < 1)
+	{
+		return 0;
+	}
+	const int iRange = m_pUnitInfo->getVolleyRange();
+
+	if (iRange < 1 || iDistance > iRange)
+	{
+		return 0;
+	}
+
+	// Edge cases
+	const int iMinAccuracy = GC.getVOLLEY_MIN_ACCURACY();
+
+	if (iDistance == iRange)
+	{
+		return std::max(iMinAccuracy, m_pUnitInfo->getVolleyAccuracyMin());
+	}
+	if (iDistance == 1)
+	{
+		return std::max(iMinAccuracy, m_pUnitInfo->getVolleyAccuracy());
+	}
+
+	// General case
+	const int iBase = m_pUnitInfo->getVolleyAccuracy();
+
+	return std::max(iMinAccuracy, iBase - (iDistance - 1) * (iBase - m_pUnitInfo->getVolleyAccuracyMin()) / (iRange - 1));
+}
+
+int CvUnit::getVolleyDamage(const CvUnit* pVictim) const
+{
+	// Toffer - Some units may be able to reduce city defense without damaging any units
+	const int iVolleyEfficiency = m_pUnitInfo->getVolleyEfficiency();
+	if (iVolleyEfficiency < 1)
+	{
+		return 0;
+	}
+	const int iMyFirePower = currFirepower(NULL, NULL);
+	if (iMyFirePower < 1)
+	{
+		return 0;
+	}
+
+	const int iUnitDamage =
+	(
+		GC.getVOLLEY_STRENGTH() * iVolleyEfficiency * iMyFirePower
+		/
+		(
+			100 // divisor for iVolleyEfficiency, VOLLEY_STRENGTH is just a scaling parameter.
+			*
+			std::max(
+				1,
+				pVictim->currFirepower(pVictim->plot(), this)
+				+
+				(iMyFirePower + pVictim->currFirepower(NULL, NULL)) / 2
+			)
+		)
+	);
+	return std::max(0, iUnitDamage);
+}
+// ! Toffer - RCO
+
 
 // Dale - FE: Fighters START
 bool CvUnit::canFEngage(const CvPlot* pPlot) const
 {
-	if(!GC.isDCM_FIGHTER_ENGAGE())
+	if (!GC.isDCM_FIGHTER_ENGAGE())
 	{
 		return false;
 	}
@@ -25414,7 +25126,7 @@ void CvUnit::setMADEnabled(bool bValue)
 			{
 				if (getMADTargetPlot()->getPlotCity() != NULL)
 				{
-					GET_PLAYER(getMADTargetPlotOwner()).changeMADIncoming(-1); 
+					GET_PLAYER(getMADTargetPlotOwner()).changeMADIncoming(-1);
 					getMADTargetPlot()->getPlotCity()->changeMADIncoming(-1);
 				}	
 			}

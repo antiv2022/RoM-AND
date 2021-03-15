@@ -498,90 +498,52 @@ void CvGame::updateColoredPlots()
 			}
 		}
 
-		// Dale - RB: Field Bombard START
-		if(GC.isDCM_RANGE_BOMBARD())
+		// Toffer - Volley
+		iMaxAirRange = 0;
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+
+		while (pSelectedUnitNode != NULL)
 		{
-			iMaxAirRange = 0;
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-			while (pSelectedUnitNode != NULL)
+			if (pSelectedUnit != NULL && pSelectedUnit->canVolley())
 			{
-				pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-
-				if (pSelectedUnit != NULL)
-				{
-					iMaxAirRange = std::max(iMaxAirRange, pSelectedUnit->getDCMBombRange());
-				}
+				iMaxAirRange = std::max(iMaxAirRange, pSelectedUnit->getVolleyRange());
 			}
-
-			if (iMaxAirRange > 0)
+		}
+		if (iMaxAirRange > 0)
+		{
+			CvPlot* pFromPlot = pHeadSelectedUnit->plot();
+			CvSelectionGroup* pGroup = pHeadSelectedUnit->getGroup();
+			for (iDX = -(iMaxAirRange); iDX <= iMaxAirRange; iDX++)
 			{
-				for (iDX = -(iMaxAirRange); iDX <= iMaxAirRange; iDX++)
+				for (iDY = -(iMaxAirRange); iDY <= iMaxAirRange; iDY++)
 				{
-					for (iDY = -(iMaxAirRange); iDY <= iMaxAirRange; iDY++)
-					{
-						pLoopPlot = plotXY(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), iDX, iDY);
+					CvPlot* pTargetPlot = plotXY(pFromPlot->getX_INLINE(), pFromPlot->getY_INLINE(), iDX, iDY);
 
-						if (pLoopPlot != NULL)
+					if (pTargetPlot != NULL && pTargetPlot->isVisible(pHeadSelectedUnit->getTeam(), false)
+					&& plotDistance(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE()) <= iMaxAirRange)
+					{
+						NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE")).getColor());
+						if (pGroup->canVolleyAt(pFromPlot, pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE()))
 						{
-							if (plotDistance(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= iMaxAirRange)
+							if (pTargetPlot->isVisibleEnemyUnit(pHeadSelectedUnit->getOwner()))
 							{
-								NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE")).getColor());
-								color.a = 0.4f;
-								gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getViewportX(), pLoopPlot->getViewportY(), color, PLOT_STYLE_TARGET, PLOT_LANDSCAPE_LAYER_BASE);
+								color.r = 0.0f;
+								color.b = 0.0f;
 							}
+							else color.b = 0.0f;
 						}
+						else color.a = 0.4f;
+
+						gDLL->getEngineIFace()->addColoredPlot(pTargetPlot->getViewportX(), pTargetPlot->getViewportY(), color, PLOT_STYLE_TARGET, PLOT_LANDSCAPE_LAYER_BASE);
 					}
+
 				}
 			}
 		}
-		// Dale - RB: Field Bombard END
-
-		// Dale - ARB: Archer Bombard START
-		if(GC.isDCM_ARCHER_BOMBARD())
-		{
-			iMaxAirRange = 0;
-
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-			while (pSelectedUnitNode != NULL)
-			{
-				pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-
-				if (pSelectedUnit != NULL)
-				{
-					if (pSelectedUnit->canArcherBombard(pSelectedUnit->plot()))
-					{
-                        iMaxAirRange = 1;
-					}
-				}
-			}
-
-			if (iMaxAirRange > 0)
-			{
-				for (iDX = -(iMaxAirRange); iDX <= iMaxAirRange; iDX++)
-				{
-					for (iDY = -(iMaxAirRange); iDY <= iMaxAirRange; iDY++)
-					{
-						pLoopPlot = plotXY(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), iDX, iDY);
-
-						if (pLoopPlot != NULL)
-						{
-							if (plotDistance(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= iMaxAirRange)
-							{
-								NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE")).getColor());
-								color.a = 0.4f;
-								gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getViewportX(), pLoopPlot->getViewportY(), color, PLOT_STYLE_TARGET, PLOT_LANDSCAPE_LAYER_BASE);
-							}
-						}
-					}
-				}
-			}
-		}
-		// Dale - ARB: Archer Bombard END
+		// ! Toffer - Volley
 
 		if (pHeadSelectedUnit->getDomainType() == DOMAIN_AIR)
 		{
@@ -1574,9 +1536,8 @@ void CvGame::selectionListGameNetMessageInternal(int eMessage, int iData2, int i
 							case MISSION_AIRBOMB3:
 							case MISSION_AIRBOMB4:
 							case MISSION_AIRBOMB5:
-							case MISSION_RBOMBARD:
-							case MISSION_ABOMBARD:
 							case MISSION_FENGAGE:
+							case MISSION_VOLLEY:
 							case MISSION_CLAIM_TERRITORY:
 							case MISSION_PRETARGET_NUKE:
 								iData3 = GC.getCurrentViewport()->getMapXFromViewportX(iData3);
@@ -2931,12 +2892,9 @@ CvPlot* CvGame::getNewHighlightPlot() const
 			pNewPlot = GC.getMap().plot(coords[0],coords[1]);
 		}
 	}
-	else
+	else if (GC.getInterfaceModeInfo(gDLL->getInterfaceIFace()->getInterfaceMode()).getHighlightPlot())
 	{
-		if (GC.getInterfaceModeInfo(gDLL->getInterfaceIFace()->getInterfaceMode()).getHighlightPlot())
-		{
-			pNewPlot = gDLL->getInterfaceIFace()->getMouseOverPlot();
-		}
+		pNewPlot = gDLL->getInterfaceIFace()->getMouseOverPlot();
 	}
 	return pNewPlot;
 }

@@ -178,38 +178,18 @@ void CyEnumsPythonInterface()
 		.value("INTERFACEMODE_REBASE", INTERFACEMODE_REBASE)
 		.value("INTERFACEMODE_PYTHON_PICK_PLOT", INTERFACEMODE_PYTHON_PICK_PLOT)
 		.value("INTERFACEMODE_SAVE_PLOT_NIFS", INTERFACEMODE_SAVE_PLOT_NIFS)
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
 		.value("INTERFACEMODE_AIRBOMB1", INTERFACEMODE_AIRBOMB1)
 		.value("INTERFACEMODE_AIRBOMB2", INTERFACEMODE_AIRBOMB2)
 		.value("INTERFACEMODE_AIRBOMB3", INTERFACEMODE_AIRBOMB3)
 		.value("INTERFACEMODE_AIRBOMB4", INTERFACEMODE_AIRBOMB4)
 		.value("INTERFACEMODE_AIRBOMB5", INTERFACEMODE_AIRBOMB5)
-		.value("INTERFACEMODE_BOMBARD", INTERFACEMODE_BOMBARD)
-		.value("INTERFACEMODE_ABOMBARD", INTERFACEMODE_ABOMBARD)
 		.value("INTERFACEMODE_FENGAGE", INTERFACEMODE_FENGAGE)
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
-
-// BUG - Sentry Actions - start
+		.value("INTERFACEMODE_VOLLEY", INTERFACEMODE_VOLLEY)
 #ifdef _MOD_SENTRY
 		.value("INTERFACEMODE_GO_TO_SENTRY", INTERFACEMODE_GO_TO_SENTRY)
 #endif
-// BUG - Sentry Actions - end
-		// < M.A.D. Nukes Start >
 		.value("INTERFACEMODE_PRETARGET_NUKE", INTERFACEMODE_PRETARGET_NUKE)
-		// < M.A.D. Nukes End   >
-/************************************************************************************************/
-/* Afforess	                  Start		 09/16/10                                               */
-/*                                                                                              */
-/* Advanced Automations                                                                         */
-/************************************************************************************************/
 		.value("INTERFACEMODE_SHADOW_UNIT", INTERFACEMODE_SHADOW_UNIT)
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 
 		.value("NUM_INTERFACEMODE_TYPES", NUM_INTERFACEMODE_TYPES)
 		;
@@ -1321,6 +1301,7 @@ void CyEnumsPythonInterface()
 		//TSHEEP Assassin Mission
 		//.value("MISSION_ASSASSIN", MISSION_ASSASSIN)
 		//TSHEEP End
+		.value("MISSION_VOLLEY", MISSION_VOLLEY)
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
@@ -1329,7 +1310,6 @@ void CyEnumsPythonInterface()
 		.value("MISSION_AIRBOMB3", MISSION_AIRBOMB3)
 		.value("MISSION_AIRBOMB4", MISSION_AIRBOMB4)
 		.value("MISSION_AIRBOMB5", MISSION_AIRBOMB5)
-		.value("MISSION_ABOMBARD", MISSION_ABOMBARD)
 		.value("MISSION_FENGAGE", MISSION_FENGAGE)
 /************************************************************************************************/
 /* Afforess	                  Start		 06/11/10                                               */

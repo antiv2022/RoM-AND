@@ -20,15 +20,12 @@
 /*                                                                                              */
 /************************************************************************************************/
 // Dale - DCM: Globals START
-#define	USE_DCM_ATTACK_SUPPORT							GC.isDCM_ATTACK_SUPPORT()
 #define	USE_BATTLE_EFFECTS								GC.isDCM_BATTLE_EFFECTS()
 #define	USE_DCM_AIR_BOMBING								GC.isDCM_AIR_BOMBING()
-#define	USE_DCM_RANGE_BOMBARD							GC.isDCM_RANGE_BOMBARD()
 #define	USE_DCM_CIV_CHANGER								GC.isDCM_CIV_CHANGER()
 #define	USE_DCM_STACK_ATTACK							GC.isDCM_STACK_ATTACK()
 #define	USE_DCM_OPP_FIRE								GC.isDCM_OPP_FIRE()
 #define	USE_DCM_ACTIVE_DEFENSE							GC.isDCM_ACTIVE_DEFENSE()
-#define	USE_DCM_ARCHER_BOMBARD							GC.isDCM_ARCHER_BOMBARD()
 #define	USE_DCM_FIGHTER_ENGAGE							GC.isDCM_FIGHTER_ENGAGE()
 // Dale - DCM: Globals END
 // Dale - CCH: Globals START

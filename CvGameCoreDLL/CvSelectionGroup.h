@@ -98,11 +98,12 @@ public:
 	bool canMoveThrough(CvPlot* pPlot, bool bDeclareWar = false);																																	// Exposed to Python
 	bool canFight();																																										// Exposed to Python 
 	bool canDefend();																																										// Exposed to Python
-	bool canBombard(const CvPlot* pPlot, bool bCheckCanReduceOnly = false);
+
 	bool hasBombardCapability(void) const;
 	bool hasCollateralDamage(void) const;
 	bool canPillage(const CvPlot* pPlot);
-	bool canBombardAtRanged(const CvPlot* pPlot, int iX, int iY);
+	bool canReduceCityDefense(const CvPlot* pPlot, bool bIgnoreMadeAttack = false);
+	bool canVolleyAt(const CvPlot* pFromPlot, int iX, int iY);
 	bool visibilityRange();
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      08/19/09                                jdog5000      */

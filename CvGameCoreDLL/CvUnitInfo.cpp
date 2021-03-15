@@ -32,13 +32,16 @@
 //
 //------------------------------------------------------------------------------------------------------
 CvUnitInfo::CvUnitInfo() :
+// Toffer - New range combat
+m_iVolleyRange(0),
+m_iVolleyAccuracy(0),
+m_iVolleyAccuracyMin(0),
+m_iVolleyEfficiency(0),
+m_iVolleyRounds(1),
+// ! Toffer
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
-// Dale - RB: Field Bombard START
-m_iDCMBombRange(0),
-m_iDCMBombAccuracy(0),
-// Dale - RB: Field Bombard END
 // Dale - AB: Bombing START
 m_bDCMAirBomb1(0),
 m_bDCMAirBomb2(0),
@@ -405,20 +408,32 @@ const wchar* CvUnitInfo::getExtraHoverText() const
 	}
 }
 
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-// Dale - RB: Field Bombard START
-int CvUnitInfo::getDCMBombRange() const
+// Toffer - New ranged combat
+int CvUnitInfo::getVolleyRange() const
 {
-	return m_iDCMBombRange;
+	return m_iVolleyRange;
 }
 
-int CvUnitInfo::getDCMBombAccuracy() const
+int CvUnitInfo::getVolleyAccuracy() const
 {
-	return m_iDCMBombAccuracy;
+	return m_iVolleyAccuracy;
 }
-// Dale - RB: Field Bombard END
+
+int CvUnitInfo::getVolleyAccuracyMin() const
+{
+	return m_iVolleyAccuracyMin;
+}
+
+int CvUnitInfo::getVolleyEfficiency() const
+{
+	return m_iVolleyEfficiency;
+}
+
+int CvUnitInfo::getVolleyRounds() const
+{
+	return m_iVolleyRounds;
+}
+
 
 // Dale - AB: Bombing START
 bool CvUnitInfo::getDCMAirBomb1() const
@@ -1996,13 +2011,14 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 	uint uiFlag=0;
 	stream->Read(&uiFlag);	// flags for expansion
 
+	stream->Read(&m_iVolleyRange);
+	stream->Read(&m_iVolleyAccuracy);
+	stream->Read(&m_iVolleyAccuracyMin);
+	stream->Read(&m_iVolleyEfficiency);
+	stream->Read(&m_iVolleyRounds);
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
-	// Dale - RB: Field Bombard START
-	stream->Read(&m_iDCMBombRange);
-	stream->Read(&m_iDCMBombAccuracy);
-	// Dale - RB: Field Bombard END
 	// Dale - AB: Bombing START
 	stream->Read(&m_bDCMAirBomb1);
 	stream->Read(&m_bDCMAirBomb2);
@@ -2741,15 +2757,16 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	CvHotkeyInfo::write(stream);
 
 	uint uiFlag=0;
-	stream->Write(uiFlag);		// flag for expansion
+	stream->Write(uiFlag); // flag for expansion
 
+	stream->Write(m_iVolleyRange);
+	stream->Write(m_iVolleyAccuracy);
+	stream->Write(m_iVolleyAccuracyMin);
+	stream->Write(m_iVolleyEfficiency);
+	stream->Write(m_iVolleyRounds);
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
-	// Dale - RB: Field Bombard START
-	stream->Write(m_iDCMBombRange);
-	stream->Write(m_iDCMBombAccuracy);
-	// Dale - RB: Field Bombard END
 	// Dale - AB: Bombing START
 	stream->Write(m_bDCMAirBomb1);
 	stream->Write(m_bDCMAirBomb2);
@@ -3561,15 +3578,19 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 
 void CvUnitInfo::getCheckSum(unsigned int &iSum)
 {
-	CheckSum(iSum, m_iDCMBombRange);
-	CheckSum(iSum, m_iDCMBombAccuracy);
+	CheckSum(iSum, m_iVolleyRange);
+	CheckSum(iSum, m_iVolleyAccuracy);
+	CheckSum(iSum, m_iVolleyAccuracyMin);
+	CheckSum(iSum, m_iVolleyEfficiency);
+	CheckSum(iSum, m_iVolleyRounds);
+
 	CheckSum(iSum, m_bDCMAirBomb1);
 	CheckSum(iSum, m_bDCMAirBomb2);
 	CheckSum(iSum, m_bDCMAirBomb3);
 	CheckSum(iSum, m_bDCMAirBomb4);
 	CheckSum(iSum, m_bDCMAirBomb5);
 	CheckSum(iSum, m_bDCMFighterEngage);
-	
+
 	CheckSum(iSum, m_iAIWeight);
 	CheckSum(iSum, m_iProductionCost);
 	CheckSum(iSum, m_iHurryCostModifier);
@@ -4331,10 +4352,15 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->GetChildXmlValByName(&m_iLeaderExperience, "iLeaderExperience");
 
-	// Dale - RB: Field Bombard START
-	pXML->GetChildXmlValByName(&m_iDCMBombRange, "iDCMBombRange");
-	pXML->GetChildXmlValByName(&m_iDCMBombAccuracy, "iDCMBombAccuracy");
-	// Dale - RB: Field Bombard END
+	// Toffer - New ranged combat
+	pXML->GetChildXmlValByName(&m_iVolleyRange, "iVolleyRange");
+	pXML->GetChildXmlValByName(&m_iVolleyAccuracy, "iVolleyAccuracy");
+	pXML->GetChildXmlValByName(&m_iVolleyAccuracyMin, "iVolleyAccuracyMin");
+	pXML->GetChildXmlValByName(&m_iVolleyEfficiency, "iVolleyEfficiency");
+	pXML->GetChildXmlValByName(&m_iVolleyRounds, "iVolleyRounds");
+	if ( m_iVolleyRounds < 1 ) m_iVolleyRounds = 1;
+	// ! Toffer
+
 	// Dale - AB: Bombing START
 	pXML->GetChildXmlValByName(&m_bDCMAirBomb1, "bDCMAirBomb1");
 	pXML->GetChildXmlValByName(&m_bDCMAirBomb2, "bDCMAirBomb2");
@@ -4985,14 +5011,18 @@ void CvUnitInfo::copyNonDefaults(CvUnitInfo* pClassInfo, CvXMLLoadUtility* pXML)
 			m_piPrereqOrBonuses[i] = pClassInfo->getPrereqOrBonuses(i);
 		}
 	}
+	if ( m_iVolleyRange == iDefault ) m_iVolleyRange = pClassInfo->getVolleyRange();
+	if ( m_iVolleyAccuracy == iDefault ) m_iVolleyAccuracy = pClassInfo->getVolleyAccuracy();
+	if ( m_iVolleyAccuracyMin == iDefault ) m_iVolleyAccuracyMin = pClassInfo->getVolleyAccuracyMin();
+	if ( m_iVolleyEfficiency == iDefault ) m_iVolleyEfficiency = pClassInfo->getVolleyEfficiency();
+	if ( m_iVolleyRounds == 1 ) m_iVolleyRounds = pClassInfo->getVolleyRounds();
+	if ( m_iVolleyRounds < 1 ) m_iVolleyRounds = 1;
+
 	/********************************************************************************/
 	/*		REVOLUTION_MOD							2/12/09				Afforess    */
 	/*																				*/
 	/*		 																		*/
 	/********************************************************************************/
-	if ( m_iDCMBombRange == iDefault ) m_iDCMBombRange = pClassInfo->getDCMBombRange();
-	if ( m_iDCMBombAccuracy == iDefault ) m_iDCMBombAccuracy = pClassInfo->getDCMBombAccuracy();
-	
 	if ( m_bDCMAirBomb1 == bDefault ) m_bDCMAirBomb1 = pClassInfo->getDCMAirBomb1();
 	if ( m_bDCMAirBomb2 == bDefault ) m_bDCMAirBomb2 = pClassInfo->getDCMAirBomb2();
 	if ( m_bDCMAirBomb3 == bDefault ) m_bDCMAirBomb3 = pClassInfo->getDCMAirBomb3();

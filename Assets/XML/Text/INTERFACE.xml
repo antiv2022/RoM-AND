@@ -14581,65 +14581,6 @@
         <Turkish>Gelişmiş Hava Bombardımanı</Turkish>
     </TEXT>
     <TEXT>
-        <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_ARCHER_BOMBARD_HOVER</Tag>
-        <English>Enables a ranged attack for Archery Units</English>
-        <French>Permet aux unités de type archers de mener des attaques à distance (similaires aux bombardements)</French>
-        <German>Ermöglicht Fernangriffe für Bogenschützeneinheiten</German>
-        <Spanish>Permite el ataque a distancia para las unidades de Arqueros</Spanish>
-        <Polish>Symuluje zdolnoäâ ataku łuczników, posyłajacych grad strzał na wroga</Polish>
-        <Korean>궁병 유닛의 원거리 공격을 활성화</Korean>
-        <Brazilian>Permite um ataque de longo alcance às unidades com arco</Brazilian>
-        <Italian>Abilita attacco a distanza per unità con l'arco</Italian>
-        <Ukrainian>Дозволяє дистанційну атаку для підрозділів з луком.</Ukrainian>
-        <Turkish>Okçuluk Birimleri için uzaktan saldırı sağlar</Turkish>
-    </TEXT>
-    <TEXT>
-        <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_ARCHER_BOMBARD_TEXT</Tag>
-        <English>Archer Bombard</English>
-        <French>Attaque à distance des archers </French>
-        <German>Bogenschützenbombardierung</German>
-        <Spanish>Bombardeo de Arqueros</Spanish>
-        <Polish>Atak łuczniczy</Polish>
-        <Italian>Lancio di frecce a raffica</Italian>
-        <Russian>Дистанционный обстрел</Russian>
-        <Korean>궁병 포격</Korean>
-        <Czech>Ostřelování</Czech>
-        <Brazilian>Bombardeio de Flechas</Brazilian>
-        <Greek>Τοξότης Βομβαρδιστικό</Greek>
-        <Portuguese>Bombardeio de Flechas</Portuguese>
-        <Danish>Byeskydnings bombardement</Danish>
-        <ChineseSimp>箭矢轰炸</ChineseSimp>
-        <Turkish>Okçu Bombardımanı</Turkish>
-        <Ukrainian>Обстріл з луку</Ukrainian>
-        <Arabic>رامي سهام القنابل</Arabic>
-        <Hungarian>Nyílzápor</Hungarian>
-    </TEXT>
-    <TEXT>
-        <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_ATTACK_SUPPORT_HOVER</Tag>
-        <English>Enables both offensive and defensive bombard units to bombard assist the attacking/defending unit while retaining their turn; is dependent on whether archer and ranged bombardment are enabled</English>
-        <French>Permet aux unités de bombardement (offensif et défensif) d'assister les attaquants ou défenseurs, tout les privant alors de la possibilité d'effectuer d'autres actions. Cette option dépend des choix concernant les options de bombardement et d'attaque à distance des archers.</French>
-        <German>Ermöglicht es, offensiven und defensiven Bombardierungseinheiten andere angreifende oder verteidigende Einheiten durch Bombardement zu unterstützen und dabei keinen Bewegungspunkt zu verlieren; hängt davon ab, ob Bogenschützen- und Fernbombardierung aktiviert sind</German>
-        <Spanish>Habilita a las unidades capaces de bombardeo a distancia, el apoyo tanto al ataque como a la defensa de otras unidades mientras permanezcan en su turno; depende de si está habilitado el bombardeo a distancia de arqueros y unidades de asedio.</Spanish>
-        <Polish>Pozwala atakujácym i broniácym się jednostkom majácych zdolnoäâ ataku dystansowego na wsparcie w ataku/obronie innej jednostki. To jest eksperymentalna opcja, symulujaca prawdziwa bitwe ládowa, gdzie jednostki oblęënicze i łucznicy po obu stronach dokonuja ostrzału linii frontu</Polish>
-        <Korean>유닛이 공격과 방어중 포격에 도움을 주는 공격적, 방어적 포격을 활성화 한다. 궁병과 원거리 포격의 활성여부에 의존한다.</Korean>
-        <Brazilian>Permite às unidades de bombardeio ofensivas e defensivas, bombardear ajudando a unidade atacando/defendendo enquanto estiver no seu turno; depende se o arqueiro e o bombardeio à distância estão permitidos</Brazilian>
-        <Ukrainian>Дозволяє атакуючим і захисним підрозділам з дистанційною атакою обстрілювати для підтримки атакуючого/захисного підрозділу, коли підходить їхній хід; для лучників це залежить від того, ви увімкнений у них дистанційних обстріл</Ukrainian>
-        <Turkish>Saldırı / savunma birimine hücumunu sürdürürken hücum ve savunma bombardıman birimlerine bombardıman yapmalarını sağlar; Okçu ve menzil bombardımanının etkin olup olmadığına bağlıdır</Turkish>
-    </TEXT>
-    <TEXT>
-        <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_ATTACK_SUPPORT_TEXT</Tag>
-        <English>Attack Support</English>
-        <French>Support d'attaques</French>
-        <German>Angriffsunterstützung</German>
-        <Spanish>Apoyo al Ataque</Spanish>
-        <Polish>Wsparcie</Polish>
-        <Korean>공격 지원</Korean>
-        <Czech>Podpora útoku</Czech>
-        <Brazilian>Suporte de Ataque</Brazilian>
-        <Ukrainian>Підтримка атаки</Ukrainian>
-        <Turkish>Saldırı Desteği</Turkish>
-    </TEXT>
-    <TEXT>
         <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_BATTLE_EFFECTS_HOVER</Tag>
         <English>Causes "Battlefield Terrain", which significantly reduces productivity and mobility on plots where a battle is fought</English>
         <French>Transforme les cases qui sont le théâtre d'un combat en "champs de bataille", réduisant de manière significative leur productivité et la mobilité des unités y accédant.</French>
@@ -14731,37 +14672,6 @@
         <Ukrainian>Можливий вогонь</Ukrainian>
         <Turkish>Fırsat Ateşi</Turkish>
         <ChineseSimp>火力机会</ChineseSimp>
-    </TEXT>
-    <TEXT>
-        <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_RANGE_BOMBARD_HOVER</Tag>
-        <English>Enables a ranged attack for most seige units (excluding catapults)</English>
-        <French>Permet à la plupart des unités de siège (à l'exception des catapultes) de disposer du bombardement à distance</French>
-        <German>Ermöglicht die Fernbombardierung für die meisten Belagerungswaffen (ausgenommen Katapulte)</German>
-        <Spanish>Habilita el ataque a distancia para la mayoría de las unidades de asedio (excluidas las catapultas)</Spanish>
-        <Polish>Włácza zasięg bombardowania do większoäci jednostek oblęëniczych (oprócz katapult)</Polish>
-        <Korean>대부분의 공성유닛(캐터펄트 제외)에게 원거리 공격을 활성화한다.</Korean>
-        <Brazilian>Permite um ataque de longo alcance à maioria das unidades de cerco (excluindo catapultas)</Brazilian>
-        <Ukrainian>Дозволяє дистанційну атаку для більшості облогових підрозділів (за винятком катапульт)</Ukrainian>
-        <Turkish>Birçok kuşatma birimi için (katapultar hariç) uzaktan saldırı sağlar</Turkish>
-    </TEXT>
-    <TEXT>
-        <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_RANGE_BOMBARD_TEXT</Tag>
-        <English>Ranged Bombardment</English>
-        <French>Bombardement à distance</French>
-        <German>Fernbombardierung</German>
-        <Spanish>Bombardeo a Distancia</Spanish>
-        <Polish>Zasięg bombardowania</Polish>
-        <Italian>Bombardamento ad area</Italian>
-        <Russian>Дистанционный удар</Russian>
-        <Korean>원거리 포격</Korean>
-        <Czech>Dálkové bombardování</Czech>
-        <Brazilian>Bombardeio de Longo Alcance</Brazilian>
-        <Portuguese>Bombardeio de Longo Alcance</Portuguese>
-        <Danish>Distance bombardement</Danish>
-        <ChineseSimp>范围轰炸</ChineseSimp>
-        <Ukrainian>Далекобійне бомбардування</Ukrainian>
-        <Turkish>Uzaktan Bombardıman</Turkish>
-        <Hungarian>Távolsági bombázás</Hungarian>
     </TEXT>
     <TEXT>
         <Tag>TXT_KEY_BUG_OPT_REVDCM__DCM_STACK_ATTACK_HOVER</Tag>
@@ -31851,19 +31761,6 @@ With this option OFF guilds work in a clearer and more realistic way: requiring 
         <Turkish>Oynanan Zaman</Turkish>
     </TEXT>
     <TEXT>
-        <Tag>TXT_KEY_INTERFACEMODE_ABOMBARD_HELP</Tag>
-        <English>"Archer Bombard" allows you to bombard an adjacent plot with your archers to damage enemy units.</English>
-        <French>"Bombardement d'archer" vous permet de 'bombarder' une case adjacente de flèches, pour endommager les unités ennemies.</French>
-        <German>"Bogenschützenbombardierung" ermöglicht es mit Bogenschützen benachbarte Geländefelder zu bombardieren um feindliche Einheiten zu beschädigen.</German>
-        <Italian>"Lancio di frecce a raffica" consente di attaccare con unità di arcieri una casella adiacente, per danneggiare unità nemiche.</Italian>
-        <Polish>"Atak łuczniczy" pozwala ostrzeliwaâ pobliskie pole za pomocá łuczników, aby zraniâ znajdujáce się tam jednostki.</Polish>
-        <Russian>"Дистанционный обстрел" позволяет лучникам обстреливать вражеские отряды, находящиеся на соседних клетках, не вступая в ближний бой.</Russian>
-        <Korean>"궁병 포격"은 적 유닛에게 피해를 주는 인접지역 포격을 허용한다.</Korean>
-        <Spanish>"Lluvia de flechas" le permite bombardear la casilla adyacente con tus arqueros para dañar las unidades enemigas.</Spanish>
-        <Ukrainian>"Обстріл лучниками" дозволяє обстрілювати лучниками сусідню ділянку, для пошкодження ворожих підрозділів.</Ukrainian>
-        <Turkish>"Okçu Bombardımanı", düşman birimlerine zarar vermek için okçuların bitişik bir kare üzerine bombardımanına izin verir.</Turkish>
-    </TEXT>
-    <TEXT>
         <Tag>TXT_KEY_INTERFACEMODE_AIRBOMB</Tag>
         <English>Air Bomb Mode</English>
         <French>Bombardement aérien</French>
@@ -32146,7 +32043,7 @@ With this option OFF guilds work in a clearer and more realistic way: requiring 
         <Turkish>Seçilen karede düşman birimlerine saldırmak için hava ünitesine emir verin</Turkish>
     </TEXT>
     <TEXT>
-        <Tag>TXT_KEY_INTERFACEMODE_BOMBARD_HELP</Tag>
+        <Tag>TXT_KEY_INTERFACEMODE_VOLLEY_HELP</Tag>
         <English>[H1]Ranged Bombardment[\H1] By selecting the bombard icon you can select whether to bombard units, improvements or cities. Bombarding is also possible from a range with heavy artillery.[PARAGRAPH:2]Range bombard works by inflicting standard BTS collateral damage. This renders it useless against single units or large stacks and the head defender is not injured. [PARAGRAPH:2]When bombarding cities, range bombarding also has a slight chance of hitting defenders not just defenses. Range bombarding from inside cities is much less effective than from properly constructed field structures like forts.</English>
         <French>[H1]Bombardement à distance [\H1][PARAGRAPH:2]Le bombardement à distance permet aux unités de siège d'effectuer des bombardements de terrain (par opposition aux bombardements de cités). En sélectionnant l'icone Bombardement vous pouvez choisir de bombarder des unités, des améliorations de terrain ou des villes. Le bombardement à distance est également possible. Dans "Les sentiers de la guerre", l'artillerie standard peut bombarder des cases adjacentes tandis que l'artillerie lourde est autorisée à tirer jusqu'à une distance de deux cases.[PARAGRAPH:2]</French>
         <German>[H1]Fernbombardierung[\H1]Durch Auswahl des Bombardierungssymbols kann man auswählen, ob Einheiten, Modernisierungen oder Städte bombardiert werden sollen. Auch mit schwerer Artillerie kann aus der Ferne bombardiert werden. [PARAGRAPH:2]Bei der Fernbombardierung wird der normale Kollateralschaden aus BTS angewandt. Sie ist somit sinnlos gegen einzelne Einheiten, große Einheitenstapel wenn der Hauptverteidger nicht beschädigt ist.[PARAGRAPH:2]Wenn Städte bombardiert werden, so hat die Fernbombardierung eine kleine Chance auch Verteidiger und nicht nur Gebäude oder Veteigungswerte zu treffen. Die Fernbombardierung aus Städten heraus ist viel ineffektiver als aus ordentlich gebauten Feldverteidigungsanlagen wie Forts.</German>

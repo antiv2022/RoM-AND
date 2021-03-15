@@ -1396,11 +1396,6 @@ public:
 	//ls612: Can't enter non-Owned cities
 	bool isNoNonOwnedEntry() const;
 
-/************************************************************************************************/
-/* Afforess	                  Start		 12/9/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/	
 	void setPowerValue(int iNewValue);
 	int getPrereqVicinityBonus() const;
 	bool isRequiresStateReligionInCity() const;
@@ -1471,24 +1466,26 @@ protected:
 	std::vector<CvWString> m_aszCivilizationNamesValueforPass3;
 
 	BoolExpr* m_pExprTrainCondition;
-	
-public:
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 
+// Toffer - New range combat
+public:
+	int getVolleyRange() const;
+	int getVolleyAccuracy() const;
+	int getVolleyAccuracyMin() const;
+	int getVolleyEfficiency() const;
+	int getVolleyRounds() const;
+protected:
+	int m_iVolleyRange;
+	int m_iVolleyAccuracy;
+	int m_iVolleyAccuracyMin;
+	int m_iVolleyEfficiency;
+	int m_iVolleyRounds;
+// ! Toffer
 
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
-	// Dale - RB: Field Bombard START
-	int getDCMBombRange() const;
-	int getDCMBombAccuracy() const;
-protected:
-	int m_iDCMBombRange;
-	int m_iDCMBombAccuracy;
 public:
-	// Dale - RB: Field Bombard END
 	// Dale - AB: Bombing START
 	bool getDCMAirBomb1() const;
 	bool getDCMAirBomb2() const;

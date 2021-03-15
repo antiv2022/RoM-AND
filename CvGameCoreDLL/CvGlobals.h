@@ -1043,14 +1043,10 @@ public:
 	int getMAX_BATTLE_TURNS();
 
 	bool isDCM_AIR_BOMBING();
-	bool isDCM_RANGE_BOMBARD();
-	int getDCM_RB_CITY_INACCURACY();
 	int getDCM_RB_CITYBOMBARD_CHANCE();
-	bool isDCM_ATTACK_SUPPORT();
 	bool isDCM_STACK_ATTACK();
 	bool isDCM_OPP_FIRE();
 	bool isDCM_ACTIVE_DEFENSE();
-	bool isDCM_ARCHER_BOMBARD();
 	bool isDCM_FIGHTER_ENGAGE();
 
 	bool isDYNAMIC_CIV_NAMES();
@@ -1684,14 +1680,10 @@ protected:
 	int m_iMAX_BATTLE_TURNS;
 
 	bool m_bDCM_AIR_BOMBING;
-	bool m_bDCM_RANGE_BOMBARD;
-	int m_iDCM_RB_CITY_INACCURACY;
 	int m_iDCM_RB_CITYBOMBARD_CHANCE;
-	bool m_bDCM_ATTACK_SUPPORT;
 	bool m_bDCM_STACK_ATTACK;
 	bool m_bDCM_OPP_FIRE;
 	bool m_bDCM_ACTIVE_DEFENSE;
-	bool m_bDCM_ARCHER_BOMBARD;
 	bool m_bDCM_FIGHTER_ENGAGE;
 
 	bool m_bDYNAMIC_CIV_NAMES;
@@ -1958,6 +1950,8 @@ public:
 	bool getLFBUseCombatOdds();
 	int getCOMBAT_DIE_SIDES();
 	int getCOMBAT_DAMAGE();
+	int getVOLLEY_STRENGTH();
+	int getVOLLEY_MIN_ACCURACY();
 
 protected:
 	bool m_bLFBEnable;
@@ -1972,6 +1966,8 @@ protected:
 	bool m_bLFBUseCombatOdds;
 	int m_iCOMBAT_DIE_SIDES;
 	int m_iCOMBAT_DAMAGE;
+	int m_iVOLLEY_STRENGTH;
+	int m_iVOLLEY_MIN_ACCURACY;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/

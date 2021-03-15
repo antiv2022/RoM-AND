@@ -720,45 +720,29 @@ bool CvUnitAI::AI_follow()
 	// attack for next turn, better to re-evaluate.
 	bool bCanAllMove = getGroup()->canAllMove();
 
-	if( bCanAllMove )
+	if (bCanAllMove && AI_cityAttack(1, 65, true))
 	{
-		if (AI_cityAttack(1, 65, true))
-		{
-			return true;
-		}
+		return true;
 	}
 
-	if (isEnemy(plot()->getTeam()))
+	if (isEnemy(plot()->getTeam()) && getGroup()->canPillage(plot()))
 	{
-		if (getGroup()->canPillage(plot()))
-		{
-			getGroup()->pushMission(MISSION_PILLAGE);
-			return true;
-		}
+		getGroup()->pushMission(MISSION_PILLAGE);
+		return true;
 	}
 
-	if( bCanAllMove )
+	if (bCanAllMove && AI_anyAttack(1, 70, 2, true, true))
 	{
-		if (AI_anyAttack(1, 70, 2, true, true))
-		{
-			return true;
-		}
+		return true;
 	}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-	if (isFound())
+	if (isFound() && area()->getBestFoundValue(getOwnerINLINE()) > 0 && AI_foundRange(FOUND_RANGE, true))
 	{
-		if (area()->getBestFoundValue(getOwnerINLINE()) > 0)
-		{
-			if (AI_foundRange(FOUND_RANGE, true))
-			{
-				return true;
-			}
-		}
+		return true;
 	}
-
 	return false;
 }
 
@@ -3149,29 +3133,9 @@ void CvUnitAI::AI_attackMove()
 				return;
 			}
 
-			if (getGroup()->hasCollateralDamage())
+			if (getGroup()->hasCollateralDamage() && AI_anyAttack(1, 45, 3))
 			{
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                               Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-				// RevolutionDCM - ranged bombardment AI
-				// In theory trebs can be set to UNITAI_ATTACK
-				// Dale - RB: Field Bombard START
-				if (AI_RbombardUnit(1, 50, 3, 1, 120))
-				{
-					return;
-				}
-				// RevolutionDCM - end
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                    Glider1    */
-/************************************************************************************************/
-
-				if (AI_anyAttack(1, 45, 3))
-				{
-					return;
-				}
+				return;
 			}
 		}
 
@@ -3779,37 +3743,22 @@ void CvUnitAI::AI_attackCityMove()
 		bReadyToAttack = ((getGroup()->getNumUnits() >= ((bHuntBarbs) ? 3 : AI_stackOfDoomExtra())));
 	}
 
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-	// RevolutionDCM - new field bombard AI
-	// Dale - RB: Field Bombard START
-	//if (AI_RbombardCity())
-	//{
-	//	return;
-	//}
-	// Dale - RB: Field Bombard END
 
-	// Dale - ARB: Archer Bombard START
 	// Koshling - don't decide to do this yet if we think we're ready to
 	//attack the city or we'll get distracted and just wind up Abombarding!
 	bool bTriedABombard = false;
 
-	if ( !bReadyToAttack )
+	if (!bReadyToAttack)
 	{
-		if (AI_Abombard())
+		if (AI_Volley())
 		{
 			return;
 		}
-
 		bTriedABombard = true;
 	}
-	// Dale - ARB: Archer Bombard END
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
+
 	bool bCity = plot()->isCity();
-	
+
 	if( bReadyToAttack )
 	{
 		// Check that stack has units which can capture cities
@@ -4167,7 +4116,7 @@ void CvUnitAI::AI_attackCityMove()
 	}
 
 	// Koshling - if we haven't found any higher priority action try Abombard now
-	if ( !bTriedABombard && AI_Abombard())
+	if (!bTriedABombard && AI_Volley())
 	{
 		return;
 	}
@@ -4608,22 +4557,6 @@ void CvUnitAI::AI_collateralMove()
 		return;
 	}
 
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                                Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment AI
-	// Dale - RB: Field Bombard START
-	if (AI_RbombardUnit(1, 50, 3, 1, 100))
-	{
-		return;
-	}
-	// RevolutionDCM - end	
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                     Glider1    */
-/************************************************************************************************/
-	
 	if (AI_anyAttack(1, 45, 3))
 	{
 		return;
@@ -4633,21 +4566,6 @@ void CvUnitAI::AI_collateralMove()
 	{
 		return;
 	}
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                                Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment AI
-	// Dale - RB: Field Bombard START
-	if (AI_RbombardUnit(1, 40, 3, 0, 100))
-	{
-		return;
-	}
-	// RevolutionDCM - end
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                    Glider1    */
-/************************************************************************************************/
 
 	if (AI_anyAttack(1, 35, 3))
 	{
@@ -4658,21 +4576,7 @@ void CvUnitAI::AI_collateralMove()
 	{
 		return;
 	}
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                                Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment AI
-	// Dale - RB: Field Bombard START
-	if (AI_RbombardUnit(1, 25, 5, 0, 80))
-	{
-		return;
-	}
-	// RevolutionDCM - end
-/************************************************************************************************/
-/* REVOLUTIONDCM                              END                                    Glider1    */
-/************************************************************************************************/
+
 	if (AI_anyAttack(1, 20, 5))
 	{
 		return;
@@ -4690,21 +4594,6 @@ void CvUnitAI::AI_collateralMove()
 			return;
 		}
 	}
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                                Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment AI
-	// Dale - RB: Field Bombard START
-	if (AI_RbombardUnit(getDCMBombRange(), 40, 3, 0, 100))
-	{
-		return;
-	}
-	// RevolutionDCM - end
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                     Glider1    */
-/************************************************************************************************/
 
 	if (AI_anyAttack(2, 55, 3))
 	{
@@ -4733,21 +4622,11 @@ void CvUnitAI::AI_collateralMove()
 	{
 		return;
 	}
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                                Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment plot AI
-	// Dale - RB: Field Bombard START
-	if (AI_RbombardPlot(getDCMBombRange(), 20))
+
+	if (AI_Volley(false, 100))
 	{
 		return;
 	}
-	// RevolutionDCM - end
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                     Glider1    */
-/************************************************************************************************/
 
 	if (AI_guardCity(false, true, 3))
 	{
@@ -5500,26 +5379,11 @@ void CvUnitAI::AI_cityDefenseMove()
 		}
 	}
 
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-	// RevolutionDCM - new field bombard AI
-	// Dale - RB: Field Bombard START
-	//if (AI_RbombardCity())
-	//{
-	//	return;
-	//}
-	// Dale - RB: Field Bombard END
-
-	// Dale - ARB: Archer Bombard START
-	if (AI_Abombard())
+	if (AI_Volley())
 	{
 		return;
 	}
-	// Dale - ARB: Archer Bombard END
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
+
 	if (AI_guardCityBestDefender())
 	{
 		return;
@@ -5734,9 +5598,6 @@ void CvUnitAI::AI_cityDefenseExtraMove()
 {
 	PROFILE_FUNC();
 
-	CvCity* pCity;
-	bool bDanger = (GET_PLAYER(getOwnerINLINE()).AI_getAnyPlotDanger(plot(), 3));
-
 	/************************************************************************************************/
 	/* BETTER_BTS_AI_MOD                      09/18/09                                jdog5000      */
 	/*                                                                                              */
@@ -5744,26 +5605,15 @@ void CvUnitAI::AI_cityDefenseExtraMove()
 	/************************************************************************************************/
 	if (GET_PLAYER(getOwnerINLINE()).getCurrentEra() > 0)
 	{
-		if (!(plot()->isOwned()))
+		if (!plot()->isOwned() && getGroup()->getHeadUnitAI() == UNITAI_CITY_COUNTER
+		&& AI_group(UNITAI_SETTLE, /*iMaxGroup*/ 5, 2, -1, false, false, false, /*iMaxPath*/ 4, /*bAllowRegrouping*/ true))
 		{
-			if (getGroup()->getHeadUnitAI() == UNITAI_CITY_COUNTER)
-			{
-				if (AI_group(UNITAI_SETTLE, /*iMaxGroup*/ 5, 2, -1, false, false, false, /*iMaxPath*/ 4, /*bAllowRegrouping*/ true))
-				{
-					return;
-				}
-			}
+			return;
 		}
-	}	
-	else
+	}
+	else if (!plot()->isOwned() && AI_group(UNITAI_SETTLE, 1, -1, -1, false, false, false, 1, true))
 	{
-		if( !(plot()->isOwned()) )
-		{
-			if (AI_group(UNITAI_SETTLE, 1, -1, -1, false, false, false, 1, true))
-			{
-				return;
-			}
-		}	
+		return;
 	}
 	/************************************************************************************************/
 	/* BETTER_BTS_AI_MOD                       END                                                  */
@@ -5780,36 +5630,18 @@ void CvUnitAI::AI_cityDefenseExtraMove()
 	}
 
 	//Afforess: prevent unescorted siege units
-	if (bombardRate() > 0 && getGroup() != NULL)
+	if (bombardRate() > 0 && getGroup() != NULL && AI_findEscortForSiegeUnits())
 	{
-		if (AI_findEscortForSiegeUnits())
-		{
-			return;
-		}
+		return;
 	}
 
-	/************************************************************************************************/
-	/* DCM                                     04/19/09                                Johny Smith  */
-	/************************************************************************************************/
-	// RevolutionDCM - new field bombard ai
-	// Dale - RB: Field Bombard START
-	//if (AI_RbombardCity())
-	//{
-	//	return;
-	//}
-	// Dale - RB: Field Bombard END
-
-	/************************************************************************************************/
-	/* DCM                                     END                                                  */
-	/************************************************************************************************/
+	CvCity* pCity;
 	if (GET_PLAYER(getOwnerINLINE()).getCurrentEra() > 0)
 	{
-		if (getGroup()->getHeadUnitAI() == UNITAI_CITY_COUNTER)
+		if (getGroup()->getHeadUnitAI() == UNITAI_CITY_COUNTER
+		&& AI_group(UNITAI_SETTLE, /*iMaxGroup*/ 5, 2, -1, false, false, false, /*iMaxPath*/ 2, /*bAllowRegrouping*/ true))
 		{
-			if (AI_group(UNITAI_SETTLE, /*iMaxGroup*/ 5, 2, -1, false, false, false, /*iMaxPath*/ 2, /*bAllowRegrouping*/ true))
-			{
-				return;
-			}
+			return;
 		}
 
 		if (AI_guardCityBestDefender())
@@ -5817,40 +5649,30 @@ void CvUnitAI::AI_cityDefenseExtraMove()
 			return;
 		}
 
-		if (getGroup()->getHeadUnitAI() == UNITAI_CITY_COUNTER)
-		{
-			if (!bDanger)
-			{
-				if (plot()->getOwnerINLINE() == getOwnerINLINE())
-				{
-					if (AI_load(UNITAI_SETTLER_SEA, MISSIONAI_LOAD_SETTLER, UNITAI_SETTLE, -1, -1, 1, -1, MOVE_SAFE_TERRITORY, 1))
-					{
-						return;
-					}
-				}
-			}
-		}
-
-		pCity = plot()->getPlotCity();
-
-		if ((pCity != NULL) && (pCity->getOwnerINLINE() == getOwnerINLINE())) // XXX check for other team?
-		{
-			int iMinLocalCounter = plot()->plotCount(PUF_isUnitAIType, UNITAI_CITY_COUNTER, -1, getOwnerINLINE());
-			if (iMinLocalCounter < 2)
-			{
-				getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_GUARD_CITY, NULL);
-				getGroup()->AI_setAsGarrison(pCity);
-				return;
-			}
-		}
-	
-		// Dale - ARB: Archer Bombard START
-		if (AI_Abombard())
+		if (getGroup()->getHeadUnitAI() == UNITAI_CITY_COUNTER
+		&& !GET_PLAYER(getOwnerINLINE()).AI_getAnyPlotDanger(plot(), 3)
+		&& plot()->getOwnerINLINE() == getOwnerINLINE()
+		&& AI_load(UNITAI_SETTLER_SEA, MISSIONAI_LOAD_SETTLER, UNITAI_SETTLE, -1, -1, 1, -1, MOVE_SAFE_TERRITORY, 1))
 		{
 			return;
 		}
 
-		//	No high priority actions to take so see if anyone requesting help
+		pCity = plot()->getPlotCity();
+
+		if (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE() // XXX check for other team?
+		&& plot()->plotCount(PUF_isUnitAIType, UNITAI_CITY_COUNTER, -1, getOwnerINLINE()) < 2)
+		{
+			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_GUARD_CITY, NULL);
+			getGroup()->AI_setAsGarrison(pCity);
+			return;
+		}
+
+		if (AI_Volley())
+		{
+			return;
+		}
+
+		// No high priority actions to take so see if anyone requesting help
 		if (processContracts())
 		{
 			return;
@@ -5861,14 +5683,10 @@ void CvUnitAI::AI_cityDefenseExtraMove()
 			return;
 		}
 
-		if ((AI_getBirthmark() % 4) == 0)
+		if ((AI_getBirthmark() % 4) == 0 && AI_guardFort(true))
 		{
-			if (AI_guardFort(true))
-			{
-				return;
-			}
+			return;
 		}
-		// Super Forts end
 
 		if (processContracts())
 		{
@@ -5877,15 +5695,11 @@ void CvUnitAI::AI_cityDefenseExtraMove()
 	}
 	else
 	{
-		// Dale - ARB: Archer Bombard START
-		if (AI_Abombard())
+		if (AI_Volley())
 		{
 			return;
 		}
-		// Dale - ARB: Archer Bombard END
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
+
 		if (AI_guardCityBestDefender())
 		{
 			return;
@@ -5906,13 +5720,13 @@ void CvUnitAI::AI_cityDefenseExtraMove()
 			return;
 		}
 
-		//	No high priority actions to take so see if anyone requesting help
-		if ( processContracts() )
+		// No high priority actions to take so see if anyone requesting help
+		if (processContracts())
 		{
 			return;
 		}
 
-		pCity = plot()->getPlotCity();	
+		pCity = plot()->getPlotCity();
 	}
 	if ((pCity != NULL) && (pCity->getOwnerINLINE() == getOwnerINLINE())) // XXX check for other team?
 	{
@@ -8031,32 +7845,11 @@ void CvUnitAI::AI_attackSeaMove()
 	{
 		return;
 	}
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                            Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - sea bombard AI formally DCM 1.7 AI_RbombardCity()
-	// Dale - RB: Field Bombard START
-	//if (AI_RbombardCity())
-	//{
-	//	return;
-	//}
-	if (AI_RbombardNaval())
-	{
-		return;
-	}
-	// Dale - RB: Field Bombard END
 
-	// Dale - ARB: Archer Bombard START
-	if (AI_Abombard())
+	if (AI_Volley())
 	{
 		return;
 	}
-	// Dale - ARB: Archer Bombard END
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                Glider1    */
-/************************************************************************************************/
 
 	{
 		PROFILE("CvUnitAI::AI_attackSeaMove.BasicAttacks");
@@ -9294,35 +9087,12 @@ void CvUnitAI::AI_assaultSeaMove()
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-/************************************************************************************************/
-/* REVOLUTIONDCM                             05/24/08                                Glider1    */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - sea bombard AI formally DCM 1.7 AI_RbombardCity()
-	// Dale - RB: Field Bombard START
-	//if (AI_RbombardCity())
-	//{
-	//	return;
-	//}
-	if (AI_RbombardNaval())
+
+	if (AI_Volley())
 	{
 		return;
 	}
-	// Dale - RB: Field Bombard END
 
-	// Dale - ARB: Archer Bombard START
-	if (AI_Abombard())
-	{
-		return;
-	}
-	// Dale - ARB: Archer Bombard END	
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                    Glider1    */
-/************************************************************************************************/
-	
-
-	
 	if (!bIsCity)
 	{
 		if( iCargo >= iTargetInvasionSize )
@@ -14955,21 +14725,11 @@ bool CvUnitAI::AI_afterAttack()
 			return true;
 		}
 	}
-/************************************************************************************************/
-/* REVOLUTIONDCM                            05/24/08                                Glider1     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment plot AI
-	// Dale - RB: Field Bombard START
-	if (AI_RbombardPlot(getDCMBombRange(), 60))
+
+	if (AI_Volley(false, 500))
 	{
 		return true;
 	}
-	// RevolutionDCM - end
-/************************************************************************************************/
-/* REVOLUTIONDCM                            END                                     Glider1     */
-/************************************************************************************************/
 
 	if (AI_pillageRange(1))
 	{
@@ -14990,21 +14750,11 @@ bool CvUnitAI::AI_afterAttack()
 	{
 		return true;
 	}
-/************************************************************************************************/
-/* REVOLUTIONDCM                            05/24/08                                Glider1     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment plot AI
-	// Dale - RB: Field Bombard START
-	if (AI_RbombardPlot(getDCMBombRange(), 0))
+
+	if (AI_Volley(false, 0))
 	{
 		return true;
 	}
-	// RevolutionDCM - end
-/************************************************************************************************/
-/* REVOLUTIONDCM                            END                                     Glider1     */
-/************************************************************************************************/
 
 	if (AI_pillageRange(2))
 	{
@@ -19542,7 +19292,6 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 	int iValue;
 	int iBestValue;
 	int iLoop = 0;
-	int iI;
 	static std::map<CvPlot*,bool>* cachedTargets = NULL;
 
 	iBestValue = 0;
@@ -19599,7 +19348,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 
 	if (pBestCity == NULL)
 	{
-		for (iI = 0; iI < (bHuntBarbs ? MAX_PLAYERS : MAX_CIV_PLAYERS); iI++)
+		for (int iI = 0; iI < (bHuntBarbs ? MAX_PLAYERS : MAX_CIV_PLAYERS); iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isAlive() && ::isPotentialEnemy(getTeam(), GET_PLAYER((PlayerTypes)iI).getTeam()))
 			{
@@ -19679,7 +19428,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 
 			if ( iBestValue > 0 )
 			{
-				float	fLongestPossibleWinningPath = sqrt(((float)itr->second.iValue)/((float)iBestValue) - 4);
+				float fLongestPossibleWinningPath = sqrt(((float)itr->second.iValue)/((float)iBestValue) - 4);
 
 				iMaxPath = std::min((int)fLongestPossibleWinningPath - iPathTurnsExtra, iMaxPathTurns);
 			}
@@ -19691,9 +19440,9 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 			if ( iMaxPath > 0 )
 			{
 				PROFILE("AI_pickTargetCity.PrePathing");
-				if (generatePath(pLoopCity->plot(), iFlags, true, &iPathTurns, iMaxPath) ||
-					(stepDistance(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), getX_INLINE(), getY_INLINE()) == 1 &&
-					 getGroup()->canBombard(plot(),true)))
+				if (generatePath(pLoopCity->plot(), iFlags, true, &iPathTurns, iMaxPath)
+				|| stepDistance(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), getX_INLINE(), getY_INLINE()) == 1
+				&& getGroup()->canReduceCityDefense(NULL, true))
 				{
 					PROFILE("AI_pickTargetCity.PostPathing");
 
@@ -20151,11 +19900,9 @@ bool CvUnitAI::AI_bombardCity()
 {
 	PROFILE_FUNC();
 
-	CvCity* pBombardCity;
-
 	if (canBombard(plot()))
 	{
-		pBombardCity = bombardTarget(plot());
+		CvCity* pBombardCity = bombardTarget(plot());
 		FAssertMsg(pBombardCity != NULL, "BombardCity is not assigned a valid value");
 
 		// Do not bombard cities with no defenders
@@ -20214,16 +19961,7 @@ bool CvUnitAI::AI_bombardCity()
 		}
 		getGroup()->pushMission(MISSION_BOMBARD);
 		return true;
-
-		// Ranged bombard AI wraps standard bombard (RevDCM, Glider1 2008-05-24)
-		if (!AI_RbombardCity(pBombardCity))
-		{
-			// vanilla behaviour
-			getGroup()->pushMission(MISSION_BOMBARD);
-			return true;
-		}
 	}
-
 	return false;
 }
 /************************************************************************************************/
@@ -20318,47 +20056,24 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 {
 	PROFILE_FUNC();
 	MEMORY_TRACK();
-
-	CvPlot* pLoopPlot;
-	CvPlot* pBestPlot;
-	int iSearchRange;
-	int iPathTurns = 0;
-	int iValue;
-	int iBestValue;
-
-
 	FAssert(canMove());
 
-	if (bFollow)
-	{
-		iSearchRange = 1;
-	}
-	else
-	{
-		iSearchRange = AI_searchRange(iRange);
-	}
+	const int iSearchRange = bFollow ? 1 : AI_searchRange(iRange);
 
 #ifdef USE_REACHABLE_ENUMERATION
 	CvReachablePlotSet plotSet(getGroup(), MOVE_THROUGH_ENEMY, iSearchRange);
 #endif
 
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-	// RevolutionDCM - return this function to vanilla except for the archer bombard option
 	if (AI_rangeAttack(iRange))
 	{
 		return true;
 	}
-	// Dale - ARB: Archer Bombard START
-	if (AI_Abombard())
+
+	if (AI_Volley())
 	{
 		return true;
 	}
-	// Dale - ARB: Archer Bombard END
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
+
 /************************************************************************************************/
 /* Afforess	                  Start		 08/02/10                                               */
 /*                                                                                              */
@@ -20393,8 +20108,9 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
-	iBestValue = 0;
-	pBestPlot = NULL;
+	int iBestValue = 0;
+	CvPlot* pBestPlot = NULL;
+	int iPathTurns = 0;
 
 #ifdef USE_REACHABLE_ENUMERATION
 	for(CvReachablePlotSet::const_iterator itr = plotSet.begin(); itr != plotSet.end(); ++itr)
@@ -20410,7 +20126,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 			}
 		}
 
-		pLoopPlot = itr.plot();
+		CvPlot* pLoopPlot = itr.plot();
 
 		if ( CvSelectionGroup::getPathGenerator()->haveRouteLength(pLoopPlot, getGroup(), 0, iPathTurns) && iPathTurns > iRange )
 		{
@@ -20428,7 +20144,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 						bool bWinLikely = false;
 
 						PROFILE("CvUnitAI::AI_anyAttack.FoundTarget");
-						iValue = getGroup()->AI_attackOdds(pLoopPlot, true, false, &bWinLikely, iOddsThreshold);
+						int iValue = getGroup()->AI_attackOdds(pLoopPlot, true, false, &bWinLikely, iOddsThreshold);
 
 						//	Increase value on our territory since we really want to get rid of enemies there even
 						//	if it costs us a few losses
@@ -20487,13 +20203,13 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 	lastBoundary->Add(plot()->getX_INLINE(), plot()->getY_INLINE());
 	visited.Set(plot()->getX_INLINE(), plot()->getY_INLINE());
 
-	for( int iDist = 1; iDist <= iSearchRange; iDist++ )
+	for (int iDist = 1; iDist <= iSearchRange; iDist++)
 	{
-		for(int j = 0; j < lastBoundary->m_boundaryLen; j++)
+		for (int j = 0; j < lastBoundary->m_boundaryLen; j++)
 		{
 			for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 			{
-				pLoopPlot = plotDirection(lastBoundary->m_boundary[j].x, lastBoundary->m_boundary[j].y, ((DirectionTypes)iI));
+				CvPlot* pLoopPlot = plotDirection(lastBoundary->m_boundary[j].x, lastBoundary->m_boundary[j].y, ((DirectionTypes)iI));
 				if ( pLoopPlot != NULL && !visited.IsSet(pLoopPlot->getX_INLINE(),pLoopPlot->getY_INLINE()) )
 				{
 					visited.Set(pLoopPlot->getX_INLINE(),pLoopPlot->getY_INLINE());
@@ -20516,7 +20232,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 								if (pLoopPlot->getNumVisibleEnemyDefenders(this) >= iMinStack)
 								{
 									PROFILE("CvUnitAI::AI_anyAttack.FoundTarget");
-									iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
+									const int iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
 
 									if (iValue > iBestValue && iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold))
 									{
@@ -20568,44 +20284,32 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 	iBestValue = 0;
 	pBestPlot = NULL;
 
+	for (iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
 	{
-		for (iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
+		for (iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
 		{
-			for (iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
+			CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+
+			if (pLoopPlot != NULL && AI_plotValid(pLoopPlot) && (bAllowCities || !pLoopPlot->isCity(false))
+			&& (pLoopPlot->isVisibleEnemyUnit(this) || pLoopPlot->isCity() && AI_potentialEnemy(pLoopPlot->getTeam()))
+			&& pLoopPlot->getNumVisibleEnemyDefenders(this) >= iMinStack)
 			{
-				pLoopPlot	= plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+				PROFILE("CvUnitAI::AI_anyAttack.FoundTarget");
+				const int iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
 
-				if (pLoopPlot != NULL)
+				if (iValue > iBestValue && iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold))
 				{
-					if (AI_plotValid(pLoopPlot))
+					PROFILE("CvUnitAI::AI_anyAttack.SearchPath");
+					if (!atPlot(pLoopPlot) && ((bFollow) ? getGroup()->canMoveInto(pLoopPlot, true) : (generatePath(pLoopPlot, 0, true, &iPathTurns) )))
 					{
-						if( ((bAllowCities) || !(pLoopPlot->isCity(false))) )
+						PROFILE("CvUnitAI::AI_anyAttack.SuccessfulPath");
+						if (iPathTurns <= iRange)
 						{
-							if (pLoopPlot->isVisibleEnemyUnit(this) || (pLoopPlot->isCity() && AI_potentialEnemy(pLoopPlot->getTeam())))
-							{
-								if (pLoopPlot->getNumVisibleEnemyDefenders(this) >= iMinStack)
-								{
-									PROFILE("CvUnitAI::AI_anyAttack.FoundTarget");
-									iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
+							PROFILE("CvUnitAI::AI_anyAttack.SuccessfulPath.InRange");
 
-									if (iValue > iBestValue && iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold))
-									{
-										PROFILE("CvUnitAI::AI_anyAttack.SearchPath");
-										if (!atPlot(pLoopPlot) && ((bFollow) ? getGroup()->canMoveInto(pLoopPlot, true) : (generatePath(pLoopPlot, 0, true, &iPathTurns) )))
-										{
-											PROFILE("CvUnitAI::AI_anyAttack.SuccessfulPath");
-											if (iPathTurns <= iRange)
-											{
-												PROFILE("CvUnitAI::AI_anyAttack.SuccessfulPath.InRange");
-
-												iBestValue = iValue;
-												pBestPlot = ((bFollow) ? pLoopPlot : getPathEndTurnPlot());
-												FAssert(!atPlot(pBestPlot));
-											}
-										}
-									}
-								}
-							}
+							iBestValue = iValue;
+							pBestPlot = ((bFollow) ? pLoopPlot : getPathEndTurnPlot());
+							FAssert(!atPlot(pBestPlot));
 						}
 					}
 				}
@@ -20799,7 +20503,7 @@ int CvUnitAI::AI_blockadeValue(CvPlot* pLoopPlot, CvCity* pCity, CvPlot*& endTur
 
 		iValue += (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pCity->plot(), MISSIONAI_ASSAULT, getGroup(), 2) * 3);
 
-		if (getGroup()->canBombard(pLoopPlot))
+		if (getGroup()->canReduceCityDefense(pLoopPlot, true))
 		{
 			iValue *= 2;
 		}
@@ -20937,40 +20641,19 @@ bool CvUnitAI::AI_blockade()
 		{
 			getGroup()->groupDeclareWar(pBestBlockadePlot, true);
 		}
-		
+
 		if (atPlot(pBestBlockadePlot))
 		{
-/************************************************************************************************/
-/* REVOLUTIONDCM                            05/24/08                                Glider1     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-			// RevolutionDCM - new field bombard ai
-			// Dale - RB: Field Bombard START
-			//if (canRBombard(plot()))
-			//{
-			//	getGroup()->pushMission(MISSION_RBOMBARD, pBestBlockadePlot->getX_INLINE(), pBestBlockadePlot->getY_INLINE(), 0, false, false, MISSIONAI_BLOCKADE, pBestBlockadePlot);
-			//}
-			// Dale - RB: Field Bombard END
-/************************************************************************************************/
-/* REVOLUTIONDCM                             END                                    Glider1     */
-/************************************************************************************************/
-			if (getGroup()->canBombard(plot()))
+			if (getGroup()->canReduceCityDefense(plot()) && !AI_Volley(true))
 			{
 				getGroup()->pushMission(MISSION_BOMBARD, -1, -1, 0, false, false, MISSIONAI_BLOCKADE, pBestBlockadePlot);
 			}
-
 			getGroup()->pushMission(MISSION_PLUNDER, -1, -1, 0, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BLOCKADE, pBestBlockadePlot);
-			
 			return true;
 		}
-		else
-		{
-			FAssert(!atPlot(pBestPlot));
-			return getGroup()->pushMissionInternal(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BLOCKADE, pBestBlockadePlot);
-		}
+		FAssert(!atPlot(pBestPlot));
+		return getGroup()->pushMissionInternal(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BLOCKADE, pBestBlockadePlot);
 	}
-
 	return false;
 }
 
@@ -21505,42 +21188,25 @@ bool CvUnitAI::AI_seaBombardRange(int iMaxRange)
 	/********************************************************************************/
 	/* 	BETTER_BTS_AI_MOD							END							*/
 	/********************************************************************************/
-	
-	if ((pBestPlot != NULL) && (pBestBombardPlot != NULL))
+
+	if (pBestPlot != NULL && pBestBombardPlot != NULL)
 	{
 		if (atPlot(pBestBombardPlot))
 		{
 			// if we are at the plot from which to bombard, and we have a unit that can bombard this turn, do it
-			if (bBombardUnitCanBombardNow && pGroup->canBombard(pBestBombardPlot))
+			if (bBombardUnitCanBombardNow && pGroup->canReduceCityDefense(pBestBombardPlot))
 			{
-/************************************************************************************************/
-/* REVOLUTIONDCM                            05/24/08                                Glider1     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-				// RevolutionDCM - sea bombard AI formally DCM 1.7 AI_RbombardCity()
-				// Dale - RB: Field Bombard START
-				//if (AI_RbombardCity())
-				//{
-				//	return;
-				//}
-				if (AI_RbombardNaval())
+				if (!AI_Volley(true))
 				{
-					return true;
-				}
-				// Dale - RB: Field Bombard END
-				
-				// RevolutionDCM - bug fix 04/07/2009 DCM 1.7 accidently omits this line - thanks Arian for reporting
-				getGroup()->pushMission(MISSION_BOMBARD, -1, -1, 0, false, false, MISSIONAI_BLOCKADE, pBestBombardPlot);
-/************************************************************************************************/
-/* REVOLUTIONDCM                            END                                     Glider1     */
-/************************************************************************************************/
+					// RevolutionDCM - bug fix 04/07/2009 DCM 1.7 accidently omits this line - thanks Arian for reporting
+					getGroup()->pushMission(MISSION_BOMBARD, -1, -1, 0, false, false, MISSIONAI_BLOCKADE, pBestBombardPlot);
 
-				// if city bombarded enough, wake up any units that were waiting to bombard this city
-				CvCity* pBombardCity = bombardTarget(pBestBombardPlot); // is NULL if city cannot be bombarded any more
-				if (pBombardCity == NULL || pBombardCity->getDefenseDamage() < ((GC.getMAX_CITY_DEFENSE_DAMAGE()*5)/6))
-				{
-					kPlayer.AI_wakePlotTargetMissionAIs(pBestBombardPlot, MISSIONAI_BLOCKADE, getGroup());
+					// if city bombarded enough, wake up any units that were waiting to bombard this city
+					CvCity* pBombardCity = bombardTarget(pBestBombardPlot); // is NULL if city cannot be bombarded any more
+					if (pBombardCity == NULL || pBombardCity->getDefenseDamage() < ((GC.getMAX_CITY_DEFENSE_DAMAGE()*5)/6))
+					{
+						kPlayer.AI_wakePlotTargetMissionAIs(pBestBombardPlot, MISSIONAI_BLOCKADE, getGroup());
+					}
 				}
 			}
 			// otherwise, skip until next turn, when we will surely bombard
@@ -21548,20 +21214,13 @@ bool CvUnitAI::AI_seaBombardRange(int iMaxRange)
 			{
 				getGroup()->pushMission(MISSION_PLUNDER, -1, -1, 0, false, false, MISSIONAI_BLOCKADE, pBestBombardPlot);
 			}
-			else
-			{
-				getGroup()->pushMission(MISSION_SKIP);
-			}
+			else getGroup()->pushMission(MISSION_SKIP);
 
 			return true;
 		}
-		else
-		{
-			FAssert(!atPlot(pBestPlot));
-			return getGroup()->pushMissionInternal(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BLOCKADE, pBestBombardPlot);
-		}
+		FAssert(!atPlot(pBestPlot));
+		return getGroup()->pushMissionInternal(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BLOCKADE, pBestBombardPlot);
 	}
-
 	return false;
 }
 
@@ -29571,73 +29230,44 @@ bool CvUnitAI::AI_airAttackDamagedSkip()
 // Returns true if a mission was pushed or we should wait for another unit to bombard...
 bool CvUnitAI::AI_followBombard()
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	CvPlot* pAdjacentPlot1;
-	CvPlot* pAdjacentPlot2;
-	int iI, iJ;
-/************************************************************************************************/
-/* REVOLUTIONDCM                            05/24/08                                Glider1     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-
-	if(getGroup()->canBombard(plot())) 
+	if (getGroup()->canReduceCityDefense(plot()))
 	{
-		// RevolutionDCM - ranged bombard AI wraps standard bombard
-		if (!AI_RbombardCity(bombardTarget(plot())))
+		if (!AI_Volley(true))
 		{
-			// vanilla behaviour
 			getGroup()->pushMission(MISSION_BOMBARD);
-			return true;
 		}
-		// RevolutionDCM - end
+		return true;
 	}
-/************************************************************************************************/
-/* REVOLUTIONDCM                            END                                     Glider1     */
-/************************************************************************************************/
+
 	if (getDomainType() == DOMAIN_LAND)
 	{
-		for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+		for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 		{
-			pAdjacentPlot1 = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
+			CvPlot* pAdjacentPlot1 = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
 
-			if (pAdjacentPlot1 != NULL)
+			if (pAdjacentPlot1 != NULL && pAdjacentPlot1->isCity()
+			&& AI_potentialEnemy(pAdjacentPlot1->getTeam(), pAdjacentPlot1))
 			{
-				if (pAdjacentPlot1->isCity())
+				for (int iJ = 0; iJ < NUM_DIRECTION_TYPES; iJ++)
 				{
-					if (AI_potentialEnemy(pAdjacentPlot1->getTeam(), pAdjacentPlot1))
+					CvPlot* pAdjacentPlot2 = plotDirection(pAdjacentPlot1->getX_INLINE(), pAdjacentPlot1->getY_INLINE(), ((DirectionTypes)iJ));
+
+					if (pAdjacentPlot2 != NULL)
 					{
-						for (iJ = 0; iJ < NUM_DIRECTION_TYPES; iJ++)
+						CLLNode<IDInfo>* pUnitNode = pAdjacentPlot2->headUnitNode();
+
+						while (pUnitNode != NULL)
 						{
-							pAdjacentPlot2 = plotDirection(pAdjacentPlot1->getX_INLINE(), pAdjacentPlot1->getY_INLINE(), ((DirectionTypes)iJ));
+							CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+							pUnitNode = pAdjacentPlot2->nextUnitNode(pUnitNode);
 
-							if (pAdjacentPlot2 != NULL)
+							if(pLoopUnit->getOwnerINLINE() == getOwnerINLINE()
+							&& pLoopUnit->canBombard(pAdjacentPlot2)
+							&& pLoopUnit->isGroupHead()
+							&& pLoopUnit->getGroup() != getGroup()
+							&& pLoopUnit->getGroup()->readyToMove())
 							{
-								pUnitNode = pAdjacentPlot2->headUnitNode();
-
-								while (pUnitNode != NULL)
-								{
-									pLoopUnit = ::getUnit(pUnitNode->m_data);
-									pUnitNode = pAdjacentPlot2->nextUnitNode(pUnitNode);
-
-									if (pLoopUnit->getOwnerINLINE() == getOwnerINLINE())
-									{
-										if (pLoopUnit->canBombard(pAdjacentPlot2))
-										{
-											if (pLoopUnit->isGroupHead())
-											{
-												if (pLoopUnit->getGroup() != getGroup())
-												{
-													if (pLoopUnit->getGroup()->readyToMove())
-													{
-														return true;
-													}
-												}
-											}
-										}
-									}
-								}
+								return true;
 							}
 						}
 					}
@@ -29645,7 +29275,6 @@ bool CvUnitAI::AI_followBombard()
 			}
 		}
 	}
-
 	return false;
 }
 
@@ -29753,56 +29382,43 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 	}
 
 	iValue = 0;
-/************************************************************************************************/
-/* REVOLUTIONDCM                            05/24/08                                Glider1     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	// RevolutionDCM - ranged bombardment plot
-	// Dale - RB: Field Bombard START
-	//if (getDomainType() != DOMAIN_AIR && getDCMBombRange() < 1)
-	// Dale - RB: Field Bombard END
-/************************************************************************************************/
-/* REVOLUTIONDCM                            END	                                 Glider1     */
-/************************************************************************************************/
+
+	if (pPlot->isRoute())
 	{
-		if (pPlot->isRoute())
+		iValue++;
+		if (eNonObsoleteBonus != NO_BONUS)
 		{
-			iValue++;
-			if (eNonObsoleteBonus != NO_BONUS)
-			{
-				iValue += iBonusValue * 4;
-			}
+			iValue += iBonusValue * 4;
+		}
 
-			for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-			{
-				pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
+		for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+		{
+			pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
 
-				if (pAdjacentPlot != NULL && pAdjacentPlot->getTeam() == pPlot->getTeam())
+			if (pAdjacentPlot != NULL && pAdjacentPlot->getTeam() == pPlot->getTeam())
+			{
+				if (pAdjacentPlot->isCity())
 				{
-					if (pAdjacentPlot->isCity())
-					{
-						iValue += 10;
-					}
+					iValue += 10;
+				}
 
-					if (!(pAdjacentPlot->isRoute()))
-					{
-					
+				if (!(pAdjacentPlot->isRoute()))
+				{
+				
 /************************************************************************************************/
 /* Afforess	                  Start		 08/02/10                                               */
 /*                                                                                              */
 /*                                                                                              */
 /************************************************************************************************/
 /*
-						if (!(pAdjacentPlot->isWater()) && !(pAdjacentPlot->isImpassable()))
+					if (!(pAdjacentPlot->isWater()) && !(pAdjacentPlot->isImpassable()))
 */
-						if (!(pAdjacentPlot->isWater()) && !(pAdjacentPlot->isImpassable(getTeam())))
+					if (!(pAdjacentPlot->isWater()) && !(pAdjacentPlot->isImpassable(getTeam())))
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
-						{
-							iValue += 2;
-						}
+					{
+						iValue += 2;
 					}
 				}
 			}
@@ -29826,21 +29442,7 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 			iValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_PRODUCTION, pPlot->getOwnerINLINE()) * 4);
 			iValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_COMMERCE, pPlot->getOwnerINLINE()) * 3);
 		}
-/************************************************************************************************/
-/* REVOLUTIONDCM                            05/24/08                                Glider1     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-		// RevolutionDCM - ranged bombardment plot
-		// Dale - RB: Field Bombard START
-		//if (getDomainType() != DOMAIN_AIR && getDCMBombRange() < 1)
-		// Dale - RB: Field Bombard END
-/************************************************************************************************/
-/* REVOLUTIONDCM                            END                                     Glider1     */
-/************************************************************************************************/
-		{
-			iValue += GC.getImprovementInfo(eImprovement).getPillageGold();
-		}
+		iValue += GC.getImprovementInfo(eImprovement).getPillageGold();
 
 		if (eNonObsoleteBonus != NO_BONUS)
 		{
@@ -29948,19 +29550,16 @@ int CvUnitAI::AI_searchRange(int iRange)
 	{
 		return 0;
 	}
-	else if ( iRange == MAX_INT )
+	if (iRange == MAX_INT)
 	{
 		return MAX_SEARCH_RANGE;
 	}
 
-	if (flatMovementCost() || (getDomainType() == DOMAIN_SEA))
+	if (flatMovementCost() || getDomainType() == DOMAIN_SEA)
 	{
-		return std::min(MAX_SEARCH_RANGE,iRange * baseMoves());
+		return std::min(MAX_SEARCH_RANGE, iRange * baseMoves());
 	}
-	else
-	{
-		return std::min(MAX_SEARCH_RANGE,(iRange + 1) * (baseMoves() + 1));
-	}
+	return std::min(MAX_SEARCH_RANGE, (iRange + 1) * (baseMoves() + 1));
 }
 
 
@@ -31094,85 +30693,7 @@ bool CvUnitAI::AI_razeCity()
 /*                                                                                              */
 /* Lead From Behind                                                                             */
 /************************************************************************************************/
-// Private Functions...
-// Dale - RB: Field Bombard START
-// RevolutionDCM - ranged bombardment
-// returns true if a mission was pushed...
-bool CvUnitAI::AI_RbombardPlot(int iRange, int iBonusValueThreshold)
-{
-	PROFILE_FUNC();
 
-	CvPlot* pLoopPlot;
-	CvPlot* pBestPlot;
-	int iSearchRange;
-	int iPathTurns = 0;
-	int iValue = 0;
-	int iBestValue = 0;
-	int iDX = 0, iDY = 0;
-	pBestPlot = NULL;
-
-	if(!GC.isDCM_RANGE_BOMBARD())
-	{
-		return false;
-	}
-
-	iSearchRange = AI_searchRange(iRange);
-
-	for (iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
-	{
-		for (iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
-		{
-			pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
-			if (pLoopPlot != NULL)
-			{
-				if (AI_plotValid(pLoopPlot)	&& !pLoopPlot->isCity() && pLoopPlot->getImprovementType() != NO_IMPROVEMENT && pLoopPlot->getTeam() != getTeam())
-				{	
-					if (getGroup()->canBombardAtRanged(plot(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))
-					{
-						if (iBonusValueThreshold > 0)
-						{
-							ImprovementTypes eImprovement;
-							if (pLoopPlot->getImprovementDuration() > ((pLoopPlot->isWater()) ? 20 : 5))
-							{
-								eImprovement = pLoopPlot->getImprovementType();
-							}
-							else
-							{
-								eImprovement = pLoopPlot->getRevealedImprovementType(getTeam(), false);
-							}
-							if (eImprovement != NO_IMPROVEMENT)
-							{
-								iValue = std::max(0, GC.getImprovementInfo(eImprovement).getPillageGold() - 10); // cottages = 0, hamlets = 5, villages = 10, towns = 15
-								iValue *= 100;
-								iValue /= 15; // cottages = 0, hamlets = 33, villages = 67, towns = 100
-								if (pLoopPlot->getWorkingCity() == NULL)
-								{
-									iValue *= 50;
-									iValue /= 100;
-								}
-								if (iValue < iBonusValueThreshold) iValue = 0;
-							}
-						} else
-						{
-							iValue = AI_pillageValue(pLoopPlot, 0); // returns any improvement with highest pillage value
-						}
-						if (iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							pBestPlot = pLoopPlot;
-						}
-					}
-				}
-			}
-		}
-	}
-	if (pBestPlot != NULL)
-	{
-		getGroup()->pushMission(MISSION_RBOMBARD, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
-		return true;
-	}
-	return false;
-}
 
 // Returns true if a mission was pushed...
 bool CvUnitAI::AI_RbombardUnit(int iRange, int iHighestOddsThreshold, int iMinStack, int iSeigeDiff, int iPowerThreshold)
@@ -31193,11 +30714,6 @@ bool CvUnitAI::AI_RbombardUnit(int iRange, int iHighestOddsThreshold, int iMinSt
 	int iBestValue;
 	int iDX, iDY;
 
-	if(!GC.isDCM_RANGE_BOMBARD())
-	{
-		return false;
-	}
-
 	iSearchRange = AI_searchRange(iRange);
 
 	iBestValue = 999; // looking for the odds at or below iHighestOddsThreshold
@@ -31213,35 +30729,24 @@ bool CvUnitAI::AI_RbombardUnit(int iRange, int iHighestOddsThreshold, int iMinSt
 			{
 				if (AI_plotValid(pLoopPlot) && !pLoopPlot->isCity())
 				{
-					if (getGroup()->canBombardAtRanged(plot(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))
+					if (getGroup()->canVolleyAt(plot(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))
 					{
 						if ((pLoopPlot->isVisible(getTeam(),false) && pLoopPlot->isVisibleEnemyUnit(this)) || AI_potentialEnemy(pLoopPlot->getTeam()))
 						{
 							if (pLoopPlot->getNumVisibleEnemyDefenders(this) >= iMinStack)
 							{
 								pDefender = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-								if (pDefender->isRbombardable(iMinStack))
+								iValue = AI_attackOdds(pLoopPlot, true);
+								if (iValue <= iHighestOddsThreshold && iValue < iBestValue)
 								{
-									iValue = AI_attackOdds(pLoopPlot, true);
-									if (iValue <= iHighestOddsThreshold)
+									int ourStrength = GET_PLAYER(getOwner()).AI_getOurPlotStrength(plot(), iRange, false, false) * 100;
+									int theirStrength = GET_PLAYER(getOwner()).AI_getEnemyPlotStrength(plot(), iRange, false, false);
+									if (theirStrength < 1) theirStrength = 1;
+									int strengthRatio = ourStrength / theirStrength;
+									if (strengthRatio >= iPowerThreshold && theirStrength > 1)
 									{
-										int ourSeige = getRbombardSeigeCount(plot());
-										int theirSeige = pDefender->getRbombardSeigeCount(pLoopPlot);
-										if ((ourSeige - theirSeige) >= iSeigeDiff)
-										{
-											int ourStrength = GET_PLAYER(getOwner()).AI_getOurPlotStrength(plot(), iRange, false, false) * 100;
-											int theirStrength = GET_PLAYER(getOwner()).AI_getEnemyPlotStrength(plot(), iRange, false, false);
-											if (theirStrength <= 0) theirStrength = 1;
-											int strengthRatio = (ourStrength / theirStrength);
-											if ((strengthRatio >= iPowerThreshold) && (theirStrength > 1))
-											{
-												if (iValue < iBestValue)
-												{
-													iBestValue = iValue;
-													pBestPlot = pLoopPlot;
-												}
-											}
-										}
+										iBestValue = iValue;
+										pBestPlot = pLoopPlot;
 									}
 								}
 							}
@@ -31253,56 +30758,12 @@ bool CvUnitAI::AI_RbombardUnit(int iRange, int iHighestOddsThreshold, int iMinSt
 	}
 	if (pBestPlot != NULL)
 	{
-		getGroup()->pushMission(MISSION_RBOMBARD, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+		getGroup()->pushMission(MISSION_VOLLEY, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
 		return true;
 	}
 	return false;
 }
 
-// Returns true if a mission was pushed...
-bool CvUnitAI::AI_RbombardCity(CvCity* pCity)
-{
-	PROFILE_FUNC();
-
-	CvUnit* pDefender;
-	CvPlot* pPlot;
-
-	if(!GC.isDCM_RANGE_BOMBARD())
-	{
-		return false;
-	}
-
-	if (pCity == NULL)
-	{
-		return false;
-	}
-
-	pPlot = pCity->plot();
-	if (pPlot == NULL)
-	{
-		return false; // ok will never happen but anyway...
-	}
-
-	if(!getGroup()->canBombardAtRanged(plot(), pPlot->getX_INLINE(),pPlot->getY_INLINE()))
-	{
-		return false;
-	}
-
-	pDefender = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-	if (pDefender != NULL)
-	{
-		if (collateralDamageMaxUnits() > pPlot->getNumUnits())
-		{
-			if (pDefender->isRbombardable(3) && getGroup()->getBombardTurns(pCity) < 3)
-			{
-				getGroup()->pushMission(MISSION_RBOMBARD, pPlot->getX_INLINE(),pPlot->getY_INLINE());
-				return true;
-			}
-		}
-	}
-	return false;
-}
-// From Lead From Behind by UncutDragon
 
 void CvUnitAI::LFBgetBetterAttacker(CvUnit** ppAttacker, const CvPlot* pPlot, bool bPotentialEnemy, int& iAIAttackOdds, int& iAttackerValue) const
 {
@@ -31355,70 +30816,122 @@ void CvUnitAI::LFBgetBetterAttacker(CvUnit** ppAttacker, const CvPlot* pPlot, bo
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-// RevolutionDCM - sea bombard AI identical to DCM 1.7 AI_RbombardCity() AI
+
 // Returns true if a mission was pushed...
-bool CvUnitAI::AI_RbombardNaval()
+bool CvUnitAI::AI_Volley(const bool bForced, const int iImprovementThreshold)
 {
 	PROFILE_FUNC();
 
-	CvCity* pCity;
-	CvPlot* pLoopPlot;
-	CvPlot* pBestPlot;
-	CvUnit* pDefender;
-	int iSearchRange;
-	int iPotentialAttackers;
-	int iValue;
-	int iDamage;
-	int iBestValue;
-	int iDX, iDY;
-
-	if(!canRBombard(plot()))
+	if (!canVolley() || iImprovementThreshold > -1 && collateralDamage() < 1)
 	{
 		return false;
 	}
-
-	iSearchRange = getDCMBombRange();
-	iBestValue = 0;
-	pBestPlot = NULL;
-	for (iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
+	if (!bForced && GC.getGameINLINE().getSorenRandNum(2, "50%") > 0)
 	{
-		for (iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
+		return false;
+	}
+	const int iSearchRange = getVolleyRange();
+	CvPlot* pBestPlot = NULL;
+	int iBestValue = 0;
+	for (int iDX = -iSearchRange; iDX <= iSearchRange; iDX++)
+	{
+		for (int iDY = -iSearchRange; iDY <= iSearchRange; iDY++)
 		{
-			pLoopPlot	= plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
-			if (pLoopPlot != NULL)
+			CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+
+			if (pLoopPlot != NULL && canVolleyAt(plot(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE())
+			&& GC.getGameINLINE().getSorenRandNum(10, "90%") > 0)
 			{
-				if (getGroup()->canBombardAtRanged(plot(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))
+				int iValue = 0;
+				if (iImprovementThreshold > -1) // Only consider improvement destruction
 				{
-					iValue = 0;
-					pCity = pLoopPlot->getPlotCity();
+					if (pLoopPlot != NULL && !pLoopPlot->isCity()
+					&& pLoopPlot->getNumVisibleEnemyDefenders(this) == 0
+					&& pLoopPlot->getImprovementType() != NO_IMPROVEMENT
+					&& !GC.getImprovementInfo(pLoopPlot->getImprovementType()).isPermanent()
+					&& GC.getImprovementInfo(pLoopPlot->getImprovementType()).getAirBombDefense() > -1)
+					{
+						if (iImprovementThreshold > 0)
+						{
+							const ImprovementTypes eImp =
+							(
+								pLoopPlot->getImprovementDuration() > (pLoopPlot->isWater() ? 20 : 5)
+								?
+								pLoopPlot->getImprovementType()
+								:
+								pLoopPlot->getRevealedImprovementType(getTeam(), false)
+							);
+							if (eImp != NO_IMPROVEMENT)
+							{
+								iValue += 5 * std::max(0, GC.getImprovementInfo(eImp).getPillageGold());
+
+								if (pLoopPlot->isHasValidBonus())
+								{
+									// Toffer - When improvement makes bonus valid
+									iValue += 75; // Add value equal to the worth of 15 gold pillage
+									iValue *= 2; // Then double the result
+								}
+								if (pLoopPlot->getWorkingCity() == NULL)
+								{
+									iValue /= 2;
+								}
+								if (iValue < iImprovementThreshold) iValue = 0;
+							}
+						}
+						else iValue = AI_pillageValue(pLoopPlot, 0);
+					}
+				}
+				else // Volley at city or units
+				{
+					CvCity* pCity = pLoopPlot->getPlotCity();
 					if (pCity != NULL)
 					{
-						iValue += std::max(0, (std::min((pCity->getDefenseDamage() + airBombCurrRate()), GC.getMAX_CITY_DEFENSE_DAMAGE()) - pCity->getDefenseDamage()));
-						iValue *= 5;
-						if (pCity->AI_isDanger())
+						if (bombardRate() > 0)
 						{
-							iValue *= 2;
-						}
-						if (pCity == pCity->area()->getTargetCity(getOwnerINLINE()))
-						{
-							iValue *= 3;
+							iValue += std::max(0, std::min(pCity->getDefenseDamage() + airBombCurrRate(), GC.getMAX_CITY_DEFENSE_DAMAGE()) - pCity->getDefenseDamage());
+							iValue *= 5;
+							if (pCity->AI_isDanger())
+							{
+								iValue *= 2;
+							}
+							if (pCity == pCity->area()->getTargetCity(getOwnerINLINE()))
+							{
+								iValue *= 3;
+							}
 						}
 					}
-					iPotentialAttackers = GET_PLAYER(getOwnerINLINE()).AI_adjacentPotentialAttackers(pLoopPlot);//pLoopPlot->getNumVisibleEnemyDefenders(NO_PLAYER);
-					if (iPotentialAttackers > 0 || pLoopPlot->isAdjacentTeam(getTeam()))
-					{
-						pDefender = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
+					const int iNumEnemyDefenders = pLoopPlot->getNumVisibleEnemyDefenders(this);
 
-						if( pDefender != NULL && pDefender->canDefend() )
+					if (iNumEnemyDefenders != 0)
+					{
+						CvUnit* pDefender = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
+
+						if (pDefender != NULL)
 						{
-							iDamage = GC.getGameINLINE().getSorenRandNum(bombardRate(), "AI Bombard");
-	//							iValue = max(0, (min((pDefender->getDamage() + iDamage), bombardRate()) - pDefender->getDamage()));
-							iValue += ((((iDamage * collateralDamage()) / 100) * std::min((pLoopPlot->getNumVisibleEnemyDefenders(this) - 1), collateralDamageMaxUnits())) / 2);
-							iValue *= (3 + iPotentialAttackers);
-							iValue /= 4;
+							const int iDamage =
+							(
+								std::max(1,
+									GC.getDefineINT("COMBAT_DAMAGE") * (currFirepower(NULL, NULL) + (currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2)
+									/
+									(pDefender->currFirepower(pLoopPlot, this) + (currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2)
+								)
+							);
+							iValue += iDamage;
+
+							// Toffer - Collateral, simpel solution for now
+							if (iNumEnemyDefenders > 1 && collateralDamage() > 0 && collateralDamageMaxUnits() > 0)
+							{
+								iValue += iDamage * collateralDamage() * std::min(pLoopPlot->getNumVisibleEnemyDefenders(this) - 1, collateralDamageMaxUnits()) / 200;
+								iValue *= 3 + iNumEnemyDefenders;
+								iValue /= 5;
+							}
 						}
 					}
-					iValue *= GC.getGameINLINE().getSorenRandNum(20, "AI Bombard");
+				}
+				if (iValue > 0)
+				{
+					iValue *= 2 + GC.getGameINLINE().getSorenRandNum(4, "Randomness");
+					iValue /= 3;
 					if (iValue > iBestValue)
 					{
 						iBestValue = iValue;
@@ -31428,88 +30941,15 @@ bool CvUnitAI::AI_RbombardNaval()
 				}
 			}
 		}
-		if (pBestPlot != NULL)
-		{
-			getGroup()->pushMission(MISSION_RBOMBARD, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
-			return true;
-		}
+	}
+	if (iBestValue > 0)
+	{
+		getGroup()->pushMission(MISSION_VOLLEY, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+		return true;
 	}
 	return false;
 }
-// Dale - RB: Field Bombard END
-// RevolutionDCM - end
 
-// Dale - ARB: Archer Bombard START
-// Returns true if a mission was pushed...
-bool CvUnitAI::AI_Abombard()
-{
-	PROFILE_FUNC();
-
-	CvPlot* pLoopPlot;
-	CvPlot* pBestPlot;
-	CvUnit* pDefender;
-	int iSearchRange;
-	int iPotentialAttackers;
-	int iValue;
-	int iDamage;
-	int iBestValue;
-	int iDX, iDY;
-
-	if(!canArcherBombard(plot()))
-	{
-		return false;
-	}
-	if (GC.getGameINLINE().getSorenRandNum(10, "Randomness") < 5)
-	{
-		return false;
-	}
-	if(GC.isDCM_ARCHER_BOMBARD())
-	{
-		iSearchRange = 1;
-		iBestValue = 0;
-		pBestPlot = NULL;
-		for (iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
-		{
-			for (iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
-			{
-				pLoopPlot	= plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
-				if (pLoopPlot != NULL)
-				{
-					if (canArcherBombardAt(plot(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))
-					{
-						iValue = 0;
-						iPotentialAttackers = pLoopPlot->getNumVisibleEnemyDefenders(this);//GET_PLAYER(getOwnerINLINE()).AI_adjacentPotentialAttackers(pLoopPlot);
-						if (iPotentialAttackers > 0 || pLoopPlot->isAdjacentTeam(getTeam()))
-						{
-							pDefender = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-
-							if ( pDefender != NULL )
-							{
-								iDamage = std::max(1, ((GC.getDefineINT("COMBAT_DAMAGE") * (currFirepower(NULL, NULL) + ((currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2))) / (pDefender->currFirepower(pLoopPlot, this) + ((currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2))));
-								iValue += (iDamage * iPotentialAttackers);
-
-								iValue *= GC.getGameINLINE().getSorenRandNum(5, "AI Bombard");
-								if (iValue > iBestValue)
-								{
-									iBestValue = iValue;
-									pBestPlot = pLoopPlot;
-									FAssert(!atPlot(pBestPlot));
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		if (pBestPlot != NULL)
-		{
-			getGroup()->pushMission(MISSION_ABOMBARD, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
-			return true;
-		}
-	}
-	return false;
-}
-// Dale - ARB: Archer Bombard END
 
 // Dale - FE: Fighters START
 bool CvUnitAI::AI_FEngage()

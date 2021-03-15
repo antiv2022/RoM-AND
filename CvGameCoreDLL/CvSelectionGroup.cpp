@@ -909,18 +909,13 @@ CvPlot* CvSelectionGroup::lastMissionPlot()
 		case MISSION_AIRBOMB4:
 		case MISSION_AIRBOMB5:
 		// Dale - AB: Bombing END
-		// Dale - RB: Field Bombard START
-		case MISSION_RBOMBARD:
-		// Dale - RB: Field Bombard END
-		// Dale - ARB: Archer Bombard START
-		case MISSION_ABOMBARD:
-		// Dale - ARB: Archer Bombard END
 		// Dale - FE: Fighters START
 		case MISSION_FENGAGE:
 		// Dale - FE: Fighters END
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+		case MISSION_VOLLEY:
 /************************************************************************************************/
 /* Afforess	                  Start		 06/11/10                                               */
 /*                                                                                              */
@@ -1141,40 +1136,18 @@ bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvP
 			break;
 
 		case MISSION_BOMBARD:
-			if (pLoopUnit->canBombard(pPlot))
+			if (pLoopUnit->getVolleyRange() < 1 && pLoopUnit->canBombard(pPlot))
 			{
 				return true;
 			}
 			break;
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-		// Dale - RB: Field Bombard START
-		case MISSION_RBOMBARD:
-			if(GC.isDCM_RANGE_BOMBARD())
-			{
-				if (pLoopUnit->canBombardAtRanged(pPlot, iData1, iData2))
-				{
-					return true;
-				}
-			}
-			break;
-		// Dale - RB: Field Bombard END
 
-		// Dale - ARB: Archer Bombard START
-		case MISSION_ABOMBARD:
-			if(GC.isDCM_ARCHER_BOMBARD())
+		case MISSION_VOLLEY:
+			if (pLoopUnit->canVolleyAt(pPlot, iData1, iData2))
 			{
-				if (pLoopUnit->canArcherBombardAt(pPlot, iData1, iData2))
-				{
-					return true;
-				}
+				return true;
 			}
 			break;
-		// Dale - ARB: Archer Bombard END
-/************************************************************************************************/
-/* DCM                                     END                                    Johny Smith  */
-/************************************************************************************************/
 
 		case MISSION_RANGE_ATTACK:
 			if (pLoopUnit->canRangeStrikeAt(pPlot, iData1, iData2))
@@ -1730,12 +1703,10 @@ bool CvSelectionGroup::startMission()
 		case MISSION_AIRBOMB4:
 		case MISSION_AIRBOMB5:
 		// Dale - AB: Bombing END
-		// Dale - RB: Field Bombard START
-		case MISSION_RBOMBARD:
-		// Dale - RB: Field Bombard END
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+		case MISSION_VOLLEY:
 /************************************************************************************************/
 /* Afforess	                  Start		 06/05/10                                               */
 /*                                                                                              */
@@ -1950,17 +1921,6 @@ bool CvSelectionGroup::startMission()
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
-					case MISSION_RBOMBARD:
-						// Dale - RB: Field Bombard START
-						if(GC.isDCM_RANGE_BOMBARD())
-						{
-							if (pLoopUnit->bombardRanged(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
-							{
-								bAction = true;
-							}
-						}
-						break;
-
 					case MISSION_RANGE_ATTACK:
 						if (pLoopUnit->rangeStrike(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
 						{
@@ -2176,18 +2136,6 @@ bool CvSelectionGroup::startMission()
 						break;
 						// Dale - AB: Bombing END
 
-					case MISSION_ABOMBARD:
-					// Dale - ARB: Archer Bombard START
-						if(GC.isDCM_ARCHER_BOMBARD())
-						{
-							if (pLoopUnit->archerBombard(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
-							{
-								bAction = true;
-							}
-						}
-					// Dale - ARB: Archer Bombard END
-						break;
-
 					// Dale - FE: Fighters START
 					case MISSION_FENGAGE:
 						if(GC.isDCM_FIGHTER_ENGAGE())
@@ -2202,6 +2150,12 @@ bool CvSelectionGroup::startMission()
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+					case MISSION_VOLLEY:
+						if (pLoopUnit->doVolley(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
+						{
+							bAction = true;
+						}
+						break;
 /************************************************************************************************/
 /* Afforess	                  Start		 02/14/10                                               */
 /*                                                                                              */
@@ -2730,9 +2684,6 @@ bool CvSelectionGroup::continueMission(int iSteps)
 				case MISSION_AIRBOMB4:
 				case MISSION_AIRBOMB5:
 				// Dale - AB: Bombing END
-				// Dale - RB: Field Bombard START
-				case MISSION_RBOMBARD:
-				// Dale - RB: Field Bombard END
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
@@ -2865,6 +2816,7 @@ bool CvSelectionGroup::continueMission(int iSteps)
 			case MISSION_LEAD:
 			case MISSION_ESPIONAGE:
 			case MISSION_DIE_ANIMATION:
+			case MISSION_VOLLEY:
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
@@ -2875,12 +2827,6 @@ bool CvSelectionGroup::continueMission(int iSteps)
 			case MISSION_AIRBOMB4:
 			case MISSION_AIRBOMB5:
 			// Dale - AB: Bombing END
-			// Dale - RB: Field Bombard START
-			case MISSION_RBOMBARD:
-			// Dale - RB: Field Bombard END
-			// Dale - ARB: Archer Bombard START
-			case MISSION_ABOMBARD:
-			// Dale - ARB: Archer Bombard END
 			// Dale - FE: Fighters START
 			case MISSION_FENGAGE:
 			// Dale - FE: Fighters END
@@ -3375,24 +3321,6 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 			break;
 		// Dale - AB: Bombing END
 
-		// Dale - RB: Field Bombard START
-		case INTERFACEMODE_BOMBARD:
-			if (pLoopUnit->canRBombard(pLoopUnit->plot()))
-			{
-				return true;
-			}
-			break;
-		// Dale - RB: Field Bombard END
-
-		// Dale - ARB: Archer Bombard START
-		case INTERFACEMODE_ABOMBARD:
-			if (pLoopUnit->canArcherBombard(pLoopUnit->plot()) && GC.isDCM_ARCHER_BOMBARD())
-			{
-				return true;
-			}
-			break;
-		// Dale - ARB: Archer Bombard END
-
 		// Dale - FE: Fighters START
 		case INTERFACEMODE_FENGAGE:
 			if (pLoopUnit->canFEngage(pLoopUnit->plot()) && GC.isDCM_FIGHTER_ENGAGE())
@@ -3404,6 +3332,12 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+		case INTERFACEMODE_VOLLEY:
+			if (pLoopUnit->canVolley())
+			{
+				return true;
+			}
+			break;
 /************************************************************************************************/
 /* Afforess	                  Start		 09/16/10                                               */
 /*                                                                                              */
@@ -3603,36 +3537,6 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 			break;
 		// Dale - AB: Bombing END
 
-		// Dale - RB: Field Bombard START
-		case INTERFACEMODE_BOMBARD:
-			if (pLoopUnit != NULL)
-			{
-				if(GC.isDCM_RANGE_BOMBARD())
-				{
-					if (pLoopUnit->canBombardAtRanged(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
-					{
-						return true;
-					}
-				}
-			}
-			break;
-		// Dale - RB: Field Bombard END
-
-		// Dale - ARB: Archer Bombard START
-		case INTERFACEMODE_ABOMBARD:
-			if (pLoopUnit != NULL)
-			{
-				if(GC.isDCM_ARCHER_BOMBARD())
-				{
-					if (pLoopUnit->canArcherBombardAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
-					{
-						return true;
-					}
-				}
-			}
-			break;
-		// Dale - ARB: Archer Bombard END
-
 		// Dale - FE: Fighters START
 		case INTERFACEMODE_FENGAGE:
 			if (pLoopUnit != NULL)
@@ -3650,11 +3554,19 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+		case INTERFACEMODE_VOLLEY:
+			if (pLoopUnit != NULL && pLoopUnit->canVolleyAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
+			{
+				return true;
+			}
+			break;
 /************************************************************************************************/
 /* Afforess	                  Start		 09/18/10                                               */
 /*                                                                                              */
 /* Advanced Automations                                                                         */
 /************************************************************************************************/
+
+
 		case INTERFACEMODE_SHADOW_UNIT:
 			if (pLoopUnit != NULL)
 			{
@@ -4320,7 +4232,9 @@ bool CvSelectionGroup::hasCollateralDamage(void) const
 	return false;
 }
 
-bool CvSelectionGroup::canBombard(const CvPlot* pPlot, bool bCheckCanReduceOnly)
+
+// Toffer - Ranged combat
+bool CvSelectionGroup::canReduceCityDefense(const CvPlot* pFromPlot, bool bIgnoreMadeAttack)
 {
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
@@ -4328,32 +4242,31 @@ bool CvSelectionGroup::canBombard(const CvPlot* pPlot, bool bCheckCanReduceOnly)
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
-		if (pLoopUnit->canBombard(pPlot, bCheckCanReduceOnly))
+		if (pLoopUnit->canReduceCityDefense(pFromPlot, bIgnoreMadeAttack))
 		{
 			return true;
 		}
-/************************************************************************************************/
-/* DCM                               04/19/09                           Johny Smith      */
-/************************************************************************************************/		
-		// Dale - RB: Field Bombard START
-		if (!bCheckCanReduceOnly && pLoopUnit->canRBombard(pPlot))
-		{
-			return true;
-		}
-		// Dale - RB: Field Bombard END
-		// Dale - ARB: Archer Bombard START
-		if (!bCheckCanReduceOnly && pLoopUnit->canArcherBombard(pPlot))
-		{
-			return true;
-		}
-		// Dale - ARB: Archer Bombard END
-/************************************************************************************************/
-/* DCM                               End                               Johny Smith        */
-/************************************************************************************************/		
 	}
-
 	return false;
 }
+
+bool CvSelectionGroup::canVolleyAt(const CvPlot* pFromPlot, int iX, int iY)
+{
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+	while (pUnitNode != NULL)
+	{
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
+
+		if (pLoopUnit->canVolleyAt(pFromPlot, iX, iY))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+// ! Toffer - Ranged combat
+
 
 bool CvSelectionGroup::canPillage(const CvPlot* pPlot)
 {
@@ -4364,23 +4277,6 @@ bool CvSelectionGroup::canPillage(const CvPlot* pPlot)
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (pLoopUnit->canPillage(pPlot))
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool CvSelectionGroup::canBombardAtRanged(const CvPlot* pPlot, int iX, int iY)
-{
-	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-	while (pUnitNode != NULL)
-	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = nextUnitNode(pUnitNode);
-
-		if (pLoopUnit->canBombardAtRanged(pPlot, iX, iY))
 		{
 			return true;
 		}
@@ -5154,84 +5050,6 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 /************************************************************************************************/
 /* DCM                      Battle Effects END                                                  */
 /************************************************************************************************/
-					// RevolutionDCM - attack support
-					if (GC.isDCM_ATTACK_SUPPORT())
-					{
-						if (pDestPlot->getNumUnits() > 0)
-						{
-							pUnitNode = pDestPlot->headUnitNode();
-							while (pUnitNode != NULL)
-							{
-								pLoopUnit = ::getUnit(pUnitNode->m_data);
-								pUnitNode = pDestPlot->nextUnitNode(pUnitNode);
-								if (pLoopUnit == NULL)
-									break;
-								if (GET_TEAM(pLoopUnit->getTeam()).isAtWar(getTeam()))
-								{
-									if (plot() != NULL)
-									{
-										if (pLoopUnit->canArcherBombardAt(pDestPlot, plot()->getX_INLINE(), plot()->getY_INLINE()))
-										{
-											if (pLoopUnit->archerBombard(plot()->getX_INLINE(), plot()->getY_INLINE(), true))
-											{
-											}
-										}
-										else if (pLoopUnit->canBombardAtRanged(pDestPlot, plot()->getX_INLINE(), plot()->getY_INLINE()))
-										{
-											if (pLoopUnit->bombardRanged(plot()->getX_INLINE(), plot()->getY_INLINE(), true))
-											{
-											}
-										}
-										else if (pLoopUnit->getDomainType() == DOMAIN_AIR && !pLoopUnit->isSuicide())
-										{
-											pLoopUnit->updateAirStrike(plot(), false, true);//airStrike(plot()))
-										}
-										pLoopUnit->setMadeAttack(false);
-									}
-								}
-							}
-						} else {
-							return bAttack;
-						}
-						if (pOrigPlot->getNumUnits() > 0)
-						{
-							pUnitNode = pOrigPlot->headUnitNode();
-							while (pUnitNode != NULL)
-							{
-								pLoopUnit = ::getUnit(pUnitNode->m_data);
-								pUnitNode = pOrigPlot->nextUnitNode(pUnitNode);
-								if (pLoopUnit->getOwnerINLINE() == getOwnerINLINE())
-								{
-									if (pLoopUnit != NULL && this != NULL && pDestPlot != NULL && plot() != NULL)
-									{
-										if (pLoopUnit->canArcherBombardAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
-										{
-											if (pLoopUnit->archerBombard(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), true))
-											{
-											}
-										}
-										else if (pLoopUnit->canBombardAtRanged(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
-										{
-											if (pLoopUnit->bombardRanged(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), true))
-											{
-											}
-										}
-										else if (pLoopUnit->getDomainType() == DOMAIN_AIR && !pLoopUnit->isSuicide())
-										{
-											if (plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()) == 1)
-											{
-												pLoopUnit->updateAirStrike(pDestPlot, false, false);//airStrike(pDestPlot))
-											}
-										}
-										pLoopUnit->setMadeAttack(false);
-									}
-								}
-							}
-						} else {
-							return bAttack;
-						}
-					}
-					// RevolutionDCM - attack support end
 /************************************************************************************************/
 /* RevolutionDCM                               END                                              */
 /************************************************************************************************/
@@ -5269,18 +5087,11 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 										pLoopUnit = ::getUnit(pUnitNode->m_data);
 										pUnitNode = nextUnitNode(pUnitNode);
 
-										if (pLoopUnit != NULL && this != NULL && pDestPlot != NULL && plot() != NULL)
+										if (pLoopUnit != NULL && pDestPlot != NULL && plot() != NULL
+										&& pLoopUnit->canVolleyAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
 										{
-											if (pLoopUnit->canArcherBombardAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
-											{
-												bFoundBombard = true;
-												pLoopUnit->archerBombard(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), false);
-											}
-											else if (pLoopUnit->canBombardAtRanged(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
-											{
-												bFoundBombard = true;
-												pLoopUnit->bombardRanged(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), false);
-											}
+											bFoundBombard = true;
+											pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE());
 										}
 									}
 								}
@@ -7677,9 +7488,8 @@ void CvSelectionGroup::read(FDataStreamBase* pStream)
 			case MISSION_AIRBOMB3:
 			case MISSION_AIRBOMB4:
 			case MISSION_AIRBOMB5:
-			case MISSION_RBOMBARD:
-			case MISSION_ABOMBARD:
 			case MISSION_FENGAGE:
+			case MISSION_VOLLEY:
 			case MISSION_CLAIM_TERRITORY:
 			case MISSION_PRETARGET_NUKE:
 				//	Fixup for viewports, old versions of which can leave things un-normalized
@@ -7817,87 +7627,6 @@ bool CvSelectionGroup::groupStackAttack(int iX, int iY, int iFlags, bool& bFaile
 /* RevolutionDCM	             Battle Effects END                                             */
 /************************************************************************************************/
 
-					// RevolutionDCM - attack support
-					if (GC.isDCM_ATTACK_SUPPORT())
-					{
-						if (pDestPlot->getNumUnits() > 0)
-						{
-							pUnitNode = pDestPlot->headUnitNode();
-							while (pUnitNode != NULL)
-							{
-								pLoopUnit = ::getUnit(pUnitNode->m_data);
-								pUnitNode = pDestPlot->nextUnitNode(pUnitNode);
-								if (pLoopUnit == NULL)
-									break;
-								if (GET_TEAM(pLoopUnit->getTeam()).isAtWar(getTeam()))
-								{
-									if (plot() != NULL)
-									{
-										if (pLoopUnit->canArcherBombardAt(pDestPlot, plot()->getX_INLINE(), plot()->getY_INLINE()))
-										{
-											if (pLoopUnit->archerBombard(plot()->getX_INLINE(), plot()->getY_INLINE(), true))
-											{
-												bAction = true;
-											}
-										}
-										else if (pLoopUnit->canBombardAtRanged(pDestPlot, plot()->getX_INLINE(), plot()->getY_INLINE()))
-										{
-											if (pLoopUnit->bombardRanged(plot()->getX_INLINE(), plot()->getY_INLINE(), true))
-											{
-												bAction = true;
-											}
-										}
-										else if (pLoopUnit->getDomainType() == DOMAIN_AIR && !pLoopUnit->isSuicide())
-										{
-											pLoopUnit->updateAirStrike(plot(), false, true);//airStrike(plot()))
-										}
-										pLoopUnit->setMadeAttack(false);
-									}
-								}
-							}
-						} else {
-							return bAttack;
-						}
-						if (pOrigPlot->getNumUnits() > 0)
-						{
-							pUnitNode = pOrigPlot->headUnitNode();
-							while (pUnitNode != NULL)
-							{
-								pLoopUnit = ::getUnit(pUnitNode->m_data);
-								pUnitNode = pOrigPlot->nextUnitNode(pUnitNode);
-								if (pLoopUnit->getOwnerINLINE() == getOwnerINLINE())
-								{
-									if (pLoopUnit != NULL && this != NULL && pDestPlot != NULL && plot() != NULL)
-									{
-										if (pLoopUnit->canArcherBombardAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
-										{
-											if (pLoopUnit->archerBombard(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), true))
-											{
-												bAction = true;
-											}
-										}
-										else if (pLoopUnit->canBombardAtRanged(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
-										{
-											if (pLoopUnit->bombardRanged(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), true))
-											{
-												bAction = true;
-											}
-										}
-										else if (pLoopUnit->getDomainType() == DOMAIN_AIR && !pLoopUnit->isSuicide())
-										{
-											if (plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()) == 1)
-											{
-												pLoopUnit->updateAirStrike(pDestPlot, false, false);//airStrike(pDestPlot))
-											}
-										}
-										pLoopUnit->setMadeAttack(false);
-									}
-								}
-							}
-						} else {
-							return bAttack;
-						}
-					}
 					// RevolutionDCM - attack support end
 					bool bBombardExhausted = false;
 					while (true)
@@ -7930,24 +7659,15 @@ bool CvSelectionGroup::groupStackAttack(int iX, int iY, int iFlags, bool& bFaile
 										pLoopUnit = ::getUnit(pUnitNode->m_data);
 										pUnitNode = nextUnitNode(pUnitNode);
 
-										if (pLoopUnit != NULL && this != NULL && pDestPlot != NULL && plot() != NULL)
+										if (pLoopUnit != NULL && pDestPlot != NULL && plot() != NULL
+										&& pLoopUnit->canVolleyAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
 										{
-											if (pLoopUnit->canArcherBombardAt(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
-											{
-												bFoundBombard = true;
-												pLoopUnit->archerBombard(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), false);
-											}
-											else if (pLoopUnit->canBombardAtRanged(plot(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()))
-											{
-												bFoundBombard = true;
-												pLoopUnit->bombardRanged(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE(), false);
-											}
+											bFoundBombard = true;
+											pLoopUnit->doVolley(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE());
 										}
 									}
 								}
-
 								bBombardExhausted = !bFoundBombard;
-
 								continue;
 							}
 						}

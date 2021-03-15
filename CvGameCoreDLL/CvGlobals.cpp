@@ -207,14 +207,10 @@ m_iBATTLE_EFFECTS_MINIMUM_TURN_INCREMENTS(0),
 m_iMAX_BATTLE_TURNS(0),
 
 m_bDCM_AIR_BOMBING(false),
-m_bDCM_RANGE_BOMBARD(false),
-m_iDCM_RB_CITY_INACCURACY(0),
 m_iDCM_RB_CITYBOMBARD_CHANCE(0),
-m_bDCM_ATTACK_SUPPORT(false),
 m_bDCM_STACK_ATTACK(false),
 m_bDCM_OPP_FIRE(false),
 m_bDCM_ACTIVE_DEFENSE(false),
-m_bDCM_ARCHER_BOMBARD(false),
 m_bDCM_FIGHTER_ENGAGE(false),
 
 m_bDYNAMIC_CIV_NAMES(false),
@@ -509,6 +505,8 @@ m_cszModDir("NONE")
 ,m_bLFBUseCombatOdds(true)
 ,m_iCOMBAT_DIE_SIDES(-1)
 ,m_iCOMBAT_DAMAGE(-1)
+,m_iVOLLEY_STRENGTH(0)
+,m_iVOLLEY_MIN_ACCURACY(0)
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -3667,14 +3665,10 @@ void cvInternalGlobals::cacheGlobals()
 	m_iMAX_BATTLE_TURNS = getDefineINT("MAX_BATTLE_TURNS");
 
 	m_bDCM_AIR_BOMBING = (getDefineINT("DCM_AIR_BOMBING") > 0) ? true : false;
-	m_bDCM_RANGE_BOMBARD = (getDefineINT("DCM_RANGE_BOMBARD") > 0) ? true : false;
-	m_iDCM_RB_CITY_INACCURACY = getDefineINT("DCM_RB_CITY_INACCURACY");
 	m_iDCM_RB_CITYBOMBARD_CHANCE = getDefineINT("DCM_RB_CITYBOMBARD_CHANCE");
-	m_bDCM_ATTACK_SUPPORT = (getDefineINT("DCM_ATTACK_SUPPORT") > 0) ? true : false;
 	m_bDCM_STACK_ATTACK = (getDefineINT("DCM_STACK_ATTACK") > 0) ? true : false;
 	m_bDCM_OPP_FIRE = (getDefineINT("DCM_OPP_FIRE") > 0) ? true : false;
 	m_bDCM_ACTIVE_DEFENSE = (getDefineINT("DCM_ACTIVE_DEFENSE") > 0) ? true : false;
-	m_bDCM_ARCHER_BOMBARD = (getDefineINT("DCM_ARCHER_BOMBARD") > 0) ? true : false;
 	m_bDCM_FIGHTER_ENGAGE = (getDefineINT("DCM_FIGHTER_ENGAGE") > 0) ? true : false;
 
 	m_bDYNAMIC_CIV_NAMES = (getDefineINT("DYNAMIC_CIV_NAMES") > 0) ? true : false;
@@ -3833,6 +3827,8 @@ void cvInternalGlobals::cacheGlobals()
 	m_bLFBUseCombatOdds = !(getDefineINT("LFB_USECOMBATODDS") == 0);
 	m_iCOMBAT_DIE_SIDES = getDefineINT("COMBAT_DIE_SIDES");
 	m_iCOMBAT_DAMAGE = getDefineINT("COMBAT_DAMAGE");
+	m_iVOLLEY_STRENGTH = getDefineINT("VOLLEY_STRENGTH");
+	m_iVOLLEY_MIN_ACCURACY = getDefineINT("VOLLEY_MIN_ACCURACY");
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -5650,6 +5646,16 @@ int cvInternalGlobals::getCOMBAT_DAMAGE()
 {
 	return m_iCOMBAT_DAMAGE;
 }
+
+int cvInternalGlobals::getVOLLEY_STRENGTH()
+{
+	return m_iVOLLEY_STRENGTH;
+}
+
+int cvInternalGlobals::getVOLLEY_MIN_ACCURACY()
+{
+	return m_iVOLLEY_MIN_ACCURACY;
+}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -5924,24 +5930,9 @@ bool cvInternalGlobals::isDCM_AIR_BOMBING()
 	return m_bDCM_AIR_BOMBING;
 }
 
-bool cvInternalGlobals::isDCM_RANGE_BOMBARD()
-{
-	return m_bDCM_RANGE_BOMBARD;
-}
-
-int cvInternalGlobals::getDCM_RB_CITY_INACCURACY()
-{
-	return m_iDCM_RB_CITY_INACCURACY;
-}
-
 int cvInternalGlobals::getDCM_RB_CITYBOMBARD_CHANCE()
 {
 	return m_iDCM_RB_CITYBOMBARD_CHANCE;
-}
-
-bool cvInternalGlobals::isDCM_ATTACK_SUPPORT()
-{
-	return m_bDCM_ATTACK_SUPPORT;
 }
 
 bool cvInternalGlobals::isDCM_STACK_ATTACK()
@@ -5957,11 +5948,6 @@ bool cvInternalGlobals::isDCM_OPP_FIRE()
 bool cvInternalGlobals::isDCM_ACTIVE_DEFENSE()
 {
 	return m_bDCM_ACTIVE_DEFENSE;
-}
-
-bool cvInternalGlobals::isDCM_ARCHER_BOMBARD()
-{
-	return m_bDCM_ARCHER_BOMBARD;
 }
 
 bool cvInternalGlobals::isDCM_FIGHTER_ENGAGE()
