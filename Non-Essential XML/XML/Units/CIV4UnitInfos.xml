@@ -39688,6 +39688,10 @@
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
+			<iVolleyRange>1</iVolleyRange>
+			<iVolleyAccuracy>30</iVolleyAccuracy>
+			<iVolleyRounds>5</iVolleyRounds>
+			<iVolleyEfficiency>25</iVolleyEfficiency>
 		</UnitInfo>
 		<UnitInfo>
 			<Class>UNITCLASS_LIGHT_ARTILLERY</Class>

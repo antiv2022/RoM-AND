@@ -5264,15 +5264,12 @@ bool CvPlot::isVisible(TeamTypes eTeam, bool bDebug) const
 	{
 		return true;
 	}
-	else
+	if (eTeam == NO_TEAM)
 	{
-		if (eTeam == NO_TEAM)
-		{
-			return false;
-		}
-
-		return ((getVisibilityCount(eTeam) > 0) || (getStolenVisibilityCount(eTeam) > 0));
+		return false;
 	}
+
+	return ((getVisibilityCount(eTeam) > 0) || (getStolenVisibilityCount(eTeam) > 0));
 }
 
 

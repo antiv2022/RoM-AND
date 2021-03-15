@@ -514,19 +514,32 @@ void CvGame::updateColoredPlots()
 		}
 		if (iMaxAirRange > 0)
 		{
+			CvPlot* pFromPlot = pHeadSelectedUnit->plot();
+			CvSelectionGroup* pGroup = pHeadSelectedUnit->getGroup();
 			for (iDX = -(iMaxAirRange); iDX <= iMaxAirRange; iDX++)
 			{
 				for (iDY = -(iMaxAirRange); iDY <= iMaxAirRange; iDY++)
 				{
-					pLoopPlot = plotXY(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), iDX, iDY);
+					CvPlot* pTargetPlot = plotXY(pFromPlot->getX_INLINE(), pFromPlot->getY_INLINE(), iDX, iDY);
 
-					if (pLoopPlot != NULL
-					&& plotDistance(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= iMaxAirRange)
+					if (pTargetPlot != NULL && pTargetPlot->isVisible(pHeadSelectedUnit->getTeam(), false)
+					&& plotDistance(pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(), pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE()) <= iMaxAirRange)
 					{
 						NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE")).getColor());
-						color.a = 0.4f;
-						gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getViewportX(), pLoopPlot->getViewportY(), color, PLOT_STYLE_TARGET, PLOT_LANDSCAPE_LAYER_BASE);
+						if (pGroup->canVolleyAt(pFromPlot, pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE()))
+						{
+							if (pTargetPlot->isVisibleEnemyUnit(pHeadSelectedUnit->getOwner()))
+							{
+								color.r = 0.0f;
+								color.b = 0.0f;
+							}
+							else color.b = 0.0f;
+						}
+						else color.a = 0.4f;
+
+						gDLL->getEngineIFace()->addColoredPlot(pTargetPlot->getViewportX(), pTargetPlot->getViewportY(), color, PLOT_STYLE_TARGET, PLOT_LANDSCAPE_LAYER_BASE);
 					}
+
 				}
 			}
 		}
@@ -2879,12 +2892,9 @@ CvPlot* CvGame::getNewHighlightPlot() const
 			pNewPlot = GC.getMap().plot(coords[0],coords[1]);
 		}
 	}
-	else
+	else if (GC.getInterfaceModeInfo(gDLL->getInterfaceIFace()->getInterfaceMode()).getHighlightPlot())
 	{
-		if (GC.getInterfaceModeInfo(gDLL->getInterfaceIFace()->getInterfaceMode()).getHighlightPlot())
-		{
-			pNewPlot = gDLL->getInterfaceIFace()->getMouseOverPlot();
-		}
+		pNewPlot = gDLL->getInterfaceIFace()->getMouseOverPlot();
 	}
 	return pNewPlot;
 }
