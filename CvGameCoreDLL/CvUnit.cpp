@@ -22551,13 +22551,13 @@ int CvUnit::getVolleyAccuracy(const int iDistance) const
 	// Edge cases
 	const int iMinAccuracy = GC.getVOLLEY_MIN_ACCURACY();
 
-	if (iDistance == iRange)
-	{
-		return std::max(iMinAccuracy, m_pUnitInfo->getVolleyAccuracyMin());
-	}
 	if (iDistance == 1)
 	{
 		return std::max(iMinAccuracy, m_pUnitInfo->getVolleyAccuracy());
+	}
+	if (iDistance == iRange)
+	{
+		return std::max(iMinAccuracy, m_pUnitInfo->getVolleyAccuracyMin());
 	}
 
 	// General case
