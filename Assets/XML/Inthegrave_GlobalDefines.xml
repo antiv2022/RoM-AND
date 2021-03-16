@@ -1,5 +1,15 @@
 <?xml version="1.0"?>
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
+	<!-- f1rpo (start): GlobalDefines for AI attitude -->
+	<Define>
+		<DefineName>PEACE_WEIGHT_PERCENT</DefineName>
+		<iDefineIntVal>66</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>WARMONGER_RESPECT_PERCENT</DefineName>
+		<iDefineIntVal>80</iDefineIntVal>
+	</Define>
+	<!-- f1rpo: end -->
 	<Define>
 		<!--
 		Toffer - At 100, if the unit performing the volley has the same effective strength as the victim, then the victim would suffer 1/3 of its max health.
