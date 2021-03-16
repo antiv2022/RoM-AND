@@ -82,11 +82,11 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_VOLLEY_HIT_ENEMY_UNIT</Tag>
-		<English>Your %s1 volley struck an enemy %s2! (%d3 hit(s) dealt %d3%% damage)</English>
+		<English>Your %s1 volley struck an enemy %s2! (%d3 hit(s) dealt %d4%% damage)</English>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_VOLLEY_HIT_YOUR_UNIT</Tag>
-		<English>An enemy %s1 volley struck your %s2! (%d3 hit(s) dealt %d3%% damage)</English>
+		<English>An enemy %s1 volley struck your %s2! (%d3 hit(s) dealt %d4%% damage)</English>
 	</TEXT>
 	<!-- ! Toffer -->
 </Civ4GameText>
