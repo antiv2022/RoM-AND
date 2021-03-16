@@ -1,26 +1,84 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <Civ4GameText>
+	<!-- f1rpo: start -->
 	<!-- Sexism, Racism: English by Inthegrave.
 		 The German translation is by me; not great, better than none. -->
-    <TEXT>
-        <Tag>TXT_KEY_MISC_ATTITUDE_PREJUDICE_NEGATIVE</Tag>
-        <English>%D1: "You are inferior to me."</English>
-        <German>%D1: "Euresgleichen steht unter uns."</German>
-    </TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ATTITUDE_PREJUDICE_NEGATIVE</Tag>
+		<English>%D1: "You are inferior to me."</English>
+		<German>%D1: "Euresgleichen steht unter uns."</German>
+	</TEXT>
 	<!-- May well remain unused. Just something to make sure that
 		 positive attitude doesn't remain hidden.
 		 This quote from "Falling Down" was the only thing that
 		 came to mind. -->
 	<TEXT>
-        <Tag>TXT_KEY_MISC_ATTITUDE_PREJUDICE_POSITIVE</Tag>
-        <English>%D1: "We're the same, you and me."</English>
-        <German>%D1: "Wir beide sind gleich."</German>
-    </TEXT>
-
+		<Tag>TXT_KEY_MISC_ATTITUDE_PREJUDICE_POSITIVE</Tag>
+		<English>%D1: "We're the same, you and me."</English>
+		<German>%D1: "Wir beide sind gleich."</German>
+	</TEXT>
 	<TEXT>
-        <Tag>TXT_KEY_NO_TRAIN_DURING_STRIKE</Tag>
-        <English>[COLOR_WARNING_TEXT]Strike!!![COLOR_REVERT]</English>
-        <German>[COLOR_WARNING_TEXT]Streik!!![COLOR_REVERT]</German>
-    </TEXT>
-
+		<Tag>TXT_KEY_NO_TRAIN_DURING_STRIKE</Tag>
+		<English>[COLOR_WARNING_TEXT]Strike!!![COLOR_REVERT]</English>
+		<German>[COLOR_WARNING_TEXT]Streik!!![COLOR_REVERT]</German>
+	</TEXT>
+	<!-- Era options -->
+	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_NO_MODERN_ERA</Tag>
+		<English>No Post-Industrial Tech</English>
+		<German>Keine nachindustrielle Technologie</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_NO_MODERN_ERA_HELP</Tag>
+		<English>Disables the Modern and Transhuman era; Future Tech becomes available at the end of the Industrial era.</English>
+		<German>Deaktiviert die Moderne und das transhumane Zeitalter; Zukunftstechnologien werden am Ende des Industriezeitalters verfügbar.</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_NO_INDUSTRIAL_ERA</Tag>
+		<English>No Post-Renaissance Tech</English>
+		<German>Keine Post-Renaissance-Technologie</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_NO_INDUSTRIAL_ERA_HELP</Tag>
+		<English>Disables the Industrial, Modern and Transhuman era; Future Tech becomes available at the end of Renaissance.</English>
+		<German>Deaktiviert Industriezeitalter, Moderne und transhumanes Zeitalter; Zukunftstechnologien werden am Ende der Renaissance verfügbar.</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_NO_RENAISSANCE_ERA</Tag>
+		<English>No Post-Medieval Tech</English>
+		<German>Keine nachmittelalterliche Technologie</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_NO_RENAISSANCE_ERA_HELP</Tag>
+		<English>Disables the Renaissance era and all subsequent eras; Future Tech becomes available at the end of the Medieval era.</English>
+		<German>Deaktiviert die Renaissance und alle darauf folgenden Zeitalter; Zukunftstechnologien werden am Ende des Mittelalters verfügbar.</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_NO_MEDIEVAL_ERA</Tag>
+		<English>No Post-Classical Tech</English>
+		<German>Keine nachklassische Technologie</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_NO_MEDIEVAL_ERA_HELP</Tag>
+		<English>Disables the Medieval era and all subsequent eras; Future Tech becomes available at the end of the Classical era.</English>
+		<German>Deaktiviert das Mittelalter und alle darauf folgenden Zeitalter; Zukunftstechnologien werden am Ende der Klassik verfügbar.</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_NO_CLASSICAL_ERA</Tag>
+		<English>Only Ancient Tech</English>
+		<German>Nur antike Technologie</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMEOPTION_NO_CLASSICAL_ERA_HELP</Tag>
+		<English>Disables the Classical era and all subsequent eras; Future Tech becomes available at the end of the Ancient era.</English>
+		<German>Deaktiviert die Klassik und alle darauf folgenden Zeitalter; Zukunftstechnologien werden am Ende der (vorklassischen) Antike verfügbar.</German>
+	</TEXT>
+	<!-- f1rpo: end -->
+	<!-- Toffer -->
+	<TEXT>
+		<!-- Need to rewrite this one -->
+		<Tag>TXT_KEY_INTERFACEMODE_VOLLEY_HELP</Tag>
+		<English>[H1]Ranged Bombardment[\H1] By selecting the bombard icon you can select whether to bombard units, improvements or cities. Bombarding is also possible from a range with heavy artillery.[PARAGRAPH:2]Range bombard works by inflicting standard BTS collateral damage. This renders it useless against single units or large stacks and the head defender is not injured. [PARAGRAPH:2]When bombarding cities, range bombarding also has a slight chance of hitting defenders not just defenses. Range bombarding from inside cities is much less effective than from properly constructed field structures like forts.</English>
+	</TEXT>
+	<!-- ! Toffer -->
 </Civ4GameText>
