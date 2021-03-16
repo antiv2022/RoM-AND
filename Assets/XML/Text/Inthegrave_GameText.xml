@@ -80,5 +80,13 @@
 		<Tag>TXT_KEY_INTERFACEMODE_VOLLEY_HELP</Tag>
 		<English>[H1]Ranged Bombardment[\H1] By selecting the bombard icon you can select whether to bombard units, improvements or cities. Bombarding is also possible from a range with heavy artillery.[PARAGRAPH:2]Range bombard works by inflicting standard BTS collateral damage. This renders it useless against single units or large stacks and the head defender is not injured. [PARAGRAPH:2]When bombarding cities, range bombarding also has a slight chance of hitting defenders not just defenses. Range bombarding from inside cities is much less effective than from properly constructed field structures like forts.</English>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_HIT_ENEMY_UNIT</Tag>
+		<English>Your %s1 volley struck an enemy %s2! (%d3 hit(s) dealt %d3%% damage)</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_HIT_YOUR_UNIT</Tag>
+		<English>An enemy %s1 volley struck your %s2! (%d3 hit(s) dealt %d3%% damage)</English>
+	</TEXT>
 	<!-- ! Toffer -->
 </Civ4GameText>

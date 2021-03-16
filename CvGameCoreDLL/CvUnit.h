@@ -1151,10 +1151,7 @@ public:
 	bool canVolley() const;
 	bool canVolleyAt(const CvPlot* pFromPlot, int iX, int iY) const;
 	bool doVolley(int iX, int iY);
-private:
-	int m_iVolleyRange;
-	int m_iVolleyAccuracy;
-public:
+
 // Dale - SA: Stack Attack START
 	void updateStackCombat(bool bQuick = false);
 // Dale - SA: Stack Attack END

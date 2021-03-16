@@ -236,6 +236,9 @@ public:
 	static bool hasCachedCanBuildEntry(int iX, int iY, BuildTypes eBuild, PlayerTypes ePlayer, struct canBuildCacheEntry*& entry);
 	long canBuildFromPython(BuildTypes eBuild, PlayerTypes ePlayer) const;
 	long canBuildFromPythonInternal(BuildTypes eBuild, PlayerTypes ePlayer) const;
+
+	bool isImprovementDestructible() const;
+
 	int getBuildTime(BuildTypes eBuild) const;																																										// Exposed to Python
 // BUG - Partial Builds - start
 	int getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const;
