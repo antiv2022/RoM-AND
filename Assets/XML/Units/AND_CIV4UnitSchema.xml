@@ -50,7 +50,7 @@
 	<ElementType name="AttributeType" content="textOnly"/>
 	<ElementType name="iAmountPerTurn" content="textOnly" dt:type="int"/>
 	<ElementType name="iGrowthPercent" content="textOnly" dt:type="int"/>
-	<ElementType name="iInhibitionPercent" content="textOnly" dt:type="int"/>	
+	<ElementType name="iInhibitionPercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iDistance" content="textOnly" dt:type="int"/>
 	<ElementType name="iTargetDistance" content="textOnly" dt:type="int"/>
 	<ElementType name="iPercent" content="textOnly" dt:type="int"/>
@@ -58,7 +58,7 @@
 	<ElementType name="iNoDecayAmount" content="textOnly" dt:type="int"/>
 	<ElementType name="iNoConvertAmount" content="textOnly" dt:type="int"/>
 	<ElementType name="Active"/>
-	
+
 	<ElementType name="PropertySource" content="eltOnly" order="many">
 		<element type="PropertySourceType" minOccurs="1" maxOccurs="*"/>
 		<element type="PropertyType" minOccurs="1" maxOccurs="*"/>
@@ -72,7 +72,7 @@
 		<element type="iNoDecayAmount" minOccurs="0" maxOccurs="*"/>
 		<element type="Active" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
-	
+
 	<ElementType name="PropertyInteraction" content="eltOnly" order="many">
 		<element type="PropertyInteractionType" minOccurs="1" maxOccurs="*"/>
 		<element type="SourcePropertyType" minOccurs="1" maxOccurs="*"/>
@@ -84,10 +84,10 @@
 		<element type="iGrowthPercent" minOccurs="0" maxOccurs="*"/>
 		<element type="iInhibitionPercent" minOccurs="0" maxOccurs="*"/>
 		<element type="iPercent" minOccurs="0" maxOccurs="*"/>
-		<element type="iNoConvertAmount" minOccurs="0" maxOccurs="*"/>		
+		<element type="iNoConvertAmount" minOccurs="0" maxOccurs="*"/>
 		<element type="Active" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
-	
+
 	<ElementType name="PropertyPropagator" content="eltOnly" order="many">
 		<element type="PropertyPropagatorType" minOccurs="1" maxOccurs="*"/>
 		<element type="PropertyType" minOccurs="1" maxOccurs="*"/>
@@ -102,13 +102,13 @@
 		<element type="iPercent" minOccurs="0" maxOccurs="*"/>
 		<element type="Active" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
-	
+
 	<ElementType name="PropertyManipulators" content="eltOnly" order="many">
     <element type="PropertySource" minOccurs="0" maxOccurs="*"/>
     <element type="PropertyInteraction" minOccurs="0" maxOccurs="*"/>
 		<element type="PropertyPropagator" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
-	
+
 	<!-- @MOD Commanders -->
 	<ElementType name="iCommandRange" content="textOnly" dt:type="int"/>
 	<ElementType name="iControlPoints" content="textOnly" dt:type="int"/>
@@ -123,7 +123,7 @@
 	<ElementType name="Description" content="textOnly"/>
 	<ElementType name="Civilopedia" content="textOnly"/>
 	<ElementType name="Help" content="textOnly"/>
-	<ElementType name="ExtraHoverText" content="textOnly"/>	
+	<ElementType name="ExtraHoverText" content="textOnly"/>
 	<ElementType name="Strategy" content="textOnly"/>
 	<ElementType name="iTime" content="textOnly" dt:type="int"/>
 	<ElementType name="bKill" content="textOnly" dt:type="boolean"/>
@@ -231,7 +231,7 @@
 	<ElementType name="UnitClassInfo" content="eltOnly">
 		<element type="Type"/>
 <!-- XMLCOPY				02/20/2008			MRGENIE		-->
-<!-- 		don't use dependencies on this file please!		-->		
+<!-- 		don't use dependencies on this file please!		-->
 <!-- XMLCOPY				END					MRGENIE		-->
 		<element type="Description" minOccurs="0"/>
 		<element type="iMaxGlobalInstances" minOccurs="0"/>
@@ -272,11 +272,11 @@
 	<ElementType name="bSabotage" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bDestroy" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bStealPlans" content="textOnly" dt:type="boolean"/>
-	<ElementType name="bBribeBarbarian" content="textOnly" dt:type="boolean"/>	
-	<ElementType name="bBarbariansColonisator" content="textOnly" dt:type="boolean"/>	
+	<ElementType name="bBribeBarbarian" content="textOnly" dt:type="boolean"/>
+	<ElementType name="bBarbariansColonisator" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bGoodwill" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bUpgradeImprovements" content="textOnly" dt:type="boolean"/>
-	<ElementType name="bForcePeace" content="textOnly" dt:type="boolean"/>	
+	<ElementType name="bForcePeace" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bInvestigate" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bCounterSpy" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bFound" content="textOnly" dt:type="boolean"/>
@@ -477,7 +477,7 @@
 	<ElementType name="PrereqCorporation" content="textOnly"/>
 	<ElementType name="PrereqBuilding" content="textOnly"/>
 	<ElementType name="PrereqOrBuildings" content="eltOnly">
-	<ElementType name="OverrideResourceBuilding" content="textOnly"/>	
+	<ElementType name="OverrideResourceBuilding" content="textOnly"/>
 		<element type="BuildingType" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
 	<ElementType name="TechTypes" content="eltOnly">
@@ -741,6 +741,9 @@
 	<ElementType name="iLeaderExperience" content="textOnly" dt:type="int"/>
 	<ElementType name="iVolleyRange" content="textOnly" dt:type="int"/>
 	<ElementType name="iVolleyAccuracy" content="textOnly" dt:type="int"/>
+	<ElementType name="iVolleyAccuracyMin" content="textOnly" dt:type="int"/>
+	<ElementType name="iVolleyEfficiency" content="textOnly" dt:type="int"/>
+	<ElementType name="iVolleyRounds" content="textOnly" dt:type="int"/>
 	<ElementType name="bDCMAirBomb1" content="textOnly" dt:type="int"/>
 	<ElementType name="bDCMAirBomb2" content="textOnly" dt:type="int"/>
 	<ElementType name="bDCMAirBomb3" content="textOnly" dt:type="int"/>
@@ -756,7 +759,7 @@
 	<ElementType name="iGPP" content="textOnly" dt:type="int"/>
 	<ElementType name="GPUnitType" content="textOnly"/>
 	<ElementType name="iHappinessTimer" content="textOnly" dt:type="int"/>
-	<ElementType name="iReduceAnarchyLength"/>	
+	<ElementType name="iReduceAnarchyLength"/>
 	<ElementType name="EventTrigger" content="textOnly"/>
 	<ElementType name="PlotCondition"/>
 	<ElementType name="UnitCondition"/>
@@ -792,7 +795,7 @@
 		<element type="EventTrigger" minOccurs="0"/>
 		<element type="PlotCondition" minOccurs="0"/>
 		<element type="UnitCondition" minOccurs="0"/>
-		<element type="bKill" minOccurs="0"/>		
+		<element type="bKill" minOccurs="0"/>
 	</ElementType>
 	<ElementType name="KillOutcomes" content="eltOnly">
 		<element type="Outcome" minOccurs="0" maxOccurs="*"/>
@@ -822,7 +825,7 @@
 		<element type="Class" minOccurs="0"/>
 		<element type="Type" minOccurs="0"/>
 <!-- XMLCOPY				02/20/2008			MRGENIE		-->
-		<element type="bTypeDependency" minOccurs="0"/>		
+		<element type="bTypeDependency" minOccurs="0"/>
 		<element type="bForceOverwrite" minOccurs="0"/>
 		<element type="AndDependencyTypes" minOccurs="0"/>
 		<element type="OrDependencyTypes" minOccurs="0"/>
@@ -859,7 +862,7 @@
 		<element type="bBarbariansColonisator" minOccurs="0"/>
 		<element type="bGoodwill" minOccurs="0"/>
 		<element type="bUpgradeImprovements" minOccurs="0"/>
-		<element type="bForcePeace" minOccurs="0"/>		
+		<element type="bForcePeace" minOccurs="0"/>
 		<element type="bInvestigate" minOccurs="0"/>
 		<element type="bCounterSpy" minOccurs="0"/>
 		<element type="bFound" minOccurs="0"/>
@@ -886,7 +889,7 @@
 		<element type="bInquisitor" minOccurs="0"/>
 		<!-- Revolution Mod Start> -->
 		<!-- ls612: No Non-Owned Entry -->
-		<element type="bOnlyFriendlyEntry" minOccurs="0"/>		
+		<element type="bOnlyFriendlyEntry" minOccurs="0"/>
 		<!-- DIPLOMACYMOD 04/14/09 by DPII -->
 		<element type="bWorkerTrade" minOccurs="0"/>
 		<element type="bMilitaryTrade" minOccurs="0"/>
@@ -924,7 +927,7 @@
 		<element type="PrereqCorporation" minOccurs="0"/>
 		<element type="PrereqBuilding" minOccurs="0"/>
 		<element type="PrereqOrBuildings" minOccurs="0"/>
-		<element type="OverrideResourceBuilding" minOccurs="0"/>		
+		<element type="OverrideResourceBuilding" minOccurs="0"/>
 		<element type="PrereqTech" minOccurs="0"/>
 		<element type="TechTypes" minOccurs="0"/>
 		<element type="BonusType" minOccurs="0"/>
@@ -1009,10 +1012,13 @@
 		<element type="iHotKeyPriority" minOccurs="0"/>
 		<element type="FreePromotions" minOccurs="0"/>
 		<element type="LeaderPromotion" minOccurs="0"/>
-		<element type="iLeaderExperience" minOccurs="0"/>		
+		<element type="iLeaderExperience" minOccurs="0"/>
 		<element type="iOrderPriority" minOccurs="0"/>
 		<element type="iVolleyRange" minOccurs="0"/>
 		<element type="iVolleyAccuracy" minOccurs="0"/>
+		<element type="iVolleyAccuracyMin" minOccurs="0"/>
+		<element type="iVolleyEfficiency" minOccurs="0"/>
+		<element type="iVolleyRounds" minOccurs="0"/>
 		<element type="bDCMAirBomb1" minOccurs="0"/>
 		<element type="bDCMAirBomb2" minOccurs="0"/>
 		<element type="bDCMAirBomb3" minOccurs="0"/>
@@ -1101,7 +1107,7 @@
 	</ElementType>
 	<ElementType name="UpgradeImprovementRates" content="eltOnly">
 		<element type="UpgradeImprovementRate" minOccurs="0" maxOccurs="*"/>
-	</ElementType>	
+	</ElementType>
 	<ElementType name="CommandInfo" content="eltOnly">
 		<element type="Type"/>
 <!-- XMLCOPY				02/20/2008			MRGENIE		-->
@@ -1180,7 +1186,7 @@
 	</ElementType>
 	<!--Afforess-->
 	<ElementType name="bImmuneToFirstStrikes" content="textOnly" dt:type="boolean"/>
-	<ElementType name="bIsPirate" content="textOnly" dt:type="boolean"/>	
+	<ElementType name="bIsPirate" content="textOnly" dt:type="boolean"/>
 	<ElementType name="iVisibilityChange" content="textOnly" dt:type="int"/>
 	<ElementType name="iMovesChange" content="textOnly" dt:type="int"/>
 	<ElementType name="iMoveDiscountChange" content="textOnly" dt:type="int"/>
@@ -1257,7 +1263,7 @@
 		<element type="IgnoreTerrainDamage" minOccurs="0"/>
 		<!--Afforess-->
 		<element type="bImmuneToFirstStrikes" minOccurs="0"/>
-		<element type="bIsPirate" minOccurs="0"/>		
+		<element type="bIsPirate" minOccurs="0"/>
 		<element type="iVisibilityChange" minOccurs="0"/>
 		<element type="iMovesChange" minOccurs="0"/>
 		<element type="iMoveDiscountChange" minOccurs="0"/>
@@ -1303,7 +1309,7 @@
 		<element type="Button" minOccurs="0" maxOccurs="*"/>
 		<element type="iOrderPriority" minOccurs="0"/>
 		<!-- @MOD Commanders -->
-		<element type="iCommandRange" minOccurs="0"/>		
+		<element type="iCommandRange" minOccurs="0"/>
 		<element type="iControlPoints" minOccurs="0"/>
 		<element type="bOnslaught" minOccurs="0"/>
 		<!-- end MOD Commanders -->
