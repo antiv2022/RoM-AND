@@ -65,7 +65,7 @@ m_iMoves(0),
 m_iAirRange(0),
 m_iAirUnitCap(0),
 m_iDropRange(0),
-m_iNukeRange(-1),
+m_iNukeRange(0),
 m_iWorkRate(0),
 m_iBaseDiscover(0),
 m_iDiscoverMultiplier(0),
@@ -5074,7 +5074,7 @@ void CvUnitInfo::copyNonDefaults(CvUnitInfo* pClassInfo, CvXMLLoadUtility* pXML)
 	if ( m_iAirRange == iDefault ) m_iAirRange = pClassInfo->getAirRange();
 	if ( m_iAirUnitCap == iDefault ) m_iAirUnitCap = pClassInfo->getAirUnitCap();
 	if ( m_iDropRange == iDefault ) m_iDropRange = pClassInfo->getDropRange();
-	if ( m_iNukeRange == -1 ) m_iNukeRange = pClassInfo->getNukeRange();
+	if ( m_iNukeRange == iDefault ) m_iNukeRange = pClassInfo->getNukeRange();
 	if ( m_iWorkRate == iDefault ) m_iWorkRate = pClassInfo->getWorkRate();
 	if ( m_iBaseDiscover == iDefault ) m_iBaseDiscover = pClassInfo->getBaseDiscover();
 	if ( m_iDiscoverMultiplier == iDefault ) m_iDiscoverMultiplier = pClassInfo->getDiscoverMultiplier();
