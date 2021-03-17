@@ -1076,10 +1076,6 @@ public:
 	bool isEnemy(TeamTypes eTeam, const CvPlot* pPlot = NULL) const;
 	bool isPotentialEnemy(TeamTypes eTeam, const CvPlot* pPlot = NULL) const;
 
-	bool canRangeStrike() const;
-	bool canRangeStrikeAt(const CvPlot* pPlot, int iX, int iY) const;
-	bool rangeStrike(int iX, int iY);
-
 	int getTriggerValue(EventTriggerTypes eTrigger, const CvPlot* pPlot, bool bCheckPlot) const;
 	bool canApplyEvent(EventTypes eEvent) const;
 	void applyEvent(EventTypes eEvent);

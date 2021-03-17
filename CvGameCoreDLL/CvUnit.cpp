@@ -12119,7 +12119,6 @@ BuildTypes CvUnit::getBuildType() const
 		case MISSION_PARADROP:
 		case MISSION_AIRBOMB:
 		case MISSION_BOMBARD:
-		case MISSION_RANGE_ATTACK:
 		case MISSION_PILLAGE:
 		case MISSION_SABOTAGE:
 		case MISSION_DESTROY:
@@ -19521,199 +19520,6 @@ bool CvUnit::airStrike(CvPlot* pPlot)
 	return true;
 }
 
-bool CvUnit::canRangeStrike() const
-{
-	if (getDomainType() == DOMAIN_AIR)
-	{
-		return false;
-	}
-
-	if (airRange() <= 0)
-	{
-		return false;
-	}
-
-	if (airBaseCombatStr() <= 0)
-	{
-		return false;
-	}
-
-	if (!canFight())
-	{
-		return false;
-	}
-
-	if (isMadeAttack() && !isBlitz())
-	{
-		return false;
-	}
-
-	if (!canMove() && getMoves() > 0)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-bool CvUnit::canRangeStrikeAt(const CvPlot* pPlot, int iX, int iY) const
-{
-	if (!canRangeStrike())
-	{
-		return false;
-	}
-
-	CvPlot* pTargetPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-
-	if (NULL == pTargetPlot)
-	{
-		return false;
-	}
-
-	if (!pPlot->isVisible(getTeam(), false))
-	{
-		return false;
-	}
-
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       05/10/10                             jdog5000         */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
-	// Need to check target plot too
-	//Fuyu: AI-controlled units can strike even when tile is invisible
-	if (isHuman() && !isAutomated() && !pTargetPlot->isVisible(getTeam(), false))
-	{
-		return false;
-	}
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
-
-	if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE()) > airRange())
-	{
-		return false;
-	}
-
-	CvUnit* pDefender = airStrikeTarget(pTargetPlot);
-	if (NULL == pDefender)
-	{
-		return false;
-	}
-
-	if (!pPlot->canSeePlot(pTargetPlot, getTeam(), airRange(), getFacingDirection(true)))
-	{
-		return false;
-	}
-
-	return true;
-}
-
-
-bool CvUnit::rangeStrike(int iX, int iY)
-{
-	CvUnit* pDefender;
-	CvWString szBuffer;
-	int iUnitDamage;
-	int iDamage;
-
-	CvPlot* pPlot = GC.getMapINLINE().plot(iX, iY);
-	if (NULL == pPlot)
-	{
-		return false;
-	}
-
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       05/10/10                             jdog5000         */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
-/* original bts code
-	if (!canRangeStrikeAt(pPlot, iX, iY))
-	{
-		return false;
-	}
-*/
-	if (!canRangeStrikeAt(plot(), iX, iY))
-	{
-		return false;
-	}
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
-
-	pDefender = airStrikeTarget(pPlot);
-
-	FAssert(pDefender != NULL);
-	FAssert(pDefender->canDefend());
-
-/************************************************************************************************/
-/* RevolutionDCM	                  Start		 05/31/10                        Afforess       */
-/*                                                                                              */
-/* Battle Effects                                                                               */
-/************************************************************************************************/
-	setBattlePlot(pDefender->plot(), pDefender);
-/************************************************************************************************/
-/* RevolutionDCM	             Battle Effects END                                             */
-/************************************************************************************************/
-	if (GC.getDefineINT("RANGED_ATTACKS_USE_MOVES") == 0)
-	{
-		setMadeAttack(true);
-	}
-	changeMoves(GC.getMOVE_DENOMINATOR());
-
-	iDamage = rangeCombatDamage(pDefender);
-
-	iUnitDamage = std::max(pDefender->getDamage(), std::min((pDefender->getDamage() + iDamage), airCombatLimit()));
-
-	{
-		MEMORY_TRACK_EXEMPT();
-
-		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR", pDefender->getNameKey(), getNameKey(), -(((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints()));
-		//red icon over attacking unit
-		AddMessage(pDefender->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COMBAT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), this->getX_INLINE(), this->getY_INLINE(), true, true);
-		//white icon over defending unit
-		AddMessage(pDefender->getOwnerINLINE(), false, 0, L"", "AS2D_COMBAT", MESSAGE_TYPE_DISPLAY_ONLY, pDefender->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pDefender->getX_INLINE(), pDefender->getY_INLINE(), true, true);
-
-		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", getNameKey(), pDefender->getNameKey(), -(((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints()));
-		AddMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pDefender->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-	}
-
-	collateralCombat(pPlot, pDefender);
-
-	//set damage but don't update entity damage visibility
-	pDefender->setDamage(iUnitDamage, getOwnerINLINE(), false);
-
-	if (pPlot->isActiveVisible(false) && !pDefender->isUsingDummyEntities() )
-	{
-		// Range strike entity mission
-		CvMissionDefinition kDefiniton;
-		kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_RANGE_ATTACK).getTime() * gDLL->getSecsPerTurn());
-		kDefiniton.setMissionType(MISSION_RANGE_ATTACK);
-		kDefiniton.setPlot(pDefender->plot());
-		kDefiniton.setUnit(BATTLE_UNIT_ATTACKER, this);
-		kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, pDefender);
-		addMission(&kDefiniton);
-
-		//delay death
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       05/10/10                             jdog5000         */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
-/* original bts code
-		pDefender->getGroup()->setMissionTimer(GC.getMissionInfo(MISSION_RANGE_ATTACK).getTime());
-*/
-		// mission timer is not used like this in any other part of code, so it might cause OOS
-		// issues ... at worst I think unit dies before animation is complete, so no real
-		// harm in commenting it out.
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
-	}
-
-	return true;
-}
 
 //------------------------------------------------------------------------------------------------
 // FUNCTION:    CvUnit::planBattle
@@ -22502,7 +22308,7 @@ bool CvUnit::doVolley(int iX, int iY)
 		// Bombard entity mission
 		CvMissionDefinition kDefiniton;
 		kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_VOLLEY).getTime() * gDLL->getSecsPerTurn());
-		kDefiniton.setMissionType(MISSION_BOMBARD);
+		kDefiniton.setMissionType(MISSION_VOLLEY);
 		kDefiniton.setPlot(pPlot);
 		kDefiniton.setUnit(BATTLE_UNIT_ATTACKER, this);
 		kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, pVictim);

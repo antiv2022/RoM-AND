@@ -284,12 +284,12 @@
 			<Button>,Art/Interface/Buttons/Actions/Airbomb.dds,Art/Interface/Buttons/Actions_Builds_LeaderHeads_Specialists_Atlas.dds,5,6</Button>
 		</InterfaceModeInfo>
 		<InterfaceModeInfo>
-			<Type>INTERFACEMODE_RANGE_ATTACK</Type>
-			<Description>TXT_KEY_INTERFACEMODE_RANGE_ATTACK</Description>
-			<Help>TXT_KEY_INTERFACEMODE_RANGE_ATTACK_HELP</Help>
+			<Type>INTERFACEMODE_VOLLEY</Type>
+			<Description>TXT_KEY_CONCEPT_RBOMBARD_TEXT</Description>
+			<Help>TXT_KEY_INTERFACEMODE_VOLLEY_HELP</Help>
 			<CursorType>CURSOR_AIRBOMB</CursorType>
-			<Mission>MISSION_RANGE_ATTACK</Mission>
-			<HotKey>KB_B</HotKey>
+			<Mission>MISSION_VOLLEY</Mission>
+			<HotKey>KB_R</HotKey>
 			<bAltDown>0</bAltDown>
 			<bShiftDown>0</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
@@ -513,29 +513,6 @@
 			<bSelectType>0</bSelectType>
 			<bSelectAll>0</bSelectAll>
 			<Button>,Art/Interface/Buttons/Empty.dds,Art/Interface/Buttons/Atlases/AND_misc_buttons.dds,7,3</Button>
-		</InterfaceModeInfo>
-		<InterfaceModeInfo>
-			<Type>INTERFACEMODE_VOLLEY</Type>
-			<Description>TXT_KEY_CONCEPT_RBOMBARD_TEXT</Description>
-			<Help>TXT_KEY_INTERFACEMODE_VOLLEY_HELP</Help>
-			<CursorType>CURSOR_AIRBOMB</CursorType>
-			<Mission>MISSION_VOLLEY</Mission>
-			<HotKey>KB_R</HotKey>
-			<bAltDown>0</bAltDown>
-			<bShiftDown>0</bShiftDown>
-			<bCtrlDown>0</bCtrlDown>
-			<iHotKeyPriority>0</iHotKeyPriority>
-			<HotKeyAlt/>
-			<bAltDownAlt>0</bAltDownAlt>
-			<bShiftDownAlt>0</bShiftDownAlt>
-			<bCtrlDownAlt>0</bCtrlDownAlt>
-			<iHotKeyPriorityAlt>0</iHotKeyPriorityAlt>
-			<bVisible>1</bVisible>
-			<bGotoPlot>0</bGotoPlot>
-			<bHighlightPlot>1</bHighlightPlot>
-			<bSelectType>0</bSelectType>
-			<bSelectAll>0</bSelectAll>
-			<Button>,Art/Interface/Buttons/Empty.dds,Art/Interface/Buttons/Atlases/AND_misc_buttons.dds,6,13</Button>
 		</InterfaceModeInfo>
 		<!-- Sentry Actions -->
 		<InterfaceModeInfo>

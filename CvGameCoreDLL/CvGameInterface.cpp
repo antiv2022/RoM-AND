@@ -1530,7 +1530,6 @@ void CvGame::selectionListGameNetMessageInternal(int eMessage, int iData2, int i
 							case MISSION_PARADROP:
 							case MISSION_AIRLIFT:
 							case MISSION_AIRBOMB:
-							case MISSION_RANGE_ATTACK:
 							case MISSION_AIRBOMB1:
 							case MISSION_AIRBOMB2:
 							case MISSION_AIRBOMB3:

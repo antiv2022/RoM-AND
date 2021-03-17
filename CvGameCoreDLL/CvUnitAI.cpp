@@ -20064,11 +20064,6 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 	CvReachablePlotSet plotSet(getGroup(), MOVE_THROUGH_ENEMY, iSearchRange);
 #endif
 
-	if (AI_rangeAttack(iRange))
-	{
-		return true;
-	}
-
 	if (AI_Volley())
 	{
 		return true;
@@ -20334,57 +20329,6 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iMinStack, bool 
 /* REVOLUTIONDCM                            END                                     Glider1     */
 /************************************************************************************************/
 
-// Returns true if a mission was pushed...
-bool CvUnitAI::AI_rangeAttack(int iRange)
-{
-	PROFILE_FUNC();
-
-	FAssert(canMove());
-
-	if (!canRangeStrike())
-	{
-		return false;
-	}
-
-	int iSearchRange = AI_searchRange(iRange);
-
-	int iBestValue = 0;
-	CvPlot* pBestPlot = NULL;
-
-	for (int iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
-	{
-		for (int iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
-		{
-			CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
-
-			if (pLoopPlot != NULL)
-			{
-				if ((pLoopPlot->isVisible(getTeam(),false) && pLoopPlot->isVisibleEnemyUnit(this)) || (pLoopPlot->isCity() && AI_potentialEnemy(pLoopPlot->getTeam())))
-				{
-					if (!atPlot(pLoopPlot) && canRangeStrikeAt(plot(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()))
-					{
-						int iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
-
-						if (iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							pBestPlot = pLoopPlot;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if (pBestPlot != NULL)
-	{
-		FAssert(!atPlot(pBestPlot));
-		getGroup()->pushMission(MISSION_RANGE_ATTACK, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0);
-		return true;
-	}
-
-	return false;
-}
 
 bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThreshold, bool bIgnoreCity, bool bStayInBorders)
 {

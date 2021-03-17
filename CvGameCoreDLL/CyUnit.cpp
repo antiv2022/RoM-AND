@@ -1810,14 +1810,6 @@ void CyUnit::attackForDamage(CyUnit *defender, int attakerDamageChange, int defe
 	}
 }
 
-void CyUnit::rangeStrike(int iX, int iY)
-{
-	if(m_pUnit != NULL)
-	{
-		m_pUnit->rangeStrike(iX, iY);
-	}
-}
-
 const CvArtInfoUnit* CyUnit::getArtInfo(int i, EraTypes eEra) const
 {
 	return m_pUnit ? m_pUnit->getArtInfo(i, eEra) : NULL;

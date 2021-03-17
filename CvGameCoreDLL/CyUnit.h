@@ -480,7 +480,6 @@ public:
 
 	void centerCamera();
 	void attackForDamage(CyUnit *defender, int attakerDamageChange, int defenderDamageChange);
-	void rangeStrike(int iX, int iY);
 /************************************************************************************************/
 /* Afforess	                  Start		 03/1/10                       Coded By: KillMePlease   */
 /*                                                                                              */

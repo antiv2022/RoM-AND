@@ -871,7 +871,6 @@ CvPlot* CvSelectionGroup::lastMissionPlot()
 		case MISSION_PARADROP:
 		case MISSION_AIRBOMB:
 		case MISSION_BOMBARD:
-		case MISSION_RANGE_ATTACK:
 		case MISSION_PILLAGE:
 		case MISSION_SABOTAGE:
 		case MISSION_DESTROY:
@@ -1144,13 +1143,6 @@ bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvP
 
 		case MISSION_VOLLEY:
 			if (pLoopUnit->canVolleyAt(pPlot, iData1, iData2))
-			{
-				return true;
-			}
-			break;
-
-		case MISSION_RANGE_ATTACK:
-			if (pLoopUnit->canRangeStrikeAt(pPlot, iData1, iData2))
 			{
 				return true;
 			}
@@ -1665,7 +1657,6 @@ bool CvSelectionGroup::startMission()
 		case MISSION_PARADROP:
 		case MISSION_AIRBOMB:
 		case MISSION_BOMBARD:
-		case MISSION_RANGE_ATTACK:
 		case MISSION_PILLAGE:
 		case MISSION_SABOTAGE:
 		case MISSION_DESTROY:
@@ -1917,19 +1908,6 @@ bool CvSelectionGroup::startMission()
 							bAction = true;
 						}
 						break;
-
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-					case MISSION_RANGE_ATTACK:
-						if (pLoopUnit->rangeStrike(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
-						{
-							bAction = true;
-						}
-						break;
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
 
 					case MISSION_PILLAGE:
 						if (pLoopUnit->pillage())
@@ -2647,7 +2625,6 @@ bool CvSelectionGroup::continueMission(int iSteps)
 				case MISSION_PARADROP:
 				case MISSION_AIRBOMB:
 				case MISSION_BOMBARD:
-				case MISSION_RANGE_ATTACK:
 				case MISSION_PILLAGE:
 				case MISSION_SABOTAGE:
 				case MISSION_DESTROY:
@@ -2789,7 +2766,6 @@ bool CvSelectionGroup::continueMission(int iSteps)
 			case MISSION_PARADROP:
 			case MISSION_AIRBOMB:
 			case MISSION_BOMBARD:
-			case MISSION_RANGE_ATTACK:
 			case MISSION_PILLAGE:
 			case MISSION_SABOTAGE:
 			case MISSION_DESTROY:
@@ -3258,13 +3234,6 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 			}
 			break;
 
-		case INTERFACEMODE_RANGE_ATTACK:
-			if (pLoopUnit->canRangeStrike())
-			{
-				return true;
-			}
-			break;
-
 		case INTERFACEMODE_AIRSTRIKE:
 			if (pLoopUnit->getDomainType() == DOMAIN_AIR)
 			{
@@ -3432,16 +3401,6 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 			if (pLoopUnit != NULL)
 			{
 				if (pLoopUnit->canAirBombAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
-				{
-					return true;
-				}
-			}
-			break;
-
-		case INTERFACEMODE_RANGE_ATTACK:
-			if (pLoopUnit != NULL)
-			{
-				if (pLoopUnit->canRangeStrikeAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
 				{
 					return true;
 				}
@@ -7300,7 +7259,6 @@ CLLNode<MissionData>* CvSelectionGroup::headMissionQueueNodeExternal() const
 		{
 		case MISSION_MOVE_TO:
 		case MISSION_ROUTE_TO:
-		case MISSION_RANGE_ATTACK:
 			pCurrentViewport = GC.getCurrentViewport();
 
 			transformedMission.m_data.iData1 = pCurrentViewport->getViewportXFromMapX(transformedMission.m_data.iData1);
@@ -7482,7 +7440,6 @@ void CvSelectionGroup::read(FDataStreamBase* pStream)
 			case MISSION_RECON:
 			case MISSION_PARADROP:
 			case MISSION_AIRBOMB:
-			case MISSION_RANGE_ATTACK:
 			case MISSION_AIRBOMB1:
 			case MISSION_AIRBOMB2:
 			case MISSION_AIRBOMB3:
