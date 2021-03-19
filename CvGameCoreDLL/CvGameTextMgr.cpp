@@ -635,8 +635,11 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 	if (GC.getGameINLINE().isDebugMode() && !bAlt && !bShift)
 	{
 		FAssertMsg(pUnit->AI_getUnitAIType() != NO_UNITAI, "pUnit's AI type expected to != NO_UNITAI");
-		szTempBuffer.Format(L" (%s)", GC.getUnitAIInfo(pUnit->AI_getUnitAIType()).getDescription());
-		szString.append(szTempBuffer);
+		if (pUnit->AI_getUnitAIType() != NO_UNITAI)
+		{
+			szTempBuffer.Format(L", (%s)", GC.getUnitAIInfo(pUnit->AI_getUnitAIType()).getDescription());
+			szString.append(szTempBuffer);
+		}
 	}
 
 	if ((pUnit->getTeam() == GC.getGameINLINE().getActiveTeam()) || GC.getGameINLINE().isDebugMode())
