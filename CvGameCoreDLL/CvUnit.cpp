@@ -22163,11 +22163,14 @@ bool CvUnit::doVolley(int iX, int iY)
 			"AS2D_BOMBARDED", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(),
 			(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true
 		);
-		AddMessage(
-			pVictim->getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"),
-			gDLL->getText("TXT_KEY_MISC_ENEMY_BOMB_MISSED", getNameKey()),
-			"AS2D_BOMBARD", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE()
-		);
+		if (pVictim != NULL)
+		{
+			AddMessage(
+				pVictim->getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"),
+				gDLL->getText("TXT_KEY_MISC_ENEMY_BOMB_MISSED", getNameKey()),
+				"AS2D_BOMBARD", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE()
+			);
+		}
 	}
 	else
 	{
@@ -22209,7 +22212,7 @@ bool CvUnit::doVolley(int iX, int iY)
 			CvEventReporter::getInstance().combatResult(this, pVictim);
 			pVictim->getUnitInfo().getKillOutcomeList()->execute(*this, pVictim->getOwnerINLINE(), pVictim->getUnitType());
 		}
-		else
+		else if (pVictim != NULL)
 		{
 			MEMORY_TRACK_EXEMPT();
 			AddMessage(
