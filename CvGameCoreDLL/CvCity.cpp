@@ -4880,22 +4880,21 @@ bool CvCity::canContinueProduction(OrderData order)
 	case ORDER_TRAIN:
 		// xUPT: Prevent the city to build an unit if the city area is already at max unit-per-tile (dbkblk, 2015-02)
 		// Before to loop, check if the unit to build is a land military then civilian and if it's not a sea unit (for which space is assumed unlimited) and test if the area is saturated.
-		if (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) > 0)
+		if (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) > 0 && GC.getUnitInfo((UnitTypes)EXTERNAL_ORDER_IDATA(order.iData1)).getDomainType() == DOMAIN_LAND)
 		{
-			if ((GC.getUnitInfo((UnitTypes)EXTERNAL_ORDER_IDATA(order.iData1)).isMilitaryProduction()) && (GC.getUnitInfo((UnitTypes)EXTERNAL_ORDER_IDATA(order.iData1)).getDomainType() == DOMAIN_LAND)){
-				if (m_bAreaSaturatedOfLandMilitaryUnits){
+			if (GC.getUnitInfo((UnitTypes)EXTERNAL_ORDER_IDATA(order.iData1)).isMilitaryProduction())
+			{
+				if (m_bAreaSaturatedOfLandMilitaryUnits)
+				{
 					return false;
-					break;
 				}
 			}
-			else if ((!GC.getUnitInfo((UnitTypes)EXTERNAL_ORDER_IDATA(order.iData1)).isMilitaryProduction()) && (GC.getUnitInfo((UnitTypes)EXTERNAL_ORDER_IDATA(order.iData1)).getDomainType() != DOMAIN_SEA)){
-				if (m_bAreaSaturatedOfCivilianUnits){
-					return false;
-					break;
-				}
+			else if (m_bAreaSaturatedOfCivilianUnits)
+			{
+				return false;
 			}
 		}
-		
+
 		// If not saturated, do the standard way
 		return canTrain((UnitTypes)EXTERNAL_ORDER_IDATA(order.iData1), true);
 		break;
@@ -28457,7 +28456,6 @@ void CvCity::distributeUnitsOverFreeTiles()
 		// Initialize variables
 		int iCityLimit = GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getUNITS_PER_TILES_CITY_FACTOR();
 		int iMilitaryLandUnits = this->plot()->getNumMilitaryLandUnits(this->getOwner());
-		int iMilitaryAirUnits = this->plot()->getNumMilitaryAirUnits(this->getOwner());
 		int iMilitaryNavalUnits = this->plot()->getNumMilitaryNavalUnits(this->getOwner());
 
 		// For each type, move the last unit first until the sum equals the limit

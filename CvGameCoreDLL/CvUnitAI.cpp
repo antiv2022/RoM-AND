@@ -12602,7 +12602,7 @@ bool CvUnitAI::AI_group(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitAI, i
 																	if (pPlot->isAtMaxLandMilitaryUnitsPerTiles())
 																	{
 																		tileSaturation = true;
-																	}																	
+																	}
 																}
 																else if (getDomainType() == DOMAIN_SEA)
 																{

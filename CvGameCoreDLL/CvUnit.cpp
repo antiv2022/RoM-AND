@@ -4491,39 +4491,6 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 					return false;
 				}
 			}
-			else if (!this->isMilitaryAirUnit()){ // Same code for non-combat units, but with a "UNITS_PER_TILES_NON_COMBAT_FACTOR". No cargo on civilian units.
-				int iCount = 0;
-				CLLNode<IDInfo>* pUnitNode;
-				CvUnit* pLoopUnit;
-
-				//Check our current tile
-				pUnitNode = pPlot->headUnitNode();
-
-				while (pUnitNode != NULL)
-				{
-					pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pPlot->nextUnitNode(pUnitNode);
-					if (pLoopUnit->getTeam() == getTeam()) // Count only if it's the same team
-					{
-						//Ignore combat units.
-						if (!pLoopUnit->isMilitaryUnit())
-						{
-							iCount++;
-						}
-					}
-				}
-
-				//Unit is already on the tile, ignore it in the count
-				if (bIgnoreLocation)
-				{
-					iCount--;
-				}
-				// Limit is UPT * NON_COMBAT_FACTOR for normal tiles and normal city factor for cities
-				if (pPlot->getUnitsPerTilesLimit(false) <= iCount)
-				{
-					return false;
-				}
-			}
 		}
 	}
 

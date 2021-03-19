@@ -16084,29 +16084,6 @@ bool CvPlot::isAtMaxNavalMilitaryUnitsPerTiles() const
 	return false;
 }
 
-bool CvPlot::isAtMaxAirMilitaryUnitsPerTiles() const
-{ // xUPT: check the number of air military units and compare it to the limit (dbkblk, 2015-02)
-	if (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) == 0){
-		// Option disabled
-		return false;
-	}
-	if (this->isCity()){
-		if (this->getNumMilitaryAirUnits(this->getOwner()) >= (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) * GC.getUNITS_PER_TILES_CITY_FACTOR())){
-			return true;
-		}
-	}
-	else{
-		if (this->getNumMilitaryAirUnits(this->getOwner()) >= GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES)){
-			return true;
-		}
-	}
-	// If there is at least one enemy on the tile, consider it full.
-	if (this->isVisibleEnemyUnit(this->getOwner())){
-		return true;
-	}
-	return false;
-}
-
 bool CvPlot::isAtMaxCivilianUnitsPerTiles() const
 { // xUPT: check the number of civilian units and compare it to the limit  (dbkblk, 2015-02)
 	if (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) == 0){

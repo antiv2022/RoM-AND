@@ -1013,7 +1013,6 @@ public:
 	static void notePageRenderStart(int iRenderArea);
 	bool isAtMaxLandMilitaryUnitsPerTiles() const; // xUPT (dbkblk, 2015-02)
 	bool isAtMaxNavalMilitaryUnitsPerTiles() const; // xUPT (dbkblk, 2015-02)
-	bool isAtMaxAirMilitaryUnitsPerTiles() const; // xUPT (dbkblk, 2015-02)
 	bool isAtMaxCivilianUnitsPerTiles() const; // xUPT (dbkblk, 2015-02)
 	int getUnitsPerTilesLimit(bool isCombatUnit) const; // xUPT (dbkblk, 2015-02)
 
