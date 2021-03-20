@@ -30848,6 +30848,24 @@ bool CvUnitAI::AI_Volley(const bool bForced, const int iImprovementThreshold)
 
 					if (iNumEnemyDefenders != 0)
 					{
+						if (!bForced)
+						{
+							// Toffer -  Volley on weak enemies is a distraction we try to avoid.
+							if (getGroup()->AI_attackOdds(pLoopPlot, true) > 75
+							// Should be adequate to only check neighbouring tiles in this strength comparison, and yes, I'm used pLoopPlot for both on purpose.
+							&& GET_PLAYER(getOwner()).AI_getOurPlotStrength(pLoopPlot, 1, false, false) > 5 * GET_PLAYER(getOwner()).AI_getEnemyPlotStrength(pLoopPlot, 1, false, false) / 4)
+							{
+								// Little point using volley if regular attack has good chance of winning.
+								if (canMoveInto(pLoopPlot, true))
+								{
+									continue;
+								}
+								if (pCity == NULL && GC.getGameINLINE().getSorenRandNum(2, "50%") > 0)
+								{
+									continue;
+								}
+							}
+						}
 						CvUnit* pDefender = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
 
 						if (pDefender != NULL)
