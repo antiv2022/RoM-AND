@@ -85,7 +85,7 @@
     </TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_INTERFACEMODE_VOLLEY_HELP</Tag>
-		<English>Volley is a ranged skirmish against a target, be it units, improvements or cities. [PARAGRAPH:2]Volley include standard BTS collateral damage if applicable. [PARAGRAPH:2]When bombarding cities, range bombarding also has a slight chance of hitting defenders not just defenses. Range bombarding from inside cities is much less effective than from properly constructed field structures like forts.</English>
+		<English>Volley is a ranged skirmish against a target, be it units, improvements or cities. [PARAGRAPH:2]Volley include standard BTS collateral damage if applicable.</English>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_VOLLEY_MULTIPLE_UNITS</Tag>
