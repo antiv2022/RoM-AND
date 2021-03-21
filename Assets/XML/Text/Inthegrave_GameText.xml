@@ -75,10 +75,6 @@
 	</TEXT>
 	<!-- f1rpo: end -->
 	<!-- Toffer -->
-	<TEXT>
-		<Tag>TXT_KEY_MISSION_VOLLEY</Tag>
-		<English>Volley</English>
-	</TEXT>
     <TEXT>
         <Tag>TXT_KEY_MISSION_VOLLEY_HELP</Tag>
         <English>Damage your foe from afar.</English>

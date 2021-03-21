@@ -282,7 +282,7 @@
 		</MissionInfo>
 		<MissionInfo>
 			<Type>MISSION_VOLLEY</Type>
-			<Description>TXT_KEY_MISSION_VOLLEY</Description>
+			<Description>Volley</Description>
 			<Help>TXT_KEY_MISSION_VOLLEY_HELP</Help>
 			<Waypoint>NONE</Waypoint>
 			<EntityEventType>ENTITY_EVENT_BOMBARD</EntityEventType>
