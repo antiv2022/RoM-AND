@@ -76,9 +76,58 @@
 	<!-- f1rpo: end -->
 	<!-- Toffer -->
 	<TEXT>
-		<!-- Need to rewrite this one -->
+		<Tag>TXT_KEY_MISSION_VOLLEY</Tag>
+		<English>Volley</English>
+	</TEXT>
+    <TEXT>
+        <Tag>TXT_KEY_MISSION_VOLLEY_HELP</Tag>
+        <English>Damage your foe from afar.</English>
+    </TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_INTERFACEMODE_VOLLEY_HELP</Tag>
-		<English>[H1]Ranged Bombardment[\H1] By selecting the bombard icon you can select whether to bombard units, improvements or cities. Bombarding is also possible from a range with heavy artillery.[PARAGRAPH:2]Range bombard works by inflicting standard BTS collateral damage. This renders it useless against single units or large stacks and the head defender is not injured. [PARAGRAPH:2]When bombarding cities, range bombarding also has a slight chance of hitting defenders not just defenses. Range bombarding from inside cities is much less effective than from properly constructed field structures like forts.</English>
+		<English>Volley is a ranged skirmish against a target, be it units, improvements or cities. [PARAGRAPH:2]Volley include standard BTS collateral damage if applicable. [PARAGRAPH:2]When bombarding cities, range bombarding also has a slight chance of hitting defenders not just defenses. Range bombarding from inside cities is much less effective than from properly constructed field structures like forts.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_MULTIPLE_UNITS</Tag>
+		<English>%d1 selected units can volley here, values below are the average per unit.</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_ACCURACY</Tag>
+		<English>[ICON_BULLET]Volley Accuracy: %d1%%</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_ACCURACY_SHORT</Tag>
+		<English>[ICON_BULLET]Accuracy: %d1%%</English>
+		<French>[ICON_BULLET]Précision: %d1%%</French>
+		<German>[ICON_BULLET]Treffgenauigkeit: %d1%%</German>
+		<Italian>[ICON_BULLET]Precisione: %d1%%</Italian>
+		<Polish>[ICON_BULLET]Celnoäâ: %d1%%</Polish>
+		<Russian>[ICON_BULLET]Точность обстрела: %d1%%</Russian>
+		<Korean>[ICON_BULLET]정확도: %d1%%</Korean>
+		<Brazilian>[ICON_BULLET]Precisão: %d1%%</Brazilian>
+		<Czech>[ICON_BULLET]Přesnost: %d1%%</Czech>
+		<Spanish>[ICON_BULLET]Exactitud: %d1%%</Spanish>
+		<Ukrainian>[ICON_BULLET]Точність: %d1%%</Ukrainian>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_EFFICIENCY</Tag>
+		<English>[ICON_BULLET]Volley Efficiency: %d1%%</English>
+	</TEXT>
+    <TEXT>
+        <Tag>TXT_KEY_VOLLEY_RANGE</Tag>
+        <English>[ICON_BULLET]Volley range: %d1</English>
+    </TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_DAMAGE</Tag>
+		<English>[ICON_BULLET]Damage: %d1 HP</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_ROUNDS_SHORT</Tag>
+		<English>[ICON_BULLET]Rounds: %d1</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_ROUNDS</Tag>
+		<English>[ICON_BULLET]Volley Rounds: %d1</English>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_VOLLEY_HIT_ENEMY_UNIT</Tag>

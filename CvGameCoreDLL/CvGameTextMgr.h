@@ -303,6 +303,7 @@ public:
 	DllExport void getGlobeLayerName(GlobeLayerTypes eType, int iOption, CvWString& strName);
 
 	DllExport void getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* pFlagPlot, bool bAlt, CvWStringBuffer& strHelp);
+	void getVolleyPlotHelp(const CvPlot* targetPlot, CvWString& strHelp);
 	void getRebasePlotHelp(CvPlot* pPlot, CvWString& strHelp);
 	void getNukePlotHelp(CvPlot* pPlot, CvWString& strHelp);
 	DllExport void getInterfaceCenterText(CvWString& strText);

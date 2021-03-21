@@ -3513,18 +3513,19 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
+
 		case INTERFACEMODE_VOLLEY:
 			if (pLoopUnit != NULL && pLoopUnit->canVolleyAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
 			{
 				return true;
 			}
 			break;
+
 /************************************************************************************************/
 /* Afforess	                  Start		 09/18/10                                               */
 /*                                                                                              */
 /* Advanced Automations                                                                         */
 /************************************************************************************************/
-
 
 		case INTERFACEMODE_SHADOW_UNIT:
 			if (pLoopUnit != NULL)

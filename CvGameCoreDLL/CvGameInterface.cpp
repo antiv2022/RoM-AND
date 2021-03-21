@@ -535,7 +535,7 @@ void CvGame::updateColoredPlots()
 							}
 							else color.b = 0.0f;
 						}
-						else color.a = 0.4f;
+						else color.a = 0.33f;
 
 						gDLL->getEngineIFace()->addColoredPlot(pTargetPlot->getViewportX(), pTargetPlot->getViewportY(), color, PLOT_STYLE_TARGET, PLOT_LANDSCAPE_LAYER_BASE);
 					}
@@ -2941,6 +2941,24 @@ ColorTypes CvGame::getPlotHighlightColor(CvPlot* pPlot) const
 			case INTERFACEMODE_SAVE_PLOT_NIFS:
 				eColor = (ColorTypes) GC.getInfoTypeForString("COLOR_DARK_GREY");
 				break;
+
+			case INTERFACEMODE_VOLLEY:
+				{
+					if (!pPlot->isVisible(getActiveTeam(), false))
+					{
+						eColor = NO_COLOR;
+					}
+					else if (gDLL->getInterfaceIFace()->getSelectionList()->canDoInterfaceModeAt(gDLL->getInterfaceIFace()->getInterfaceMode(), pPlot))
+					{
+						if (!pPlot->isVisibleEnemyUnit(getActivePlayer()))
+						{
+							eColor = (ColorTypes) GC.getInfoTypeForString("COLOR_YELLOW");
+						}
+					}
+					else eColor = (ColorTypes) GC.getInfoTypeForString("COLOR_DARK_GREY");
+				}
+				break;
+
 			default:
 				if (!gDLL->getInterfaceIFace()->getSelectionList()->canDoInterfaceModeAt(gDLL->getInterfaceIFace()->getInterfaceMode(), pPlot))
 				{

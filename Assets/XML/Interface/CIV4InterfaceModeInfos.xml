@@ -285,7 +285,7 @@
 		</InterfaceModeInfo>
 		<InterfaceModeInfo>
 			<Type>INTERFACEMODE_VOLLEY</Type>
-			<Description>TXT_KEY_CONCEPT_RBOMBARD_TEXT</Description>
+			<Description>TXT_KEY_MISSION_VOLLEY</Description>
 			<Help>TXT_KEY_INTERFACEMODE_VOLLEY_HELP</Help>
 			<CursorType>CURSOR_AIRBOMB</CursorType>
 			<Mission>MISSION_VOLLEY</Mission>

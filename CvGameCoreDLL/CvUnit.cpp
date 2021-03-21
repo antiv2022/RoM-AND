@@ -22305,10 +22305,20 @@ int CvUnit::getVolleyAccuracy(const int iDistance) const
 	{
 		return 0;
 	}
-
-	// Edge cases
 	const int iMinAccuracy = GC.getVOLLEY_MIN_ACCURACY();
 
+	int iMin = m_pUnitInfo->getVolleyAccuracyMin();
+	if (iMin < iMinAccuracy)
+	{
+		iMin = iMinAccuracy;
+	}
+	const int iBase = m_pUnitInfo->getVolleyAccuracy();
+	if (iMin >= iBase)
+	{
+		return iMin;
+	}
+
+	// Edge cases
 	if (iDistance == 1)
 	{
 		return std::max(iMinAccuracy, m_pUnitInfo->getVolleyAccuracy());
@@ -22319,9 +22329,7 @@ int CvUnit::getVolleyAccuracy(const int iDistance) const
 	}
 
 	// General case
-	const int iBase = m_pUnitInfo->getVolleyAccuracy();
-
-	return std::max(iMinAccuracy, iBase - (iDistance - 1) * (iBase - m_pUnitInfo->getVolleyAccuracyMin()) / (iRange - 1));
+	return std::max(iMinAccuracy, iBase - (iDistance - 1) * (iBase - iMin) / (iRange - 1));
 }
 
 int CvUnit::getVolleyDamage(const CvUnit* pVictim) const
