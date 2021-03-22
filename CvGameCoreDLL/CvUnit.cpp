@@ -22049,8 +22049,9 @@ bool CvUnit::doVolley(int iX, int iY)
 	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 	CvCity* pCity = pPlot->getPlotCity();
 	CvUnit* pVictim = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-	const int iBombardRate = bombardRate();
+	const int iVictimHP = pVictim != NULL ? currHitPoints() : 0;
 
+	const int iBombardRate = bombardRate();
 	const int iDistance = plotDistance(plot()->getX_INLINE(), plot()->getY_INLINE(), iX, iY);
 	int iDamageSum = 0;
 	bool bDead = false;
@@ -22067,11 +22068,11 @@ bool CvUnit::doVolley(int iX, int iY)
 			if (!bDead && pVictim != NULL)
 			{
 				iHits++;
+				collateralCombat(pPlot, pVictim);
 				const int iUnitDamage = getVolleyDamage(pVictim);
 				if (iUnitDamage > 0)
 				{
 					iDamageSum += iUnitDamage;
-					pVictim->setupPreCombatDamage();
 					pVictim->changeDamage(iUnitDamage, getOwner());
 
 					if (pVictim->isDead())
@@ -22081,7 +22082,7 @@ bool CvUnit::doVolley(int iX, int iY)
 						{
 							const int iDefenderWarWearChange100 =
 							(
-								std::max(1, GC.getDefineINT("WW_UNIT_KILLED_DEFENDING") * (pVictim->maxHitPoints() - pVictim->getPreCombatDamage()) / pVictim->maxHitPoints())
+								std::max(1, GC.getDefineINT("WW_UNIT_KILLED_DEFENDING") * iVictimHP / pVictim->maxHitPoints())
 							);
 							GET_TEAM(pVictim->getTeam()).changeWarWearinessTimes100(getTeam(), *pPlot, iDefenderWarWearChange100);
 							GET_TEAM(getTeam()).AI_changeWarSuccess(pVictim->getTeam(), GC.getDefineINT("WAR_SUCCESS_ATTACKING"));
@@ -22092,7 +22093,6 @@ bool CvUnit::doVolley(int iX, int iY)
 						}
 					}
 				}
-				collateralCombat(pPlot, pVictim);
 			}
 
 			if (iBombardRate > 0 && pCity != NULL && pCity->isBombardable(this))
