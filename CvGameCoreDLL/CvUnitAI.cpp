@@ -4623,11 +4623,6 @@ void CvUnitAI::AI_collateralMove()
 		return;
 	}
 
-	if (AI_Volley(false, 100))
-	{
-		return;
-	}
-
 	if (AI_guardCity(false, true, 3))
 	{
 		return;
@@ -14726,11 +14721,6 @@ bool CvUnitAI::AI_afterAttack()
 		}
 	}
 
-	if (AI_Volley(false, 500))
-	{
-		return true;
-	}
-
 	if (AI_pillageRange(1))
 	{
 		return true;
@@ -14747,11 +14737,6 @@ bool CvUnitAI::AI_afterAttack()
 	}
 
 	if (AI_goody(1))
-	{
-		return true;
-	}
-
-	if (AI_Volley(false, 0))
 	{
 		return true;
 	}
@@ -30762,11 +30747,11 @@ void CvUnitAI::LFBgetBetterAttacker(CvUnit** ppAttacker, const CvPlot* pPlot, bo
 
 
 // Returns true if a mission was pushed...
-bool CvUnitAI::AI_Volley(const bool bForced, const int iImprovementThreshold)
+bool CvUnitAI::AI_Volley(const bool bForced)
 {
 	PROFILE_FUNC();
 
-	if (!canVolley() || iImprovementThreshold > -1 && collateralDamage() < 1)
+	if (!canVolley())
 	{
 		return false;
 	}
@@ -30787,106 +30772,65 @@ bool CvUnitAI::AI_Volley(const bool bForced, const int iImprovementThreshold)
 			&& GC.getGameINLINE().getSorenRandNum(10, "90%") > 0)
 			{
 				int iValue = 0;
-				if (iImprovementThreshold > -1) // Only consider improvement destruction
+				CvCity* pCity = pLoopPlot->getPlotCity();
+				if (pCity != NULL)
 				{
-					if (pLoopPlot != NULL && !pLoopPlot->isCity()
-					&& pLoopPlot->getNumVisibleEnemyDefenders(this) == 0
-					&& pLoopPlot->getImprovementType() != NO_IMPROVEMENT
-					&& !GC.getImprovementInfo(pLoopPlot->getImprovementType()).isPermanent()
-					&& GC.getImprovementInfo(pLoopPlot->getImprovementType()).getAirBombDefense() > -1)
+					if (bombardRate() > 0)
 					{
-						if (iImprovementThreshold > 0)
+						iValue += std::max(0, std::min(pCity->getDefenseDamage() + airBombCurrRate(), GC.getMAX_CITY_DEFENSE_DAMAGE()) - pCity->getDefenseDamage());
+						iValue *= 5;
+						if (pCity->AI_isDanger())
 						{
-							const ImprovementTypes eImp =
-							(
-								pLoopPlot->getImprovementDuration() > (pLoopPlot->isWater() ? 20 : 5)
-								?
-								pLoopPlot->getImprovementType()
-								:
-								pLoopPlot->getRevealedImprovementType(getTeam(), false)
-							);
-							if (eImp != NO_IMPROVEMENT)
-							{
-								iValue += 5 * std::max(0, GC.getImprovementInfo(eImp).getPillageGold());
-
-								if (pLoopPlot->isHasValidBonus())
-								{
-									// Toffer - When improvement makes bonus valid
-									iValue += 75; // Add value equal to the worth of 15 gold pillage
-									iValue *= 2; // Then double the result
-								}
-								if (pLoopPlot->getWorkingCity() == NULL)
-								{
-									iValue /= 2;
-								}
-								if (iValue < iImprovementThreshold) iValue = 0;
-							}
+							iValue *= 2;
 						}
-						else iValue = AI_pillageValue(pLoopPlot, 0);
+						if (pCity == pCity->area()->getTargetCity(getOwnerINLINE()))
+						{
+							iValue *= 3;
+						}
 					}
 				}
-				else // Volley at city or units
+				const int iNumEnemyDefenders = pLoopPlot->getNumVisibleEnemyDefenders(this);
+
+				if (iNumEnemyDefenders != 0)
 				{
-					CvCity* pCity = pLoopPlot->getPlotCity();
-					if (pCity != NULL)
+					if (!bForced)
 					{
-						if (bombardRate() > 0)
+						// Toffer -  Volley on weak enemies is a distraction we try to avoid.
+						if (getGroup()->AI_attackOdds(pLoopPlot, true) > 75
+						// Should be adequate to only check neighbouring tiles in this strength comparison, and yes, I'm used pLoopPlot for both on purpose.
+						&& GET_PLAYER(getOwner()).AI_getOurPlotStrength(pLoopPlot, 1, false, false) > 5 * GET_PLAYER(getOwner()).AI_getEnemyPlotStrength(pLoopPlot, 1, false, false) / 4)
 						{
-							iValue += std::max(0, std::min(pCity->getDefenseDamage() + airBombCurrRate(), GC.getMAX_CITY_DEFENSE_DAMAGE()) - pCity->getDefenseDamage());
-							iValue *= 5;
-							if (pCity->AI_isDanger())
+							// Little point using volley if regular attack has good chance of winning.
+							if (canMoveInto(pLoopPlot, true))
 							{
-								iValue *= 2;
+								continue;
 							}
-							if (pCity == pCity->area()->getTargetCity(getOwnerINLINE()))
+							if (pCity == NULL && GC.getGameINLINE().getSorenRandNum(2, "50%") > 0)
 							{
-								iValue *= 3;
+								continue;
 							}
 						}
 					}
-					const int iNumEnemyDefenders = pLoopPlot->getNumVisibleEnemyDefenders(this);
+					CvUnit* pDefender = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
 
-					if (iNumEnemyDefenders != 0)
+					if (pDefender != NULL)
 					{
-						if (!bForced)
-						{
-							// Toffer -  Volley on weak enemies is a distraction we try to avoid.
-							if (getGroup()->AI_attackOdds(pLoopPlot, true) > 75
-							// Should be adequate to only check neighbouring tiles in this strength comparison, and yes, I'm used pLoopPlot for both on purpose.
-							&& GET_PLAYER(getOwner()).AI_getOurPlotStrength(pLoopPlot, 1, false, false) > 5 * GET_PLAYER(getOwner()).AI_getEnemyPlotStrength(pLoopPlot, 1, false, false) / 4)
-							{
-								// Little point using volley if regular attack has good chance of winning.
-								if (canMoveInto(pLoopPlot, true))
-								{
-									continue;
-								}
-								if (pCity == NULL && GC.getGameINLINE().getSorenRandNum(2, "50%") > 0)
-								{
-									continue;
-								}
-							}
-						}
-						CvUnit* pDefender = pLoopPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
+						const int iDamage =
+						(
+							std::max(1,
+								GC.getDefineINT("COMBAT_DAMAGE") * (currFirepower(NULL, NULL) + (currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2)
+								/
+								(pDefender->currFirepower(pLoopPlot, this) + (currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2)
+							)
+						);
+						iValue += iDamage;
 
-						if (pDefender != NULL)
+						// Toffer - Collateral, simpel solution for now
+						if (iNumEnemyDefenders > 1 && collateralDamage() > 0 && collateralDamageMaxUnits() > 0)
 						{
-							const int iDamage =
-							(
-								std::max(1,
-									GC.getDefineINT("COMBAT_DAMAGE") * (currFirepower(NULL, NULL) + (currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2)
-									/
-									(pDefender->currFirepower(pLoopPlot, this) + (currFirepower(NULL, NULL) + pDefender->currFirepower(NULL, NULL) + 1) / 2)
-								)
-							);
-							iValue += iDamage;
-
-							// Toffer - Collateral, simpel solution for now
-							if (iNumEnemyDefenders > 1 && collateralDamage() > 0 && collateralDamageMaxUnits() > 0)
-							{
-								iValue += iDamage * collateralDamage() * std::min(pLoopPlot->getNumVisibleEnemyDefenders(this) - 1, collateralDamageMaxUnits()) / 200;
-								iValue *= 3 + iNumEnemyDefenders;
-								iValue /= 5;
-							}
+							iValue += iDamage * collateralDamage() * std::min(pLoopPlot->getNumVisibleEnemyDefenders(this) - 1, collateralDamageMaxUnits()) / 200;
+							iValue *= 3 + iNumEnemyDefenders;
+							iValue /= 5;
 						}
 					}
 				}

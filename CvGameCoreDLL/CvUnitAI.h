@@ -289,7 +289,7 @@ protected:
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
-	bool AI_Volley(const bool bForced = false, const int iImprovementThreshold = -1);
+	bool AI_Volley(const bool bForced = false);
 	bool AI_leaveAttack(int iRange, int iThreshold, int iStrengthThreshold, bool bIgnoreCity = false, bool bStayInBorders = false); //Afforess added bool bIgnoreCity = false, bool bStayInBorders = false
 	bool AI_blockade();
 	int  AI_blockadeValue(CvPlot* pLoopPlot, CvCity* pCity, CvPlot*& endTurnPlot) const;

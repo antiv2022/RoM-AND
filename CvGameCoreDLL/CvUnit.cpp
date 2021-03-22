@@ -22057,8 +22057,6 @@ bool CvUnit::doVolley(int iX, int iY)
 	int iHits = 0;
 	bool bMissed = true;
 	bool bBombard = false;
-	bool bImpDestruction = false;
-	bool bImpDestroyed = false;
 
 	for (int iI = m_pUnitInfo->getVolleyRounds(); iI > 0; iI--)
 	{
@@ -22066,7 +22064,7 @@ bool CvUnit::doVolley(int iX, int iY)
 		{
 			bMissed = false;
 
-			if (pVictim != NULL && !bDead)
+			if (!bDead && pVictim != NULL)
 			{
 				iHits++;
 				const int iUnitDamage = getVolleyDamage(pVictim);
@@ -22079,40 +22077,29 @@ bool CvUnit::doVolley(int iX, int iY)
 					if (pVictim->isDead())
 					{
 						bDead = true;
+						if (!m_pUnitInfo->isHiddenNationality() && !pVictim->getUnitInfo().isHiddenNationality() && !isPirate())
+						{
+							const int iDefenderWarWearChange100 =
+							(
+								std::max(1, GC.getDefineINT("WW_UNIT_KILLED_DEFENDING") * (pVictim->maxHitPoints() - pVictim->getPreCombatDamage()) / pVictim->maxHitPoints())
+							);
+							GET_TEAM(pVictim->getTeam()).changeWarWearinessTimes100(getTeam(), *pPlot, iDefenderWarWearChange100);
+							GET_TEAM(getTeam()).AI_changeWarSuccess(pVictim->getTeam(), GC.getDefineINT("WAR_SUCCESS_ATTACKING"));
+
+							// report event to Python, along with some other key state
+							CvEventReporter::getInstance().combatResult(this, pVictim);
+							pVictim->getUnitInfo().getKillOutcomeList()->execute(*this, pVictim->getOwnerINLINE(), pVictim->getUnitType());
+						}
 					}
 				}
 				collateralCombat(pPlot, pVictim);
 			}
 
-			if (iBombardRate > 0)
+			if (iBombardRate > 0 && pCity != NULL && pCity->isBombardable(this))
 			{
-				if (pCity != NULL)
-				{
-					if (pCity->isBombardable(this))
-					{
-						bBombard = true;
-						const int iBombardModifier = ignoreBuildingDefense() ? 0 : pCity->getBuildingBombardDefense();
-						pCity->changeDefenseModifier(-std::max(1, iBombardRate * std::max(1, 100 - iBombardModifier) / 100));
-					}
-					else if (bDead)
-					{
-						break;
-					}
-				}
-				else if (pVictim == NULL && pPlot->isImprovementDestructible())
-				{
-					bImpDestruction = true;
-
-					if (GC.getGameINLINE().getSorenRandNum(iBombardRate, "Bomb - Offense") >= GC.getGameINLINE().getSorenRandNum(GC.getImprovementInfo(pPlot->getImprovementType()).getAirBombDefense(), "Bomb - Defense"))
-					{
-						bImpDestroyed = true;
-						pPlot->setImprovementType((ImprovementTypes)(GC.getImprovementInfo(pPlot->getImprovementType()).getImprovementPillage()));
-					}
-				}
-				else if (bDead)
-				{
-					break;
-				}
+				bBombard = true;
+				const int iBombardModifier = ignoreBuildingDefense() ? 0 : pCity->getBuildingBombardDefense();
+				pCity->changeDefenseModifier(-std::max(1, iBombardRate * std::max(1, 100 - iBombardModifier) / 100));
 			}
 			else if (bDead)
 			{
@@ -22143,41 +22130,21 @@ bool CvUnit::doVolley(int iX, int iY)
 	{
 		if (bDead)
 		{
-			if (!m_pUnitInfo->isHiddenNationality() && !pVictim->getUnitInfo().isHiddenNationality() && !isPirate())
-			{
-				const int iDefenderWarWearChange100 =
-				(
-					std::max(1, GC.getDefineINT("WW_UNIT_KILLED_DEFENDING") * (pVictim->maxHitPoints() - pVictim->getPreCombatDamage()) / pVictim->maxHitPoints())
-				);
-				GET_TEAM(pVictim->getTeam()).changeWarWearinessTimes100(getTeam(), *pPlot, iDefenderWarWearChange100);
-				GET_TEAM(getTeam()).AI_changeWarSuccess(pVictim->getTeam(), GC.getDefineINT("WAR_SUCCESS_ATTACKING"));
-			}
-
-			{
-				MEMORY_TRACK_EXEMPT();
-				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_ENEMY", getNameKey(), pVictim->getNameKey());
-				AddMessage(
-					getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
-					GC.getEraInfo(GC.getGameINLINE().getCurrentEra()).getAudioUnitVictoryScript(),
-					MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
-					pPlot->getX_INLINE(), pPlot->getY_INLINE()
-				);
-				if (getVisualOwner(pVictim->getTeam()) != getOwnerINLINE())
-				{
-					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED_UNKNOWN", pVictim->getNameKey(), getNameKey());
-				}
-				else szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED", pVictim->getNameKey(), getNameKey(), getVisualCivAdjective(pVictim->getTeam()));
-
-				AddMessage(
-					pVictim->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
-					GC.getEraInfo(GC.getGameINLINE().getCurrentEra()).getAudioUnitDefeatScript(),
-					MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-					pPlot->getX_INLINE(), pPlot->getY_INLINE()
-				);
-			}
-			// report event to Python, along with some other key state
-			CvEventReporter::getInstance().combatResult(this, pVictim);
-			pVictim->getUnitInfo().getKillOutcomeList()->execute(*this, pVictim->getOwnerINLINE(), pVictim->getUnitType());
+			MEMORY_TRACK_EXEMPT();
+			AddMessage(
+				getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText("TXT_KEY_VOLLEY_KILLED_ENEMY_UNIT", getNameKey(), pVictim->getNameKey()),
+				GC.getEraInfo(GC.getGameINLINE().getCurrentEra()).getAudioUnitVictoryScript(),
+				MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+				pPlot->getX_INLINE(), pPlot->getY_INLINE()
+			);
+			AddMessage(
+				pVictim->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText("TXT_KEY_VOLLEY_KILLED_YOUR_UNIT", pVictim->getNameKey(), getNameKey(), getVisualCivAdjective(pVictim->getTeam())),
+				GC.getEraInfo(GC.getGameINLINE().getCurrentEra()).getAudioUnitDefeatScript(),
+				MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+				pPlot->getX_INLINE(), pPlot->getY_INLINE()
+			);
 		}
 		else if (pVictim != NULL)
 		{
@@ -22196,7 +22163,7 @@ bool CvUnit::doVolley(int iX, int iY)
 				pVictim->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(),
 				gDLL->getText(
 					"TXT_KEY_VOLLEY_HIT_YOUR_UNIT",
-					pVictim->getNameKey(), getNameKey(), iHits,
+					getNameKey(), pVictim->getNameKey(), iHits,
 					-iDamageSum * 100 / pVictim->maxHitPoints()
 				),
 				"AS2D_AIR_ATTACK", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
@@ -22224,49 +22191,6 @@ bool CvUnit::doVolley(int iX, int iY)
 				"AS2D_BOMBARD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
 				pCity->getX_INLINE(), pCity->getY_INLINE()
 			);
-		}
-		if (bImpDestruction)
-		{
-			if (bImpDestroyed)
-			{
-				if (pPlot->isOwned())
-				{
-					MEMORY_TRACK_EXEMPT();
-					AddMessage(
-						pPlot->getOwnerINLINE(), false, GC.getDefineINT("EVENT_MESSAGE_TIME"),
-						gDLL->getText(
-							"TXT_KEY_MISC_YOU_IMP_WAS_DESTROYED",
-							GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide(),
-							getNameKey(), GET_PLAYER(getOwnerINLINE()).getCivilizationAdjectiveKey()
-						),
-						"AS2D_PILLAGE", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(),
-						(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true
-					);
-				}
-				MEMORY_TRACK_EXEMPT();
-				AddMessage(
-					getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"),
-					gDLL->getText(
-						"TXT_KEY_MISC_YOU_UNIT_DESTROYED_IMP",
-						getNameKey(), GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide()
-					),
-					"AS2D_PILLAGE", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(),
-					(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE()
-				);
-			}
-			else
-			{
-				MEMORY_TRACK_EXEMPT();
-				AddMessage(
-					getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"),
-					gDLL->getText(
-						"TXT_KEY_MISC_YOU_UNIT_FAIL_DESTROY_IMP",
-						getNameKey(), GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide()
-					),
-					"AS2D_BOMB_FAILS", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(),
-					(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE()
-				);
-			}
 		}
 	}
 	// Wrap it up

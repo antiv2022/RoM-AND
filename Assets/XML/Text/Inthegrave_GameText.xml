@@ -6,7 +6,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_MISC_ATTITUDE_PREJUDICE_NEGATIVE</Tag>
 		<English>%D1: "You are inferior to me."</English>
-		<German>%D1: "Euresgleichen steht unter uns."</German>
 	</TEXT>
 	<!-- May well remain unused. Just something to make sure that
 		 positive attitude doesn't remain hidden.
@@ -15,63 +14,51 @@
 	<TEXT>
 		<Tag>TXT_KEY_MISC_ATTITUDE_PREJUDICE_POSITIVE</Tag>
 		<English>%D1: "We're the same, you and me."</English>
-		<German>%D1: "Wir beide sind gleich."</German>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_NO_TRAIN_DURING_STRIKE</Tag>
 		<English>[COLOR_WARNING_TEXT]Strike!!![COLOR_REVERT]</English>
-		<German>[COLOR_WARNING_TEXT]Streik!!![COLOR_REVERT]</German>
 	</TEXT>
 	<!-- Era options -->
 	<TEXT>
 		<Tag>TXT_KEY_GAMEOPTION_NO_MODERN_ERA</Tag>
 		<English>No Post-Industrial Tech</English>
-		<German>Keine nachindustrielle Technologie</German>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAMEOPTION_NO_MODERN_ERA_HELP</Tag>
 		<English>Disables the Modern and Transhuman era; Future Tech becomes available at the end of the Industrial era.</English>
-		<German>Deaktiviert die Moderne und das transhumane Zeitalter; Zukunftstechnologien werden am Ende des Industriezeitalters verfügbar.</German>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAMEOPTION_NO_INDUSTRIAL_ERA</Tag>
 		<English>No Post-Renaissance Tech</English>
-		<German>Keine Post-Renaissance-Technologie</German>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAMEOPTION_NO_INDUSTRIAL_ERA_HELP</Tag>
 		<English>Disables the Industrial, Modern and Transhuman era; Future Tech becomes available at the end of Renaissance.</English>
-		<German>Deaktiviert Industriezeitalter, Moderne und transhumanes Zeitalter; Zukunftstechnologien werden am Ende der Renaissance verfügbar.</German>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAMEOPTION_NO_RENAISSANCE_ERA</Tag>
 		<English>No Post-Medieval Tech</English>
-		<German>Keine nachmittelalterliche Technologie</German>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAMEOPTION_NO_RENAISSANCE_ERA_HELP</Tag>
 		<English>Disables the Renaissance era and all subsequent eras; Future Tech becomes available at the end of the Medieval era.</English>
-		<German>Deaktiviert die Renaissance und alle darauf folgenden Zeitalter; Zukunftstechnologien werden am Ende des Mittelalters verfügbar.</German>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAMEOPTION_NO_MEDIEVAL_ERA</Tag>
 		<English>No Post-Classical Tech</English>
-		<German>Keine nachklassische Technologie</German>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAMEOPTION_NO_MEDIEVAL_ERA_HELP</Tag>
 		<English>Disables the Medieval era and all subsequent eras; Future Tech becomes available at the end of the Classical era.</English>
-		<German>Deaktiviert das Mittelalter und alle darauf folgenden Zeitalter; Zukunftstechnologien werden am Ende der Klassik verfügbar.</German>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAMEOPTION_NO_CLASSICAL_ERA</Tag>
 		<English>Only Ancient Tech</English>
-		<German>Nur antike Technologie</German>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAMEOPTION_NO_CLASSICAL_ERA_HELP</Tag>
 		<English>Disables the Classical era and all subsequent eras; Future Tech becomes available at the end of the Ancient era.</English>
-		<German>Deaktiviert die Klassik und alle darauf folgenden Zeitalter; Zukunftstechnologien werden am Ende der (vorklassischen) Antike verfügbar.</German>
 	</TEXT>
 	<!-- f1rpo: end -->
 	<!-- Toffer -->
@@ -81,7 +68,7 @@
     </TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_INTERFACEMODE_VOLLEY_HELP</Tag>
-		<English>Volley is a ranged skirmish against a target, be it units, improvements or cities. [PARAGRAPH:2]Volley include standard BTS collateral damage if applicable.</English>
+		<English>Volley is a ranged skirmish against a target, be it units, improvements or cities.[NEWLINE][NEWLINE]Collateral damage will be applied if unit is capable of it.</English>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_VOLLEY_MULTIPLE_UNITS</Tag>
@@ -94,16 +81,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_VOLLEY_ACCURACY_SHORT</Tag>
 		<English>[ICON_BULLET]Accuracy: %d1%%</English>
-		<French>[ICON_BULLET]Précision: %d1%%</French>
-		<German>[ICON_BULLET]Treffgenauigkeit: %d1%%</German>
-		<Italian>[ICON_BULLET]Precisione: %d1%%</Italian>
-		<Polish>[ICON_BULLET]Celnoäâ: %d1%%</Polish>
-		<Russian>[ICON_BULLET]Точность обстрела: %d1%%</Russian>
-		<Korean>[ICON_BULLET]정확도: %d1%%</Korean>
-		<Brazilian>[ICON_BULLET]Precisão: %d1%%</Brazilian>
-		<Czech>[ICON_BULLET]Přesnost: %d1%%</Czech>
-		<Spanish>[ICON_BULLET]Exactitud: %d1%%</Spanish>
-		<Ukrainian>[ICON_BULLET]Точність: %d1%%</Ukrainian>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_VOLLEY_EFFICIENCY</Tag>
@@ -132,6 +109,14 @@
 	<TEXT>
 		<Tag>TXT_KEY_VOLLEY_HIT_YOUR_UNIT</Tag>
 		<English>An enemy %s1 volley struck your %s2! (%d3 hit(s) dealt %d4%% damage)</English>
+	</TEXT>
+    <TEXT>
+        <Tag>TXT_KEY_VOLLEY_KILLED_ENEMY_UNIT</Tag>
+        <English>Your %s1 volley destroyed the %s2!</English>
+    </TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_KILLED_YOUR_UNIT</Tag>
+		<English>Your %s1 was destroyed by a %s3_owner_adjective %s2 volley!</English>
 	</TEXT>
 	<!-- ! Toffer -->
 </Civ4GameText>
