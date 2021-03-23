@@ -22031,11 +22031,6 @@ bool CvUnit::canVolleyAt(const CvPlot* pFromPlot, int iX, int iY) const
 		{
 			return true;
 		}
-		// Can we target improvement?
-		if (pTargetPlot->isImprovementDestructible())
-		{
-			return true;
-		}
 	}
 	return false;
 }
