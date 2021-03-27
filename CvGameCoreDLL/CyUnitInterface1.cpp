@@ -76,7 +76,6 @@ void CyUnitPythonInterface1(python::class_<CyUnit>& x)
 		.def("canAirlift", &CyUnit::canAirlift, "bool (CyPlot* pPlot)")
 		.def("canAirliftAt", &CyUnit::canAirliftAt, "bool (CyPlot* pPlot, int iX, int iY)")
 
-		.def("isNukeVictim", &CyUnit::isNukeVictim, "bool (CyPlot* pPlot, int eTeam)")
 		.def("canNuke", &CyUnit::canNuke, "bool ()")
 		.def("canNukeAt", &CyUnit::canNukeAt, "bool (CyPlot* pPlot, int iX, int iY)")
 

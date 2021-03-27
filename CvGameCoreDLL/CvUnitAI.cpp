@@ -29399,14 +29399,10 @@ int CvUnitAI::AI_nukeValue(CvCity* pCity)
 
 	for (int iI = 0; iI < MAX_TEAMS; iI++)
 	{
-		CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
-		if (kLoopTeam.isAlive() && !isEnemy((TeamTypes)iI))
+		if (isNukeVictim(pCity->plot(), (TeamTypes)iI, nukeRange()) && !isEnemy((TeamTypes)iI))
 		{
-			if (isNukeVictim(pCity->plot(), ((TeamTypes)iI)))
-			{
-				// Don't start wars with neutrals
-				return 0;
-			}
+			// Don't start wars with neutrals
+			return 0;
 		}
 	}
 

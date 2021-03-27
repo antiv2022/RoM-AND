@@ -212,11 +212,6 @@ bool CyUnit::canAirliftAt(CyPlot* pPlot, int iX, int iY)
 	return m_pUnit ? m_pUnit->canAirliftAt(pPlot->getPlot(), iX, iY) : false;
 }
 
-bool CyUnit::isNukeVictim(CyPlot* pPlot, int /*TeamTypes*/ eTeam)
-{
-	return m_pUnit ? m_pUnit->isNukeVictim(pPlot->getPlot(), (TeamTypes) eTeam) : false;
-}
-
 bool CyUnit::canNuke(CyPlot* pPlot)
 {
 	return m_pUnit ? m_pUnit->canNuke(pPlot->getPlot()) : false;

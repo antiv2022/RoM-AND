@@ -26419,13 +26419,11 @@ void CvGameTextMgr::getNukePlotHelp(CvPlot* pPlot, CvWString& strHelp)
 		{
 			for (int iI = 0; iI < MAX_TEAMS; iI++)
 			{
-				if (pHeadSelectedUnit->isNukeVictim(pPlot, ((TeamTypes)iI)))
+				if (pHeadSelectedUnit->isNukeVictim(pPlot, (TeamTypes)iI, pHeadSelectedUnit->nukeRange())
+				&& !pHeadSelectedUnit->isEnemy((TeamTypes)iI))
 				{
-					if (!pHeadSelectedUnit->isEnemy((TeamTypes)iI))
-					{
-						strHelp +=  NEWLINE + gDLL->getText("TXT_KEY_CANT_NUKE_FRIENDS");
-						break;
-					}
+					strHelp +=  NEWLINE + gDLL->getText("TXT_KEY_CANT_NUKE_FRIENDS");
+					break;
 				}
 			}
 		}

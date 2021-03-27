@@ -6225,26 +6225,18 @@ bool CvUnit::airlift(int iX, int iY)
 }
 
 
-bool CvUnit::isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const
+bool CvUnit::isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam, int iRange) const
 {
-	CvPlot* pLoopPlot;
-	int iDX, iDY;
-
-	if (!(GET_TEAM(eTeam).isAlive()))
+	if (!GET_TEAM(eTeam).isAlive() || eTeam == getTeam())
 	{
 		return false;
 	}
 
-	if (eTeam == getTeam())
+	for (int iDX = -iRange; iDX <= iRange; iDX++)
 	{
-		return false;
-	}
-
-	for (iDX = -(nukeRange()); iDX <= nukeRange(); iDX++)
-	{
-		for (iDY = -(nukeRange()); iDY <= nukeRange(); iDY++)
+		for (int iDY = -iRange; iDY <= iRange; iDY++)
 		{
-			pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+			const CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
 
 			if (pLoopPlot != NULL)
 			{
@@ -6260,19 +6252,12 @@ bool CvUnit::isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const
 			}
 		}
 	}
-
 	return false;
 }
 
-
 bool CvUnit::canNuke(const CvPlot* pPlot) const
 {
-	if (nukeRange() == -1)
-	{
-		return false;
-	}
-
-	return true;
+	return nukeRange() != -1;
 }
 
 /************************************************************************************************/
@@ -6285,16 +6270,14 @@ bool CvUnit::canNukeAt(const CvPlot* pPlot, int iX, int iY, bool bTestAtWar) con
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
 {
-	CvPlot* pTargetPlot;
-	int iI;
-
 	if (!canNuke(pPlot))
 	{
 		return false;
 	}
 
-	int iDistance = plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iX, iY);
-	if (iDistance <= nukeRange())
+	const int iNukeRange = nukeRange();
+	const int iDistance = plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iX, iY);
+	if (iDistance <= iNukeRange)
 	{
 		return false;
 	}
@@ -6304,34 +6287,26 @@ bool CvUnit::canNukeAt(const CvPlot* pPlot, int iX, int iY, bool bTestAtWar) con
 		return false;
 	}
 
-	pTargetPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+	CvPlot* pTargetPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 	// < M.A.D. Nukes Start >
-
-	if (bTestAtWar)
-	{
-		for (iI = 0; iI < MAX_TEAMS; iI++)
-		{
 	/************************************************************************************************/
 	/* DCM                                     04/19/09                                Johny Smith  */
 	/************************************************************************************************/
-			// Dale - NB: A-Bomb START
-			if (!((TeamTypes)iI == GET_TEAM(getTeam()).getID()))
+	// Dale - NB: A-Bomb START
+	if (bTestAtWar)
+	{
+		for (int iI = 0; iI < MAX_TEAMS; iI++)
+		{
+			if (isNukeVictim(pTargetPlot, (TeamTypes)iI, iNukeRange) && !isEnemy((TeamTypes)iI))
 			{
-				if (isNukeVictim(pTargetPlot, ((TeamTypes)iI)))
-				{
-					if (!isEnemy((TeamTypes)iI))
-					{
-						return false;
-					}
-				}
+				return false;
 			}
-			// Dale - NB: A-Bomb END
+		}
+	}
+	// Dale - NB: A-Bomb END
 	/************************************************************************************************/
 	/* DCM                                     END                                                  */
 	/************************************************************************************************/
-		}
-	}
-
 	// < M.A.D. Nukes End   >
 	return true;
 }
@@ -6420,36 +6395,25 @@ bool CvUnit::clearMADTargetPlot()
 
 bool CvUnit::nuke(int iX, int iY)
 {
-	CvPlot* pPlot;
-	CvWString szBuffer;
-	bool abTeamsAffected[MAX_TEAMS];
-	TeamTypes eBestTeam;
-	int iBestInterception;
-	int iI, iJ, iK;
-/************************************************************************************************/
-/* Afforess	                  Start		 09/09/10                                               */
-/*                                                                                              */
-/*  M.A.D Nukes                                                                                 */
-/************************************************************************************************/
-/*
-	if (!canNukeAt(plot(), iX, iY))
-*/
 	if (!canNukeAt(plot(), iX, iY, !isMADEnabled()))
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	{
 		return false;
 	}
+	const PlayerTypes eMyOwner = getOwnerINLINE();
+	const TeamTypes eMyTeam = getTeam();
+	CvTeam& myTeam = GET_TEAM(eMyTeam);
+	CvPlayerAI& myOwner = GET_PLAYER(eMyOwner);
 
-	pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+	const PlayerTypes ePlotOwner = pPlot->getOwnerINLINE();
+	CvPlayer& plotOwner = GET_PLAYER(ePlotOwner);
 
 	// < M.A.D. Nukes Start >
-	if(GET_PLAYER(getOwnerINLINE()).isEnabledMAD())
+	if (myOwner.isEnabledMAD())
 	{
-		if(!isHuman() && !isMADEnabled())
+		if (!isHuman() && !isMADEnabled())
 		{
-//			if(GET_PLAYER(getOwnerINLINE()).getMADDeterrent() > 0)  // 45deg removed, useless for now (rev871)
+//			if(myOwner.getMADDeterrent() > 0)  // 45deg removed, useless for now (rev871)
 //			{
 // 45deg: added check to count BombShelters for aggressor and defender
 			int iNumBombSheltersAttacker = 0;
@@ -6458,7 +6422,7 @@ bool CvUnit::nuke(int iX, int iY)
 			int iDeterrent = 0;
 			for (int i = 0; i < GC.getNumBuildingInfos(); i++)
 			{
-				for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&jLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&jLoop))
+				for (CvCity* pLoopCity = myOwner.firstCity(&jLoop); pLoopCity != NULL; pLoopCity = myOwner.nextCity(&jLoop))
 				{
 					if (pLoopCity->getNumBuilding((BuildingTypes)i) > 0 && !GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding((BuildingTypes)i))
 					{
@@ -6472,7 +6436,7 @@ bool CvUnit::nuke(int iX, int iY)
 					}
 				}
 
-				for (CvCity* pLoopCity = GET_PLAYER(pPlot->getOwnerINLINE()).firstCity(&jLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(pPlot->getOwnerINLINE()).nextCity(&jLoop))
+				for (CvCity* pLoopCity = plotOwner.firstCity(&jLoop); pLoopCity != NULL; pLoopCity = plotOwner.nextCity(&jLoop))
 				{
 					if (pLoopCity->getNumBuilding((BuildingTypes)i) > 0 && !GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding((BuildingTypes)i))
 					{
@@ -6488,30 +6452,29 @@ bool CvUnit::nuke(int iX, int iY)
 			}
 
 			CvUnit* pLoopUnit;
-			int iI;
 			int iNukesAggressor = 0;
 			int iNukesDefender = 0;
 			int iLoop = 0;
 
-			for (iI = 0; iI < MAX_PLAYERS; iI++)
+			for (int iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				if (GET_PLAYER((PlayerTypes)iI).isAlive())
 				{
-					if (GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam())
+					if (GET_PLAYER((PlayerTypes)iI).getTeam() == eMyTeam)
 					{
-						for(pLoopUnit = GET_PLAYER((PlayerTypes)iI).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER((PlayerTypes)iI).nextUnit(&iLoop))
+						for (pLoopUnit = GET_PLAYER((PlayerTypes)iI).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER((PlayerTypes)iI).nextUnit(&iLoop))
 						{
-							if ((pLoopUnit->isMADEnabled()) && (pLoopUnit->getMADTargetPlotOwner() == pPlot->getOwnerINLINE())) // 45deg: counting only MAD nukes aimed at defender target civ
+							if ((pLoopUnit->isMADEnabled()) && (pLoopUnit->getMADTargetPlotOwner() == ePlotOwner)) // 45deg: counting only MAD nukes aimed at defender target civ
 							{
 								iNukesAggressor ++;
 							}
 						}
 					}
-					else if (GET_PLAYER((PlayerTypes)iI).getTeam() == GET_PLAYER(pPlot->getOwnerINLINE()).getTeam())
+					else if (GET_PLAYER((PlayerTypes)iI).getTeam() == plotOwner.getTeam())
 					{
-						for(pLoopUnit = GET_PLAYER((PlayerTypes)iI).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER((PlayerTypes)iI).nextUnit(&iLoop))
+						for (pLoopUnit = GET_PLAYER((PlayerTypes)iI).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER((PlayerTypes)iI).nextUnit(&iLoop))
 						{
-							if ((pLoopUnit->isMADEnabled()) && (pLoopUnit->getMADTargetPlotOwner() == getOwnerINLINE()))  // 45deg: counting only MAD nukes aimed at aggressor coming from defender target civ
+							if ((pLoopUnit->isMADEnabled()) && (pLoopUnit->getMADTargetPlotOwner() == eMyOwner))  // 45deg: counting only MAD nukes aimed at aggressor coming from defender target civ
 							{
 								iNukesDefender ++;
 							}
@@ -6520,101 +6483,83 @@ bool CvUnit::nuke(int iX, int iY)
 				}
 			}
 
-				// 45deg: AI won't use non-pretargetted nukes against a stronger opponent risking triggering MAD retaliation (unless MAD has already been triggered); checking if aggressor has more nukes, bomb shelters and cities
-				// compared to the defender. This is because it might have more nukes outgoing but this wouldn't be a good reason to launch a nuclear attack: if the defender has many cities compared to aggressor, an attack might
-				// do little damage compared to what fewer nukes could do on a small number of cities of the aggressor. Also taking into account that BombShelters and intercept chances might reduce damage.
-				// Using a random number so that the greater the difference in terms of deterrence, the easier aggressor will strike
-				iDeterrent = iNukesAggressor + iNumBombSheltersAttacker/2 + GET_PLAYER(getOwnerINLINE()).getNumCities() + (GET_TEAM(GET_PLAYER(getOwnerINLINE()).getTeam()).getNukeInterception()*iNukesDefender/100) - iNukesDefender - iNumBombSheltersDefender/2 - GET_PLAYER(pPlot->getOwnerINLINE()).getNumCities() - (GET_TEAM(GET_PLAYER(pPlot->getOwnerINLINE()).getTeam()).getNukeInterception()*iNukesAggressor/100);
-				if((iDeterrent < 0 ) && !(GET_PLAYER(pPlot->getOwnerINLINE()).getMADTrigger(getOwnerINLINE())))
+			// 45deg: AI won't use non-pretargetted nukes against a stronger opponent risking triggering MAD retaliation (unless MAD has already been triggered); checking if aggressor has more nukes, bomb shelters and cities
+			// compared to the defender. This is because it might have more nukes outgoing but this wouldn't be a good reason to launch a nuclear attack: if the defender has many cities compared to aggressor, an attack might
+			// do little damage compared to what fewer nukes could do on a small number of cities of the aggressor. Also taking into account that BombShelters and intercept chances might reduce damage.
+			// Using a random number so that the greater the difference in terms of deterrence, the easier aggressor will strike
+			iDeterrent = iNukesAggressor + iNumBombSheltersAttacker/2 + myOwner.getNumCities() + (myTeam.getNukeInterception()*iNukesDefender/100) - iNukesDefender - iNumBombSheltersDefender/2 - plotOwner.getNumCities() - (GET_TEAM(plotOwner.getTeam()).getNukeInterception()*iNukesAggressor/100);
+			if((iDeterrent < 0 ) && !(plotOwner.getMADTrigger(eMyOwner)))
+			{
+//				myOwner.changeMADDeterrent(-1);  //45deg removed, useless for now (rev871)
+				return false;
+			}
+			if ((iDeterrent > 0 ) && !(plotOwner.getMADTrigger(eMyOwner)))
+			{
+				if ((GC.getGameINLINE().getSorenRandNum(int(15*((GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getBuildingClassPrereqModifier()+50)/100)), "Nuclear Attack")) > iDeterrent)  // 45deg: mapsize scaled random number, on larger maps a larger difference between nukes arsenals is tolerated
 				{
-//					GET_PLAYER(getOwnerINLINE()).changeMADDeterrent(-1);  //45deg removed, useless for now (rev871)
 					return false;
 				}
-				if ((iDeterrent > 0 ) && !(GET_PLAYER(pPlot->getOwnerINLINE()).getMADTrigger(getOwnerINLINE())))
-				{
-					if ((GC.getGameINLINE().getSorenRandNum(int(15*((GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getBuildingClassPrereqModifier()+50)/100)), "Nuclear Attack")) > iDeterrent)  // 45deg: mapsize scaled random number, on larger maps a larger difference between nukes arsenals is tolerated
-					{
-						return false;
-					}
-				}
+			}
 //			}
 		}
 	}
-	if (((GET_PLAYER(getOwnerINLINE()).getNumNukeUnits()) < (GET_PLAYER(pPlot->getOwnerINLINE()).getNumNukeUnits())) && (GC.getGameINLINE().getSorenRandNum(100, "Nukes attack") < 50))  //45deg: added a 50% chance that AI won't use nukes if opponent owns more nukes
+	if (myOwner.getNumNukeUnits() < plotOwner.getNumNukeUnits()
+	&& GC.getGameINLINE().getSorenRandNum(100, "Nukes attack") < 50)  //45deg: added a 50% chance that AI won't use nukes if opponent owns more nukes
 	{
 		return false;
 	}
 	// Dale - MAD: check validity of target before blowing it up
-	if(isMADEnabled())
+	if (isMADEnabled())
 	{
-		CvCity* pCity = getMADTargetPlot()->getPlotCity();
-		if(pCity == NULL || pCity->getOwnerINLINE() != getMADTargetPlotOwner())
+		const CvCity* pCity = getMADTargetPlot()->getPlotCity();
+		if (pCity == NULL || pCity->getOwnerINLINE() != getMADTargetPlotOwner())
 		{
 			setMADEnabled(false);
 
 			MEMORY_TRACK_EXEMPT();
-
-			szBuffer = gDLL->getText("TXT_KEY_NUKE_TARGET_FAILED");
-			AddDLLMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX_INLINE(), getY_INLINE(), true, true);
+			AddDLLMessage(
+				eMyOwner, true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_NUKE_TARGET_FAILED"),
+				"AS2D_NUKE_EXPLODES", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(),
+				(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX_INLINE(), getY_INLINE(), true, true
+			);
 			return false;
 		}
 	}
 	// < M.A.D. Nukes End   >
 
-	for (iI = 0; iI < MAX_TEAMS; iI++)
+	bool abTeamsAffected[MAX_TEAMS];
 	{
-		abTeamsAffected[iI] = isNukeVictim(pPlot, ((TeamTypes)iI));
-	}
-
-	for (iI = 0; iI < MAX_TEAMS; iI++)
-	{
-		if (abTeamsAffected[iI])
+		const int iNukeRange = nukeRange();
+		for (int iI = 0; iI < MAX_TEAMS; iI++)
 		{
-			if (!isEnemy((TeamTypes)iI))
-			{
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-				// Dale - NB: A-Bomb START
-				if (!((TeamTypes)iI == GET_TEAM(getTeam()).getID()))
-				{
-					GET_TEAM(getTeam()).declareWar(((TeamTypes)iI), false, WARPLAN_TOTAL);
-				}
-				// Dale - NB: A-Bomb END
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
-			}
+			abTeamsAffected[iI] = isNukeVictim(pPlot, (TeamTypes)iI, iNukeRange);
 		}
 	}
 
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
+	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
+	{
+		if (abTeamsAffected[iI] && !isEnemy((TeamTypes)iI))
+		{
+			myTeam.declareWar((TeamTypes)iI, false, WARPLAN_TOTAL);
+		}
+	}
+
 	// Dale - NB: A-Bomb START
-	if(airBaseCombatStr() != 0)
+	if (airBaseCombatStr() != 0 && interceptTest(pPlot))
 	{
-		if (interceptTest(pPlot))
-		{
-			return true;
-		}
+		return true;
 	}
 	// Dale - NB: A-Bomb END
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
-	iBestInterception = 0;
-	eBestTeam = NO_TEAM;
 
-	for (iI = 0; iI < MAX_TEAMS; iI++)
+	int iBestInterception = 0;
+	TeamTypes eBestTeam = NO_TEAM;
+
+	for (int iI = 0; iI < MAX_TEAMS; iI++)
 	{
-		if (abTeamsAffected[iI])
+		if (abTeamsAffected[iI] && GET_TEAM((TeamTypes)iI).getNukeInterception() > iBestInterception)
 		{
-			if (GET_TEAM((TeamTypes)iI).getNukeInterception() > iBestInterception)
-			{
-				iBestInterception = GET_TEAM((TeamTypes)iI).getNukeInterception();
-				eBestTeam = ((TeamTypes)iI);
-			}
+			iBestInterception = GET_TEAM((TeamTypes)iI).getNukeInterception();
+			eBestTeam = (TeamTypes)iI;
 		}
 	}
 	//45deg - nuke evasion chances increased when launching from a small distance
@@ -6624,7 +6569,7 @@ bool CvUnit::nuke(int iX, int iY)
 	iNukeEvasionFromDistance = (std::max(0, 30 - iDistanceForEvasion));
 	iNukeEvasionFromDistance *= 2;
 	iBestInterception *= std::max(10, (100 - m_pUnitInfo->getEvasionProbability() - iNukeEvasionFromDistance));
-	
+
 	//iBestInterception *= (100 - m_pUnitInfo->getEvasionProbability());
 	iBestInterception /= 100;
 
@@ -6632,14 +6577,20 @@ bool CvUnit::nuke(int iX, int iY)
 
 	if (GC.getGameINLINE().getSorenRandNum(100, "Nuke") < iBestInterception)
 	{
-		for (iI = 0; iI < MAX_PLAYERS; iI++)
+		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
 			{
 				MEMORY_TRACK_EXEMPT();
-
-				szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_INTERCEPTED", GET_PLAYER(getOwnerINLINE()).getNameKey(), getNameKey(), GET_TEAM(eBestTeam).getName().GetCString());
-				AddDLLMessage(((PlayerTypes)iI), (((PlayerTypes)iI) == getOwnerINLINE()), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NUKE_INTERCEPTED", MESSAGE_TYPE_MAJOR_EVENT, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+				AddDLLMessage(
+					(PlayerTypes)iI, (PlayerTypes)iI == eMyOwner, GC.getEVENT_MESSAGE_TIME(),
+					gDLL->getText(
+						"TXT_KEY_MISC_NUKE_INTERCEPTED",
+						myOwner.getNameKey(), getNameKey(), GET_TEAM(eBestTeam).getName().GetCString()
+					),
+					"AS2D_NUKE_INTERCEPTED", MESSAGE_TYPE_MAJOR_EVENT, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+					pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true
+				);
 			}
 		}
 
@@ -6665,26 +6616,17 @@ bool CvUnit::nuke(int iX, int iY)
 	//		1. Ascertain the teams affected.
 	//		2. Ascertain players in the teams affected.
 	//		3. Set the MAD trigger to true for the players affected to the agressor.
-	if (GET_PLAYER(getOwnerINLINE()).isEnabledMAD())
+	if (myOwner.isEnabledMAD())
 	{
-		for (iI = 0; iI < MAX_TEAMS; iI++)
+		for (int iI = 0; iI < MAX_TEAMS; iI++)
 		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
+			if (abTeamsAffected[iI])
 			{
-				if (iI != getTeam())
+				for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
 				{
-					if (abTeamsAffected[iI])
+					if (GET_PLAYER((PlayerTypes)iJ).isAlive() && GET_PLAYER((PlayerTypes)iJ).getTeam() == (TeamTypes)iI)
 					{
-						for (iJ = 0; iJ < MAX_PLAYERS; iJ++)
-						{
-							if (GET_PLAYER((PlayerTypes)iJ).isAlive())
-							{
-								if (GET_PLAYER((PlayerTypes)iJ).getTeam() == ((TeamTypes)iI))
-								{
-									GET_PLAYER((PlayerTypes)iJ).setMADTrigger(getOwnerINLINE(), true);
-								}
-							}
-						}
+						GET_PLAYER((PlayerTypes)iJ).setMADTrigger(eMyOwner, true);
 					}
 				}
 			}
@@ -6692,12 +6634,12 @@ bool CvUnit::nuke(int iX, int iY)
 	}
 	// < M.A.D. Nukes Start >
 
-	if (pPlot->isActiveVisible(false))
-	{
 /************************************************************************************************/
 /* DCM                                     04/19/09                                Johny Smith  */
 /************************************************************************************************/
-		// Dale - NB: A-Bomb START
+	// Dale - NB: A-Bomb START
+	if (pPlot->isActiveVisible(false))
+	{
 		if(airBaseCombatStr() != 0)
 		{
 			CvAirMissionDefinition kAirMission;
@@ -6726,68 +6668,64 @@ bool CvUnit::nuke(int iX, int iY)
 			// Add the non-intercepted mission (defender is NULL)
 			addMission(&kDefiniton);
 		}
-		// Dale - NB: A-Bomb END
+	}
+	// Dale - NB: A-Bomb END
 /************************************************************************************************/
 /* DCM                                     END                                                  */
 /************************************************************************************************/
-	}
 
 	setMadeAttack(true);
 	setAttackPlot(pPlot, false);
 
-	for (iI = 0; iI < MAX_TEAMS; iI++)
+	// Other diplomatic relation effects
+	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
 		if (abTeamsAffected[iI])
 		{
-			GET_TEAM((TeamTypes)iI).changeWarWeariness(getTeam(), 100 * GC.getDefineINT("WW_HIT_BY_NUKE"));
-			GET_TEAM(getTeam()).changeWarWeariness(((TeamTypes)iI), 100 * GC.getDefineINT("WW_ATTACKED_WITH_NUKE"));
-			GET_TEAM(getTeam()).AI_changeWarSuccess(((TeamTypes)iI), GC.getDefineINT("WAR_SUCCESS_NUKE"));
-		}
-	}
+			const TeamTypes eTeamA = (TeamTypes)iI;
+			CvTeam& teamA = GET_TEAM(eTeamA);
+			teamA.changeWarWeariness(eMyTeam, 100 * GC.getDefineINT("WW_HIT_BY_NUKE"));
+			myTeam.changeWarWeariness(eTeamA, 100 * GC.getDefineINT("WW_ATTACKED_WITH_NUKE"));
+			myTeam.AI_changeWarSuccess(eTeamA, GC.getDefineINT("WAR_SUCCESS_NUKE"));
 
-	for (iI = 0; iI < MAX_TEAMS; iI++)
-	{
-		if (GET_TEAM((TeamTypes)iI).isAlive())
-		{
-			if (iI != getTeam())
+			// Memory - Nuked Us
+			for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 			{
-				if (abTeamsAffected[iI])
+				CvPlayerAI& playerA = GET_PLAYER((PlayerTypes)iJ);
+
+				if (playerA.isAlive() && playerA.getTeam() == eTeamA)
 				{
-					for (iJ = 0; iJ < MAX_PLAYERS; iJ++)
+					playerA.AI_changeMemoryCount(eMyOwner, MEMORY_NUKED_US, 1);
+
+					// Replaces MEMORY_USED_NUKE
+					if (playerA.AI_getMemoryCount(eMyOwner, MEMORY_USED_NUKE) != 0)
 					{
-						if (GET_PLAYER((PlayerTypes)iJ).isAlive())
-						{
-							if (GET_PLAYER((PlayerTypes)iJ).getTeam() == ((TeamTypes)iI))
-							{
-								GET_PLAYER((PlayerTypes)iJ).AI_changeMemoryCount(getOwnerINLINE(), MEMORY_NUKED_US, 1);
-							}
-						}
+						playerA.AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, -playerA.AI_getMemoryCount(eMyOwner, MEMORY_USED_NUKE));
 					}
 				}
-				else
+			}
+			// Memory - Nuked Friend
+			for (int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
+			{
+				if (iJ != iI)
 				{
-					for (iJ = 0; iJ < MAX_TEAMS; iJ++)
+					const TeamTypes eTeamB = (TeamTypes)iJ;
+					const CvTeamAI& teamB = GET_TEAM(eTeamB);
+
+					if (teamA.isHasMet(eTeamB) && teamB.isAlive() && teamB.AI_getAttitude(eTeamA) > ATTITUDE_CAUTIOUS)
 					{
-						if (GET_TEAM((TeamTypes)iJ).isAlive())
+						for (int iK = 0; iK < MAX_CIV_PLAYERS; iK++)
 						{
-							if (abTeamsAffected[iJ])
+							CvPlayerAI& playerB = GET_PLAYER((PlayerTypes)iK);
+
+							if (playerB.isAlive() && playerB.getTeam() == eTeamB)
 							{
-								if (GET_TEAM((TeamTypes)iI).isHasMet((TeamTypes)iJ))
+								playerB.AI_changeMemoryCount(eMyOwner, MEMORY_NUKED_FRIEND, 1);
+
+								// Replaces MEMORY_USED_NUKE
+								if (playerB.AI_getMemoryCount(eMyOwner, MEMORY_USED_NUKE) != 0)
 								{
-									if (GET_TEAM((TeamTypes)iI).AI_getAttitude((TeamTypes)iJ) >= ATTITUDE_CAUTIOUS)
-									{
-										for (iK = 0; iK < MAX_PLAYERS; iK++)
-										{
-											if (GET_PLAYER((PlayerTypes)iK).isAlive())
-											{
-												if (GET_PLAYER((PlayerTypes)iK).getTeam() == ((TeamTypes)iI))
-												{
-													GET_PLAYER((PlayerTypes)iK).AI_changeMemoryCount(getOwnerINLINE(), MEMORY_NUKED_FRIEND, 1);
-												}
-											}
-										}
-										break;
-									}
+									playerB.AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, -playerB.AI_getMemoryCount(eMyOwner, MEMORY_USED_NUKE));
 								}
 							}
 						}
@@ -6796,17 +6734,34 @@ bool CvUnit::nuke(int iX, int iY)
 			}
 		}
 	}
+	// Used a Nuke
+	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
+	{
+		if (iI != eMyTeam && GET_TEAM((TeamTypes)iI).isAlive() && myTeam.isHasMet((TeamTypes)iI))
+		{
+			for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+			{
+				if(GET_PLAYER((PlayerTypes)iI).isAlive()
+				&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_US) == 0
+				&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_FRIEND) == 0)
+				{
+					GET_PLAYER((PlayerTypes)iI).AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, 1);
+				}
+			}
+		}
+	}
 
-	// XXX some AI should declare war here...
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			MEMORY_TRACK_EXEMPT();
-
-			szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_LAUNCHED", GET_PLAYER(getOwnerINLINE()).getNameKey(), getNameKey());
-			AddDLLMessage(((PlayerTypes)iI), (((PlayerTypes)iI) == getOwnerINLINE()), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+			AddDLLMessage(
+				(PlayerTypes)iI, (PlayerTypes)iI == eMyOwner, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText("TXT_KEY_MISC_NUKE_LAUNCHED", myOwner.getNameKey(), getNameKey()),
+				"AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT, getButton(),
+				(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true
+			);
 		}
 	}
 
@@ -6818,7 +6773,6 @@ bool CvUnit::nuke(int iX, int iY)
 	// < M.A.D. Nukes Start >
 	GC.getGameINLINE().setLastNukeStrikePlot(pPlot);
 	// < M.A.D. Nukes End   >
-
 
 	return true;
 }
@@ -23512,134 +23466,80 @@ void CvUnit::tradeUnit(PlayerTypes eReceivingPlayer)
 	 }
 }
 
-bool CvUnit::spyNukeAffected(const CvPlot* pPlot, TeamTypes eTeam, int iRange) const
-{
-	CvPlot* pLoopPlot;
-	int iDX, iDY;
-
-	if (!(GET_TEAM(eTeam).isAlive()))
-	{
-		return false;
-	}
-
-	if (eTeam == getTeam())
-	{
-		return false;
-	}
-
-	for (iDX = -(iRange); iDX <= iRange; iDX++)
-	{
-		for (iDY = -(iRange); iDY <= iRange; iDY++)
-		{
-			pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
-
-			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->getTeam() == eTeam)
-				{
-					return true;
-				}
-
-				if (pLoopPlot->plotCheck(PUF_isCombatTeam, eTeam, getTeam()) != NULL)
-				{
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
-}
-
 bool CvUnit::spyNuke(int iX, int iY, bool bCaught)
 {
-	CvPlot* pPlot;
-	CvWString szBuffer;
-	bool abTeamsAffected[MAX_TEAMS];
-	int iI, iJ, iK;
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 
-	pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+	bool abTeamsAffected[MAX_CIV_TEAMS];
 
-	for (iI = 0; iI < MAX_TEAMS; iI++)
+	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
-		abTeamsAffected[iI] = spyNukeAffected(pPlot, (TeamTypes)iI, 1);
+		abTeamsAffected[iI] = isNukeVictim(pPlot, (TeamTypes)iI, 1);
 	}
 
+	const PlayerTypes eMyOwner = getOwnerINLINE();
 	if (bCaught)
 	{
-		for (iI = 0; iI < MAX_TEAMS; iI++)
+		const TeamTypes eMyTeam = getTeam();
+		CvTeam& myTeam = GET_TEAM(eMyTeam);
+
+		// Declare war on all affected teams before doing anything else
+		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
+		{
+			if (abTeamsAffected[iI] && !isEnemy((TeamTypes)iI) && (TeamTypes)iI != eMyTeam)
+			{
+				myTeam.declareWar((TeamTypes)iI, false, WARPLAN_TOTAL);
+			}
+		}
+		// Other diplomatic relation effects
+		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 		{
 			if (abTeamsAffected[iI])
 			{
-				if (!isEnemy((TeamTypes)iI))
-				{
-					if (!((TeamTypes)iI == GET_TEAM(getTeam()).getID()))
-					{
-						GET_TEAM(getTeam()).declareWar(((TeamTypes)iI), false, WARPLAN_TOTAL);
-					}
-				}
-			}
-		}
-	}
+				const TeamTypes eTeamA = (TeamTypes)iI;
+				CvTeam& teamA = GET_TEAM(eTeamA);
+				teamA.changeWarWeariness(eMyTeam, 100 * GC.getDefineINT("WW_HIT_BY_NUKE"));
+				myTeam.changeWarWeariness(eTeamA, 100 * GC.getDefineINT("WW_ATTACKED_WITH_NUKE"));
+				myTeam.AI_changeWarSuccess(eTeamA, GC.getDefineINT("WAR_SUCCESS_NUKE"));
 
-	if (bCaught)
-	{
-		for (iI = 0; iI < MAX_TEAMS; iI++)
-		{
-			if (abTeamsAffected[iI])
-			{
-				GET_TEAM((TeamTypes)iI).changeWarWeariness(getTeam(), 100 * GC.getDefineINT("WW_HIT_BY_NUKE"));
-				GET_TEAM(getTeam()).changeWarWeariness(((TeamTypes)iI), 100 * GC.getDefineINT("WW_ATTACKED_WITH_NUKE"));
-				GET_TEAM(getTeam()).AI_changeWarSuccess(((TeamTypes)iI), GC.getDefineINT("WAR_SUCCESS_NUKE"));
-			}
-		}
-	}
-
-	if (bCaught)
-	{
-		for (iI = 0; iI < MAX_TEAMS; iI++)
-		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
-			{
-				if (iI != getTeam())
+				// Memory - Nuked Us
+				for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 				{
-					if (abTeamsAffected[iI])
+					CvPlayerAI& playerA = GET_PLAYER((PlayerTypes)iJ);
+
+					if (playerA.isAlive() && playerA.getTeam() == eTeamA)
 					{
-						for (iJ = 0; iJ < MAX_PLAYERS; iJ++)
+						playerA.AI_changeMemoryCount(eMyOwner, MEMORY_NUKED_US, 1);
+
+						// Replaces MEMORY_USED_NUKE
+						if (playerA.AI_getMemoryCount(eMyOwner, MEMORY_USED_NUKE) != 0)
 						{
-							if (GET_PLAYER((PlayerTypes)iJ).isAlive())
-							{
-								if (GET_PLAYER((PlayerTypes)iJ).getTeam() == ((TeamTypes)iI))
-								{
-									GET_PLAYER((PlayerTypes)iJ).AI_changeMemoryCount(getOwnerINLINE(), MEMORY_NUKED_US, 1);
-								}
-							}
+							playerA.AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, -playerA.AI_getMemoryCount(eMyOwner, MEMORY_USED_NUKE));
 						}
 					}
-					else
+				}
+				// Memory - Nuked Friend
+				for (int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
+				{
+					if (iJ != iI)
 					{
-						for (iJ = 0; iJ < MAX_TEAMS; iJ++)
+						const TeamTypes eTeamB = (TeamTypes)iJ;
+						const CvTeamAI& teamB = GET_TEAM(eTeamB);
+
+						if (teamA.isHasMet(eTeamB) && teamB.isAlive() && teamB.AI_getAttitude(eTeamA) > ATTITUDE_CAUTIOUS)
 						{
-							if (GET_TEAM((TeamTypes)iJ).isAlive())
+							for (int iK = 0; iK < MAX_CIV_PLAYERS; iK++)
 							{
-								if (abTeamsAffected[iJ])
+								CvPlayerAI& playerB = GET_PLAYER((PlayerTypes)iK);
+
+								if (playerB.isAlive() && playerB.getTeam() == eTeamB)
 								{
-									if (GET_TEAM((TeamTypes)iI).isHasMet((TeamTypes)iJ))
+									playerB.AI_changeMemoryCount(eMyOwner, MEMORY_NUKED_FRIEND, 1);
+
+									// Replaces MEMORY_USED_NUKE
+									if (playerB.AI_getMemoryCount(eMyOwner, MEMORY_USED_NUKE) != 0)
 									{
-										if (GET_TEAM((TeamTypes)iI).AI_getAttitude((TeamTypes)iJ) >= ATTITUDE_CAUTIOUS)
-										{
-											for (iK = 0; iK < MAX_PLAYERS; iK++)
-											{
-												if (GET_PLAYER((PlayerTypes)iK).isAlive())
-												{
-													if (GET_PLAYER((PlayerTypes)iK).getTeam() == ((TeamTypes)iI))
-													{
-														GET_PLAYER((PlayerTypes)iK).AI_changeMemoryCount(getOwnerINLINE(), MEMORY_NUKED_FRIEND, 1);
-													}
-												}
-											}
-											break;
-										}
+										playerB.AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, -playerB.AI_getMemoryCount(eMyOwner, MEMORY_USED_NUKE));
 									}
 								}
 							}
@@ -23648,17 +23548,41 @@ bool CvUnit::spyNuke(int iX, int iY, bool bCaught)
 				}
 			}
 		}
+		// Used a Nuke
+		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
+		{
+			if (iI != eMyTeam && GET_TEAM((TeamTypes)iI).isAlive() && myTeam.isHasMet((TeamTypes)iI))
+			{
+				for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+				{
+					if(GET_PLAYER((PlayerTypes)iI).isAlive()
+					&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_US) == 0
+					&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_FRIEND) == 0)
+					{
+						GET_PLAYER((PlayerTypes)iI).AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, 1);
+					}
+				}
+			}
+		}
 	}
-	szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_UNKNOWN", GET_PLAYER(pPlot->getOwnerINLINE()).getNameKey());
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	const CvWString szBuffer = 
+	(
+		bCaught
+		?
+		gDLL->getText("TXT_KEY_MISC_NUKE_ENEMY_SPY", GET_PLAYER(eMyOwner).getNameKey(), GET_PLAYER(pPlot->getOwnerINLINE()).getNameKey())
+		:
+		gDLL->getText("TXT_KEY_MISC_NUKE_UNKNOWN", GET_PLAYER(pPlot->getOwnerINLINE()).getNameKey())
+	);
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			MEMORY_TRACK_EXEMPT();
-
-			if (bCaught)
-				szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_ENEMY_SPY", GET_PLAYER(getOwnerINLINE()).getNameKey(), GET_PLAYER(pPlot->getOwnerINLINE()).getNameKey());
-			AddMessage(((PlayerTypes)iI), (((PlayerTypes)iI) == getOwnerINLINE()), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+			AddMessage(
+				(PlayerTypes)iI, (PlayerTypes)iI == eMyOwner, GC.getEVENT_MESSAGE_TIME(),
+				szBuffer, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT, getButton(),
+				(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true
+			);
 		}
 	}
 

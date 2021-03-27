@@ -262,7 +262,6 @@ public:
 	
 	void tradeUnit(PlayerTypes eReceivingPlayer);
 	bool spyNuke(int iX, int iY, bool bCaught);
-	bool spyNukeAffected(const CvPlot* pPlot, TeamTypes eTeam, int iRange) const;
 	bool canClaimTerritory(const CvPlot* pPlot, bool bAdjacentOwner = false) const;
 	bool claimTerritory();
 	int getMaxHurryFood(CvCity* pCity) const;
@@ -392,7 +391,7 @@ public:
 	bool canAirliftAt(const CvPlot* pPlot, int iX, int iY) const;																	// Exposed to Python
 	bool airlift(int iX, int iY);
 
-	bool isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const;																// Exposed to Python
+	bool isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam, int iRange = -1) const; // Exposed to Python
 	bool canNuke(const CvPlot* pPlot) const;																											// Exposed to Python
 /************************************************************************************************/
 /* Afforess	                  Start		 09/09/10                                               */

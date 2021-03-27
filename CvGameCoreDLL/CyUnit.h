@@ -93,7 +93,6 @@ public:
 	bool canAirlift(CyPlot* pPlot);
 	bool canAirliftAt(CyPlot* pPlot, int iX, int iY);
 
-	bool isNukeVictim(CyPlot* pPlot, int /*TeamTypes*/ eTeam);
 	bool canNuke(CyPlot* pPlot);
 	bool canNukeAt(CyPlot* pPlot, int iX, int iY);
 

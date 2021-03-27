@@ -1736,6 +1736,7 @@ void CyEnumsPythonInterface()
 		.value("MEMORY_HIRED_WAR_ALLY", MEMORY_HIRED_WAR_ALLY)
 		.value("MEMORY_NUKED_US", MEMORY_NUKED_US)
 		.value("MEMORY_NUKED_FRIEND", MEMORY_NUKED_FRIEND)
+		.value("MEMORY_USED_NUKE", MEMORY_USED_NUKE)
 		.value("MEMORY_RAZED_CITY", MEMORY_RAZED_CITY)
 		.value("MEMORY_RAZED_HOLY_CITY", MEMORY_RAZED_HOLY_CITY)
 		.value("MEMORY_SPY_CAUGHT", MEMORY_SPY_CAUGHT)
@@ -1769,15 +1770,19 @@ void CyEnumsPythonInterface()
 /*                                                                                              */
 /*                                                                                              */
 /************************************************************************************************/
+		.value("MEMORY_INQUISITION", MEMORY_INQUISITION)
 		.value("MEMORY_RECALLED_AMBASSADOR", MEMORY_RECALLED_AMBASSADOR)
 		.value("MEMORY_WARMONGER", MEMORY_WARMONGER)
 		.value("MEMORY_MADE_PEACE", MEMORY_MADE_PEACE)
-		.value("MEMORY_INQUISITION", MEMORY_INQUISITION)
 		.value("MEMORY_SACKED_CITY", MEMORY_SACKED_CITY)
 		.value("MEMORY_SACKED_HOLY_CITY", MEMORY_SACKED_HOLY_CITY)
+		.value("MEMORY_ENSLAVED_CITIZENS", MEMORY_ENSLAVED_CITIZENS)
+		.value("MEMORY_BACKSTAB", MEMORY_BACKSTAB)
+		.value("MEMORY_BACKSTAB_FRIEND", MEMORY_BACKSTAB_FRIEND)
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
+
 		.value("NUM_MEMORY_TYPES", NUM_MEMORY_TYPES)
 		;
 

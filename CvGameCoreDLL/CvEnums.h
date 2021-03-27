@@ -2446,6 +2446,7 @@ enum MemoryTypes							// Exposed to Python
 	MEMORY_HIRED_WAR_ALLY,
 	MEMORY_NUKED_US,
 	MEMORY_NUKED_FRIEND,
+	MEMORY_USED_NUKE,
 	MEMORY_RAZED_CITY,
 	MEMORY_RAZED_HOLY_CITY,
 	MEMORY_SPY_CAUGHT,
@@ -2490,7 +2491,7 @@ enum MemoryTypes							// Exposed to Python
 	MEMORY_BACKSTAB_FRIEND,
 /************************************************************************************************/
 /* Afforess	                         END                                                        */
-/************************************************************************************************/	
+/************************************************************************************************/
 
 	NUM_MEMORY_TYPES
 };
