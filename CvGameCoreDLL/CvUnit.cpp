@@ -6734,18 +6734,25 @@ bool CvUnit::nuke(int iX, int iY)
 			}
 		}
 	}
-	// Used a Nuke
-	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
+
+	// Toffer - Used a Nuke on something; Inthegrave didn't want it to fire when unuke is used on empty land, as in a nuclear test explosion
+	if (ePlotOwner != NO_PLAYER && ePlotOwner != eMyOwner
+	|| pPlot->getImprovementType() != NO_IMPROVEMENT
+	|| pPlot->headUnitNode() != NULL
+	|| pPlot->getPlotCity() != NULL)
 	{
-		if (iI != eMyTeam && GET_TEAM((TeamTypes)iI).isAlive() && myTeam.isHasMet((TeamTypes)iI))
+		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 		{
-			for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+			if (iI != eMyTeam && GET_TEAM((TeamTypes)iI).isAlive() && myTeam.isHasMet((TeamTypes)iI))
 			{
-				if(GET_PLAYER((PlayerTypes)iI).isAlive()
-				&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_US) == 0
-				&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_FRIEND) == 0)
+				for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 				{
-					GET_PLAYER((PlayerTypes)iI).AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, 1);
+					if(GET_PLAYER((PlayerTypes)iI).isAlive()
+					&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_US) == 0
+					&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_FRIEND) == 0)
+					{
+						GET_PLAYER((PlayerTypes)iI).AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, 1);
+					}
 				}
 			}
 		}
