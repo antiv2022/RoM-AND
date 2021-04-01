@@ -2896,46 +2896,38 @@ int CvTeamAI::AI_getEnemyPowerPercent( bool bConsiderOthers ) const
 	int iEnemyPower = 0;
 	int iMinors = 0;
 
-	for( int iI = 0; iI < MAX_CIV_TEAMS; iI++ )
+	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
-		if( iI != getID() )
+		if (GET_TEAM((TeamTypes)iI).isAlive() && iI != getID()
+		&& isHasMet((TeamTypes)iI) && GET_TEAM((TeamTypes)iI).isMinorCiv())
 		{
-			if( GET_TEAM((TeamTypes)iI).isAlive() && isHasMet((TeamTypes)iI) )
-			{
-				if ( GET_TEAM((TeamTypes)iI).isMinorCiv() )
-				{
-					iMinors++;
-				}
-			}
+			iMinors++;
 		}
 	}
 
-	for( int iI = 0; iI < MAX_CIV_TEAMS; iI++ )
+	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
-		if( iI != getID() )
+		if (GET_TEAM((TeamTypes)iI).isAlive() && iI != getID()
+		&& isHasMet((TeamTypes)iI))
 		{
-			if( GET_TEAM((TeamTypes)iI).isAlive() && isHasMet((TeamTypes)iI) )
+			if (isAtWar((TeamTypes)iI))
 			{
-				if( isAtWar((TeamTypes)iI) )
-				{
-					int iTempPower = 220 * GET_TEAM((TeamTypes)iI).getPower(false);
-					iTempPower /= (AI_hasCitiesInPrimaryArea((TeamTypes)iI) ? 2 : 3);
-					iTempPower /= (GET_TEAM((TeamTypes)iI).isMinorCiv() ? iMinors : 1);
-					iTempPower /= std::max(1, (bConsiderOthers ? GET_TEAM((TeamTypes)iI).getAtWarCount(true,true) : 1));
-					iEnemyPower += iTempPower;
-				}
-				else if( AI_isChosenWar((TeamTypes)iI) )
-				{
-					// Haven't declared war yet
-					int iTempPower = 240 * GET_TEAM((TeamTypes)iI).getDefensivePower();
-					iTempPower /= (AI_hasCitiesInPrimaryArea((TeamTypes)iI) ? 2 : 3);
-					iTempPower /= 1 + (bConsiderOthers ? GET_TEAM((TeamTypes)iI).getAtWarCount(true,true) : 0);
-					iEnemyPower += iTempPower;
-				}
+				int iTempPower = 220 * GET_TEAM((TeamTypes)iI).getPower(false);
+				iTempPower /= (AI_hasCitiesInPrimaryArea((TeamTypes)iI) ? 2 : 3);
+				iTempPower /= (GET_TEAM((TeamTypes)iI).isMinorCiv() ? iMinors : 1);
+				iTempPower /= std::max(1, (bConsiderOthers ? GET_TEAM((TeamTypes)iI).getAtWarCount(true,true) : 1));
+				iEnemyPower += iTempPower;
+			}
+			else if (AI_isChosenWar((TeamTypes)iI))
+			{
+				// Haven't declared war yet
+				int iTempPower = 240 * GET_TEAM((TeamTypes)iI).getDefensivePower();
+				iTempPower /= (AI_hasCitiesInPrimaryArea((TeamTypes)iI) ? 2 : 3);
+				iTempPower /= 1 + (bConsiderOthers ? GET_TEAM((TeamTypes)iI).getAtWarCount(true,true) : 0);
+				iEnemyPower += iTempPower;
 			}
 		}
 	}
-
 	return (iEnemyPower/std::max(1, (isAVassal() ? getCurrentMasterPower(true) : getPower(true))));
 }
 
@@ -4559,31 +4551,26 @@ bool CvTeamAI::AI_isSneakAttackReady(TeamTypes eIndex) const
 
 void CvTeamAI::AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar)
 {
-	int iI;
-
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be within maximum bounds (invalid Index)");
 
-	if (AI_getWarPlan(eIndex) != eNewValue)
+	if (AI_getWarPlan(eIndex) != eNewValue && (bWar || !isAtWar(eIndex)))
 	{
-		if (bWar || !isAtWar(eIndex))
+		m_aeWarPlan[eIndex] = eNewValue;
+
+		AI_setWarPlanStateCounter(eIndex, 0);
+
+		AI_updateAreaStragies();
+
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			m_aeWarPlan[eIndex] = eNewValue;
-
-			AI_setWarPlanStateCounter(eIndex, 0);
-
-			AI_updateAreaStragies();
-
-			for (iI = 0; iI < MAX_PLAYERS; iI++)
+			if (GET_PLAYER((PlayerTypes)iI).isAlive())
 			{
-				if (GET_PLAYER((PlayerTypes)iI).isAlive())
+				if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
 				{
-					if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
+					if (!(GET_PLAYER((PlayerTypes)iI).isHuman()))
 					{
-						if (!(GET_PLAYER((PlayerTypes)iI).isHuman()))
-						{
-							GET_PLAYER((PlayerTypes)iI).AI_makeProductionDirty();
-						}
+						GET_PLAYER((PlayerTypes)iI).AI_makeProductionDirty();
 					}
 				}
 			}
@@ -5399,15 +5386,15 @@ void CvTeamAI::AI_doWar()
 	CvPlayerAI& teamLeader = GET_PLAYER(getLeaderID());
 
 	// Afforess
-	int iExtraWarExpenses = GC.getDefineINT("ESTIMATED_EXTRA_WAR_COSTS_PER_ERA", 15) * (1 + teamLeader.getCurrentEra());
+	int iExtraWarExpenses = GC.getDefineINT("ESTIMATED_EXTRA_WAR_EXPENSE_PERCENT", 12);
 	//No revolutions means wars are a (bit) less risky, in terms of finances
-	if (GC.getGameINLINE().isOption(GAMEOPTION_NO_REVOLUTION))
+	if (!GC.getGameINLINE().isOption(GAMEOPTION_NO_REVOLUTION))
 	{
-		iExtraWarExpenses *= 75;
-		iExtraWarExpenses /= 100;
+		iExtraWarExpenses *= 5;
+		iExtraWarExpenses /= 4;
 	}
 	//Base financial stats off team lead player, likely other team members (vassals) are not doing "better" than the leader.
-	const int iFundedPercent = teamLeader.AI_costAsPercentIncome(iExtraWarExpenses);
+	const int iFundedPercent = teamLeader.AI_costAsPercentIncome(0, iExtraWarExpenses);
 	const int iSafePercent = teamLeader.AI_safeCostAsPercentIncome();
 	const int iEnemyPowerPercent = AI_getEnemyPowerPercent();
 	const int iMaxNearbyPowerRatio = AI_maxWarNearbyPowerRatio();
@@ -5717,14 +5704,14 @@ void CvTeamAI::AI_doWar()
 		if (bFinancesOpposeWar)
 		{
 			// Afforess - It is possible a more limited war could be cheaper
-			const int iLimitedWarFundedPercent = teamLeader.AI_costAsPercentIncome(iExtraWarExpenses / 2);
+			const int iLimitedWarFundedPercent = teamLeader.AI_costAsPercentIncome(0, iExtraWarExpenses / 2);
 			if (gTeamLogLevel >= 1)
 			{
 				logBBAIForTeam(getID(), "  Team %d (%S) estimating LIMITED warplan financial costs, iExtraWarExpenses: %d, iLimitedWarFundedPercent: %d, iSafePercent: %d", getID(), teamLeader.getCivilizationDescription(0), iExtraWarExpenses / 2, iLimitedWarFundedPercent, iSafePercent);
 			}
 			bFinancesProLimitedWar = iLimitedWarFundedPercent > iSafePercent;
 
-			const int iDogPileFundedPercent = teamLeader.AI_costAsPercentIncome(iExtraWarExpenses / 3);
+			const int iDogPileFundedPercent = teamLeader.AI_costAsPercentIncome(0, iExtraWarExpenses / 3);
 			if (gTeamLogLevel >= 1)
 			{
 				logBBAIForTeam(getID(), "  Team %d (%S) estimating DOGPILE warplan financial costs, iExtraWarExpenses: %d, iDogPileFundedPercent: %d, iSafePercent: %d", getID(), teamLeader.getCivilizationDescription(0), iExtraWarExpenses / 3, iDogPileFundedPercent, iSafePercent);

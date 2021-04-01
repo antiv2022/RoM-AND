@@ -5378,67 +5378,52 @@ int CvPlayerAI::AI_safeCostAsPercentIncome() const
 	return iSafePercent;
 }
 
-int CvPlayerAI::AI_costAsPercentIncome(int iExtraCost,  /* f1rpo */int* piNetCommerce/* f1rpo */) const
+int CvPlayerAI::AI_costAsPercentIncome(int iExtraCost, int iExpenseMod, int* piNetCommerce) const
 {
 	PROFILE_FUNC(); 
  
 	int iTotalCommerce = calculateTotalYield(YIELD_COMMERCE); 
 	int iBaseNetCommerce = 1 + getCommerceRate(COMMERCE_GOLD) + std::max(0, getGoldPerTurn()); 
-	int iNetCommerce = iBaseNetCommerce + ((100-getCommercePercent(COMMERCE_GOLD))*iTotalCommerce)/100; 
+	int iNetCommerce = iBaseNetCommerce + ((100-getCommercePercent(COMMERCE_GOLD))*iTotalCommerce)/100;
 	// <f1rpo> 
 	if (piNetCommerce != NULL) 
 		*piNetCommerce = iNetCommerce; // </f1rpo> 
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       06/11/09                       jdog5000 & DanF5771    */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
-/* original BTS code
-	int iNetExpenses = calculateInflatedCosts() + std::min(0, getGoldPerTurn());
-*/
-	int iNetExpenses = calculateInflatedCosts() + std::max(0, -getGoldPerTurn());
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
 
 	// Afforess - iExtraCost lets us "extrapolate" our cost percents if we have extra future expenses
-	// iExtraCost should be between 0 (default) and some positive extra gold per turn cost to us
-	iNetExpenses += std::max(0, iExtraCost);
+	int iNetExpenses = calculateInflatedCosts() + std::max(0, -getGoldPerTurn()) + std::max(0, iExtraCost);
+
+	// Toffer - iExpenseMod lets us "extrapolate" future expense modifiers
+	iNetExpenses *= 100 + std::max(-99, iExpenseMod);
+	iNetExpenses /= 100;
 
 	//	Koshling - if we can fund our ongoing expenses with no tax we never consider ourselves to be
 	//	in financial difficulties
-	if ( iBaseNetCommerce - (getCommercePercent(COMMERCE_GOLD)*iTotalCommerce)/100 > iNetExpenses )
+	if (iBaseNetCommerce - (getCommercePercent(COMMERCE_GOLD)*iTotalCommerce)/100 > iNetExpenses)
 	{
 		return 100;
 	}
 
-	//	Koshling - we're never in financial trouble if we can run at current deficits for more than
-	//	50 turns and stay in healthy territory (100 + 100*era as per REV calculation), so claim full
-	//	funding or even excess funding in such a case!
-	int iEraGoldThreshold = 100 + 100*GC.getGameINLINE().getCurrentEra();
-	if ( getGold() > iEraGoldThreshold &&
-		 (AI_avoidScience() || getCommercePercent(COMMERCE_RESEARCH) > 50) &&	//	If we're forcing science below 50 to achieve this don't exempt it
-		 ((iNetCommerce - iNetExpenses) >= 0 || getGold() + 50*(iNetCommerce - iNetExpenses) > iEraGoldThreshold) )
+	// Don't exempt it if we're forcing science below 50 to achieve this
+	if (AI_avoidScience() || getCommercePercent(COMMERCE_RESEARCH) > 50)
 	{
-		int iValue = 100 + (getGold()/iEraGoldThreshold);
+		// Toffer - Gamespeed (GS) influence the value of gold, so scale gold treshold to GS, era is exponential factor.
+		const int iModGS = GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getConstructPercent();
+		const int iEra = GC.getGame().getCurrentEra();
+		const int iEraGoldThreshold = (1 + iEra * iEra) * iModGS / 2;
 
-		if ( iNetCommerce < iNetExpenses )
+		if (iNetCommerce - iNetExpenses >= 0)
 		{
-			//	Each 10 turns we can fund entirely out of treasury, even with the deficit, add 1%
-			int iFundableTurns = (getGold()-iEraGoldThreshold)/(iNetExpenses - iNetCommerce);
-
-			//	Turns under 100 fundable slightly reduce over funding reported
-			if ( iFundableTurns < 100 )
-			{
-				iValue -= (100 - iFundableTurns);
-				if ( iValue < 100 )
-				{
-					//	We know we are still at least fully funded - its only over-funding we're reducing
-					iValue = 100;
-				}
-			}
+			return 100 * getGold() / iEraGoldThreshold;
 		}
-		return iValue;
+		// Losing gold per turn, can we keep this up for X number of turns without going below era treshold
+		// Need more time to react on  slower GS.
+		// Koshling - we're never in financial trouble if we can run at current deficits for more than
+		//	X (GS scaled) turns and stay in healthy territory, so claim full or even excess funding in such a case!
+		const int iFutureGoldPrognosis = getGold() + (iNetCommerce - iNetExpenses) * iModGS / 10;
+		if (iFutureGoldPrognosis > iEraGoldThreshold)
+		{
+			return 100 * iFutureGoldPrognosis / iEraGoldThreshold;
+		}
 	}
 	return (100 * (iNetCommerce - iNetExpenses)) / std::max(1, iNetCommerce);
 }
@@ -20687,7 +20672,7 @@ void CvPlayerAI::AI_doMilitary()
 			for (int iPass = 0; iPass < 4; iPass++)
 			{
 				int iNetCommerce=NULL; // f1rpo
-				int iFundedPercent = AI_costAsPercentIncome(0, /* f1rpo: */ &iNetCommerce);
+				int iFundedPercent = AI_costAsPercentIncome(0, 0, /* f1rpo: */ &iNetCommerce);
 				int iSafePercent = AI_safeCostAsPercentIncome();
 				int iSafeBuffer = (1 + iPass) * 5; // this prevents the AI from disbanding their elite units unless the financial trouble is very severe
 				while ((iFundedPercent < (iSafePercent - iSafeBuffer)) //&& (calculateUnitCost() > 0)
