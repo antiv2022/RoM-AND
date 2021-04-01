@@ -3323,7 +3323,7 @@ void CvTeamAI::AI_getWarRands( int &iMaxWarRand, int &iLimitedWarRand, int &iDog
 }
 
 
-void CvTeamAI::AI_getWarThresholds( int &iTotalWarThreshold, int &iLimitedWarThreshold, int &iDogpileWarThreshold ) const
+void CvTeamAI::AI_getWarThresholds(int &iTotalWarThreshold, int &iLimitedWarThreshold, int &iDogpileWarThreshold) const
 {
 	iTotalWarThreshold = 0;
 	iLimitedWarThreshold = 0;
@@ -3335,61 +3335,51 @@ void CvTeamAI::AI_getWarThresholds( int &iTotalWarThreshold, int &iLimitedWarThr
 	bool bAggressive = GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI);
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
+		if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID() && GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			{
-				int iUnitSpendingPercent = (GET_PLAYER((PlayerTypes)iI).calculateUnitCost() * 100) / std::max(1, GET_PLAYER((PlayerTypes)iI).calculatePreInflatedCosts());
-				iHighUnitSpendingPercent += (std::max(0, iUnitSpendingPercent - 7) / 2);
+			iHighUnitSpendingPercent += std::max(0, (GET_PLAYER((PlayerTypes)iI).calculateUnitCost() * 100 / std::max(1, GET_PLAYER((PlayerTypes)iI).calculatePreInflatedCosts())));
 
-				if( GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_DAGGER))
-				{
-					bAggressive = true;
-				}
-				if( GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
-				{
-					bAggressive = true;
-				}
-				if( GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
-				{
-					bAggressive = true;
-				}
-				if( GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2))
-				{
-					bConq2 = true;
-				}
-				if(GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
+			if (!bAggressive
+			&& (GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_DAGGER)
+			||  GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4)
+			||  GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4)))
+			{
+				bAggressive = true;
+			}
+			if (!bDom3)
+			{
+				if (GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
 				{
 					bDom3 = true;
+				}
+				else if (!bConq2 && GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2))
+				{
+					bConq2 = true;
 				}
 			}
 		}
 	}
-
-	// BBAI TODO: Current UU, up aggression?
-
-	iHighUnitSpendingPercent /= std::max(1, getNumMembers());
-	// f1rpo (advc.019): The '+=bAggressive?1:0' below should be enough aggro
-	iTotalWarThreshold = iHighUnitSpendingPercent * (/*bAggressive ? 3 :*/ 2);
-	if( bDom3 )
-	{
-		iTotalWarThreshold *= 3;
-
-		iDogpileWarThreshold += 5;
-	}
-	else if( bConq2 )
+	iTotalWarThreshold = iHighUnitSpendingPercent / (1 + getNumMembers());
+	if (bAggressive)
 	{
 		iTotalWarThreshold *= 2;
-
 		iDogpileWarThreshold += 2;
+		iLimitedWarThreshold += 2;
+	}
+	if (bDom3)
+	{
+		iTotalWarThreshold *= 3;
+		iDogpileWarThreshold += 5;
+		iLimitedWarThreshold += 2;
+	}
+	else if (bConq2)
+	{
+		iTotalWarThreshold *= 2;
+		iDogpileWarThreshold += 2;
+		iLimitedWarThreshold += 1;
 	}
 	iTotalWarThreshold /= 3;
 	iTotalWarThreshold += bAggressive ? 1 : 0;
-
-	if( bAggressive && GET_PLAYER(getLeaderID()).getCurrentEra() < 3 )
-	{
-		iLimitedWarThreshold += 2;
-	}
 }
 
 // Returns odds of player declaring total war times 100
