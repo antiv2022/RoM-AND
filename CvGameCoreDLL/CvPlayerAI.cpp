@@ -5378,17 +5378,16 @@ int CvPlayerAI::AI_safeCostAsPercentIncome() const
 	return iSafePercent;
 }
 
-int CvPlayerAI::AI_costAsPercentIncome(int iExtraCost,
-	int* piNetCommerce) const // f1rpo
+int CvPlayerAI::AI_costAsPercentIncome(int iExtraCost,  /* f1rpo */int* piNetCommerce/* f1rpo */) const
 {
-	PROFILE_FUNC();
-
-	int iTotalCommerce = calculateTotalYield(YIELD_COMMERCE);
-	int iBaseNetCommerce = 1 + getCommerceRate(COMMERCE_GOLD) + std::max(0, getGoldPerTurn());
-	int iNetCommerce = iBaseNetCommerce + ((100-getCommercePercent(COMMERCE_GOLD))*iTotalCommerce)/100;
-	// <f1rpo>
-	if (piNetCommerce != NULL)
-		*piNetCommerce = iNetCommerce; // </f1rpo>
+	PROFILE_FUNC(); 
+ 
+	int iTotalCommerce = calculateTotalYield(YIELD_COMMERCE); 
+	int iBaseNetCommerce = 1 + getCommerceRate(COMMERCE_GOLD) + std::max(0, getGoldPerTurn()); 
+	int iNetCommerce = iBaseNetCommerce + ((100-getCommercePercent(COMMERCE_GOLD))*iTotalCommerce)/100; 
+	// <f1rpo> 
+	if (piNetCommerce != NULL) 
+		*piNetCommerce = iNetCommerce; // </f1rpo> 
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       06/11/09                       jdog5000 & DanF5771    */
 /*                                                                                              */
@@ -5439,13 +5438,9 @@ int CvPlayerAI::AI_costAsPercentIncome(int iExtraCost,
 				}
 			}
 		}
-
 		return iValue;
 	}
-	else
-	{
-		return (100 * (iNetCommerce - iNetExpenses)) / std::max(1, iNetCommerce);
-	}
+	return (100 * (iNetCommerce - iNetExpenses)) / std::max(1, iNetCommerce);
 }
 
 //	Calculate a (percentage) modifier the AI can apply to gold to determine
@@ -16030,7 +16025,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic, bool bCivicOptionVacuum, CivicT
 	int iUpkeepCosts = getSingleCivicUpkeep(eCivic, true) * 2;
 	bool bFinancialTrouble = AI_isFinancialTrouble();
 	//Assume upkeep costs will get worse over time
-	int iCivicFundedPercent = AI_costAsPercentIncome((iUpkeepCosts * 3) / 2);
+	int iCivicFundedPercent = AI_costAsPercentIncome(iUpkeepCosts * 3/2);
 	int iSafePercent = AI_safeCostAsPercentIncome();
 
 	//We are in financial trouble already
