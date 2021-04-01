@@ -390,22 +390,15 @@ bool CvTeamAI::AI_isAnyCapitalAreaAlone() const
 
 bool CvTeamAI::AI_isPrimaryArea(CvArea* pArea) const
 {
-	int iI;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		if (GET_PLAYER((PlayerTypes)iI).isAlive()
+		&& GET_PLAYER((PlayerTypes)iI).getTeam() == getID()
+		&& GET_PLAYER((PlayerTypes)iI).AI_isPrimaryArea(pArea))
 		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				if (GET_PLAYER((PlayerTypes)iI).AI_isPrimaryArea(pArea))
-				{
-					return true;
-				}
-			}
+			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -5405,20 +5398,6 @@ bool CvTeamAI::AI_isOkayVassalTarget( TeamTypes eTeam )
 void CvTeamAI::AI_doWar()
 {
 	PROFILE_FUNC();
-
-	CvArea* pLoopArea;
-	TeamTypes eBestTeam;
-	bool bAreaValid;
-	bool bShareValid;
-	int iNoWarRoll;
-	int iOurPower;
-	int iDogpilePower;
-	int iValue;
-	int iBestValue;
-	int iPass;
-	int iLoop = 0;
-	int iI, iJ;
-
 	FAssert(!isHuman());
 	FAssert(!isBarbarian());
 	FAssert(!isMinorCiv());
@@ -5427,31 +5406,9 @@ void CvTeamAI::AI_doWar()
 	{
 		return;
 	}
-/************************************************************************************************/
-/* Afforess	                  Start		 04/29/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if (GC.getUSE_AI_CAN_DO_WARPLANS_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
+	const int iEnemyPowerPercent = AI_getEnemyPowerPercent();
 
-		// allow python to handle it
-		CyArgsList argsList;
-		argsList.add(getID());
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "AI_doWar", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-	int iEnemyPowerPercent = AI_getEnemyPowerPercent();
-
-	// Afforess 
+	// Afforess
 	int iExtraWarExpenses = GC.getDefineINT("ESTIMATED_EXTRA_WAR_COSTS_PER_ERA", 15) * (1 + GET_PLAYER(getLeaderID()).getCurrentEra());
 	//No revolutions means wars are a (bit) less risky, in terms of finances
 	if (GC.getGameINLINE().isOption(GAMEOPTION_NO_REVOLUTION))
@@ -5460,7 +5417,7 @@ void CvTeamAI::AI_doWar()
 		iExtraWarExpenses /= 100;
 	}
 
-	for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
+	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
 		if (GET_TEAM((TeamTypes)iI).isAlive() && isHasMet((TeamTypes)iI))
 		{
@@ -5541,7 +5498,7 @@ void CvTeamAI::AI_doWar()
 						FAssert(canEventuallyDeclareWar((TeamTypes)iI));
 
 						bool bActive = false;
-						for( int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++ )
+						for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++)
 						{
 							if( GET_PLAYER((PlayerTypes)iPlayer).getTeam() == getID() )
 							{
@@ -5584,27 +5541,25 @@ void CvTeamAI::AI_doWar()
 
 					if (AI_getWarPlanStateCounter((TeamTypes)iI) > ((10 * iTimeModifier) / (bEnemyVictoryLevel4 ? 400 : 100)))
 					{
-						bAreaValid = false;
-						bShareValid = false;
+						bool bAreaValid = false;
+						bool bShareValid = false;
 
-						for(pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop))
+						int iLoop = 0;
+						for (CvArea* pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop))
 						{
-							if (AI_isPrimaryArea(pLoopArea))
+							if (AI_isPrimaryArea(pLoopArea) && GET_TEAM((TeamTypes)iI).countNumCitiesByArea(pLoopArea) > 0)
 							{
-								if (GET_TEAM((TeamTypes)iI).countNumCitiesByArea(pLoopArea) > 0)
+								bShareValid = true;
+
+								const AreaAITypes eAreaAI = AI_calculateAreaAIType(pLoopArea, true);
+
+								if (eAreaAI == AREAAI_DEFENSIVE)
 								{
-									bShareValid = true;
-
-									AreaAITypes eAreaAI = AI_calculateAreaAIType(pLoopArea, true);
-
-									if ( eAreaAI == AREAAI_DEFENSIVE)
-									{
-										bAreaValid = false;
-									}
-									else if( eAreaAI == AREAAI_OFFENSIVE )
-									{
-										bAreaValid = true;
-									}
+									bAreaValid = false;
+								}
+								else if (eAreaAI == AREAAI_OFFENSIVE)
+								{
+									bAreaValid = true;
 								}
 							}
 						}
@@ -5634,7 +5589,7 @@ void CvTeamAI::AI_doWar()
 						FAssert(canEventuallyDeclareWar((TeamTypes)iI));
 
 						bool bActive = false;
-						for( int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++ )
+						for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++ )
 						{
 							if( GET_PLAYER((PlayerTypes)iPlayer).getTeam() == getID() )
 							{
@@ -5663,142 +5618,90 @@ void CvTeamAI::AI_doWar()
 		}
 	}
 
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
 		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				GET_PLAYER((PlayerTypes)iI).AI_doPeace();
-			}
+			GET_PLAYER((PlayerTypes)iI).AI_doPeace();
 		}
 	}
-	
-	int iNumMembers = getNumMembers();
 
-	// AIAndy: This calculation does not seem to be used. Deactivating it. This might also be a bug.
-	/*
-	int iHighUnitSpendingPercent = 0;
-	int iLowUnitSpendingPercent = 0;
-	
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				int iUnitSpendingPercent = (GET_PLAYER((PlayerTypes)iI).calculateUnitCost() * 100) / std::max(1, GET_PLAYER((PlayerTypes)iI).calculatePreInflatedCosts());
-				iHighUnitSpendingPercent += (std::max(0, iUnitSpendingPercent - 7) / 2);
-				iLowUnitSpendingPercent += iUnitSpendingPercent;
-			}			
-		}
-	}*/
-	
-	
+	const int iNumMembers = getNumMembers();
+
 	// if at war, check for making peace
-	if (getAtWarCount(true) > 0) // XXX
+	if (getAtWarCount(true) > 0 && GC.getGameINLINE().getSorenRandNum(AI_makePeaceRand(), "AI Make Peace") == 0)
 	{
-		if (GC.getGameINLINE().getSorenRandNum(AI_makePeaceRand(), "AI Make Peace") == 0)
+		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 		{
-			for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
+			if (GET_TEAM((TeamTypes)iI).isAlive() && iI != getID() && !GET_TEAM((TeamTypes)iI).isHuman()
+			&& canContact((TeamTypes)iI))
 			{
-				if (GET_TEAM((TeamTypes)iI).isAlive())
+				FAssert(!GET_TEAM((TeamTypes)iI).isMinorCiv());
+
+				if (isAtWar((TeamTypes)iI) && AI_isChosenWar((TeamTypes)iI)
+				&& AI_getAtWarCounter((TeamTypes)iI) > std::max(10, GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent() * 14/100))
 				{
-					if (iI != getID())
+					// If nothing is happening in war
+					if (AI_getWarSuccess((TeamTypes)iI) + GET_TEAM((TeamTypes)iI).AI_getWarSuccess(getID()) < 2*GC.getDefineINT("WAR_SUCCESS_ATTACKING")
+					&& GC.getGameINLINE().getSorenRandNum(8, "AI Make Peace 1") == 0)
 					{
-						if (!(GET_TEAM((TeamTypes)iI).isHuman()))
+						bool bValid = true;
+
+						for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++ )
 						{
-							if (canContact((TeamTypes)iI))
+							if (
+								GET_PLAYER((PlayerTypes)iJ).getTeam() == getID()
+							&&	GET_PLAYER((PlayerTypes)iJ).AI_enemyTargetMissions((TeamTypes)iI) > 0
+							||
+								GET_PLAYER((PlayerTypes)iJ).getTeam() == iI
+							&&	GET_PLAYER((PlayerTypes)iJ).AI_enemyTargetMissions(getID()) > 0)
 							{
-								FAssert(!(GET_TEAM((TeamTypes)iI).isMinorCiv()));
-
-								if (isAtWar((TeamTypes)iI))
-								{
-									if (AI_isChosenWar((TeamTypes)iI))
-									{
-										if( AI_getAtWarCounter((TeamTypes)iI) > std::max(10, (14 * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent())/100) )
-										{
-											// If nothing is happening in war
-											if( AI_getWarSuccess((TeamTypes)iI) + GET_TEAM((TeamTypes)iI).AI_getWarSuccess(getID()) < 2*GC.getDefineINT("WAR_SUCCESS_ATTACKING") )
-											{
-												if( (GC.getGameINLINE().getSorenRandNum(8, "AI Make Peace 1") == 0) )
-												{
-													bool bValid = true;
-
-													for( int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++ )
-													{
-														if( GET_PLAYER((PlayerTypes)iPlayer).getTeam() == getID() )
-														{
-															if( GET_PLAYER((PlayerTypes)iPlayer).AI_enemyTargetMissions((TeamTypes)iI) > 0 )
-															{
-																bValid = false;
-																break;
-															}
-														}
-
-														if( GET_PLAYER((PlayerTypes)iPlayer).getTeam() == iI )
-														{
-															//MissionAITypes eMissionAI = MISSIONAI_ASSAULT;
-															if( GET_PLAYER((PlayerTypes)iPlayer).AI_enemyTargetMissions(getID()) > 0 )
-															{
-																bValid = false;
-																break;
-															}
-														}
-													}
-
-													if( bValid )
-													{
-														makePeace((TeamTypes)iI);
-
-														if( gTeamLogLevel >= 1 )
-														{
-															logBBAIForTeam(getID(), "  Team %d (%S) making peace due to time and no fighting", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0) );
-														}
-
-														break;
-													}
-												}
-											}
-
-											// Fought to a long draw
-											if (AI_getAtWarCounter((TeamTypes)iI) > ((((AI_getWarPlan((TeamTypes)iI) == WARPLAN_TOTAL) ? 40 : 30) * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent())/250) )
-											{
-												int iOurValue = AI_endWarVal((TeamTypes)iI);
-												int iTheirValue = GET_TEAM((TeamTypes)iI).AI_endWarVal(getID());
-												if ((iOurValue > (iTheirValue / 2)) && (iTheirValue > (iOurValue / 2)))
-												{
-													if( gTeamLogLevel >= 1 )
-													{
-														logBBAIForTeam(getID(), "  Team %d (%S) making peace due to time and endWarVal %d vs their %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0) , iOurValue, iTheirValue );
-													}
-													makePeace((TeamTypes)iI);
-													break;
-												}
-											}
-
-											// All alone in what we thought was a dogpile
-											if (AI_getWarPlan((TeamTypes)iI) == WARPLAN_DOGPILE)
-											{
-												if (GET_TEAM((TeamTypes)iI).getAtWarCount(true) == 1)
-												{
-													int iOurValue = AI_endWarVal((TeamTypes)iI);
-													int iTheirValue = GET_TEAM((TeamTypes)iI).AI_endWarVal(getID());
-													if ((iTheirValue > (iOurValue / 2)))
-													{
-														if( gTeamLogLevel >= 1 )
-														{
-															logBBAIForTeam(getID(), "  Team %d (%S) making peace due to being only dog-piler left", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0) );
-														}
-														makePeace((TeamTypes)iI);
-														break;
-													}
-												}
-											}
-										}
-									}
-								}
+								bValid = false;
+								break;
 							}
+						}
+
+						if (bValid)
+						{
+							makePeace((TeamTypes)iI);
+
+							if (gTeamLogLevel >= 1)
+							{
+								logBBAIForTeam(getID(), "  Team %d (%S) making peace due to time and no fighting", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0) );
+							}
+							break;
+						}
+					}
+
+					// Fought to a long draw
+					if (AI_getAtWarCounter((TeamTypes)iI) > (AI_getWarPlan((TeamTypes)iI) == WARPLAN_TOTAL ? 40 : 30) * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent()/250)
+					{
+						const int iOurValue = AI_endWarVal((TeamTypes)iI);
+						const int iTheirValue = GET_TEAM((TeamTypes)iI).AI_endWarVal(getID());
+						if (iOurValue > iTheirValue/2 && iTheirValue > iOurValue/2)
+						{
+							if (gTeamLogLevel >= 1)
+							{
+								logBBAIForTeam(getID(), "  Team %d (%S) making peace due to time and endWarVal %d vs their %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0) , iOurValue, iTheirValue );
+							}
+							makePeace((TeamTypes)iI);
+							break;
+						}
+					}
+
+					// All alone in what we thought was a dogpile
+					if (AI_getWarPlan((TeamTypes)iI) == WARPLAN_DOGPILE && GET_TEAM((TeamTypes)iI).getAtWarCount(true) == 1)
+					{
+						const int iOurValue = AI_endWarVal((TeamTypes)iI);
+						const int iTheirValue = GET_TEAM((TeamTypes)iI).AI_endWarVal(getID());
+						if (iTheirValue > iOurValue/2)
+						{
+							if (gTeamLogLevel >= 1)
+							{
+								logBBAIForTeam(getID(), "  Team %d (%S) making peace due to being only dog-piler left", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0) );
+							}
+							makePeace((TeamTypes)iI);
+							break;
 						}
 					}
 				}
@@ -5810,245 +5713,128 @@ void CvTeamAI::AI_doWar()
 	if (getAnyWarPlanCount(true) == 0 || iEnemyPowerPercent < 45)
 	{
 		bool bAggressive = GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI);
-/************************************************************************************************/
-/* Afforess	                  Start		 07/27/10                                               */
-/*                                                                                              */
-/* Avoid War when there is plenty of room left                                                  */
-/************************************************************************************************/
-		// if (GET_PLAYER(getLeaderID()).getCurrentEra() < GC.getNumEraInfos() / 2)
-		// {
-			// if (GET_PLAYER(getLeaderID()).getNumCities() < GC.getMapINLINE().getWorldSize() + 1)
-			// {
-				// return;
-			// }
-			// CvCity* pCapital = GET_PLAYER(getLeaderID()).getCapitalCity();
-			//bool bEarlyGame = (100 * GC.getGameINLINE().getElapsedGameTurns()) / std::max(1, GC.getGameINLINE().getEstimateEndTurn()) < 20;
-			// int iAverage = GC.getMapINLINE().getGridWidthINLINE() + GC.getMapINLINE().getGridHeightINLINE() / 2;
-			// bool bPrimaryArea = true;
-			// if (pCapital != NULL)
-				// bPrimaryArea = AI_isPrimaryArea(pCapital->area());
-			// int iThreshold = bAggressive ? 40 : 30;
-			// if (pCapital != NULL)
-			// {
-				// if (GC.getMapINLINE().percentUnoccupiedLand(true, true, true, bPrimaryArea ? pCapital->area() : NULL, /*bEarlyGame ?  */iAverage / 5/* : -1*/, bPrimaryArea ? pCapital->plot() : NULL) > iThreshold)
-				// {
-					// return;
-				// }
-			// }
-		// }
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/		
-		int iFinancialTroubleCount = 0;
+
 		int iDaggerCount = 0;
 		int iGetBetterUnitsCount = 0;
-		for (iI = 0; iI < MAX_PLAYERS; iI++)
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
+			if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
 			{
-				if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
+				if (GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_DAGGER)
+				||  GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3)
+				||  GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
 				{
-					if ( GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_DAGGER)
-						|| GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3)
-						|| GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4) )
-					{
-						iDaggerCount++;
-						bAggressive = true;
-					}
-					if (GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
-					{
-						iGetBetterUnitsCount++;
-					}
-					
-					if (GET_PLAYER((PlayerTypes)iI).AI_isFinancialTrouble())
-					{
-						iFinancialTroubleCount++;
-					}
+					iDaggerCount++;
+					bAggressive = true;
+				}
+
+				if (GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
+				{
+					iGetBetterUnitsCount++;
 				}
 			}
 		}
 
-	    // if random in this range is 0, we go to war of this type (so lower numbers are higher probablity)
-		// average of everyone on our team
-		int iTotalWarRand;
-	    int iLimitedWarRand;
-	    int iDogpileWarRand;
-		AI_getWarRands( iTotalWarRand, iLimitedWarRand, iDogpileWarRand );
-
-		int iTotalWarThreshold;
-		int iLimitedWarThreshold;
-		int iDogpileWarThreshold;
-		AI_getWarThresholds( iTotalWarThreshold, iLimitedWarThreshold, iDogpileWarThreshold );
-				
-		// we oppose war if half the non-dagger teammates in financial trouble
-		bool bFinancesOpposeWar = false;
-		if ((iFinancialTroubleCount - iDaggerCount) >= std::max(1, getNumMembers() / 2 ))
-		{
-			// this can be overridden by by the pro-war booleans
-			bFinancesOpposeWar = true;
-		}
-
-		// if agressive, we may start a war to get money
-		bool bFinancesProTotalWar = false;
-		bool bFinancesProLimitedWar = false;
-		bool bFinancesProDogpileWar = false;
-
-		// Afforess: There are very rarely cases where wars result in net income, especially initially.
-		// While wars, if successful, may yield long-term windfalls, it is rather myopic to plan on the basis of success
-		// Instead the AI should assume things may go badly, and have enough income to cover potential losses.
-		// Old BTS logic:
-		/*
-		if (iFinancialTroubleCount > 0)
-		{
-			// do we like all out wars?
-			if (iDaggerCount > 0 || iTotalWarRand < 100)
-			{
-				bFinancesProTotalWar = true;
-			}
-
-			// do we like limited wars?
-			if (iLimitedWarRand < 100)
-			{
-				bFinancesProLimitedWar = true;
-			}
-			
-			// do we like dogpile wars?
-			if (iDogpileWarRand < 100)
-			{
-				bFinancesProDogpileWar = true;
-			}
-		}
-		bool bFinancialProWar = (bFinancesProTotalWar || bFinancesProLimitedWar || bFinancesProDogpileWar);
-		*/
-
 		//Base financial stats off team lead player, likely other team members (vassals) are not doing "better" than the leader.
 		CvPlayerAI &kTeamLeader = GET_PLAYER(getLeaderID());
 
-		int iFundedPercent = kTeamLeader.AI_costAsPercentIncome(iExtraWarExpenses);
-		int iSafePercent = kTeamLeader.AI_safeCostAsPercentIncome();
+		const int iFundedPercent = kTeamLeader.AI_costAsPercentIncome(iExtraWarExpenses);
+		const int iSafePercent = kTeamLeader.AI_safeCostAsPercentIncome();
 		if (gTeamLogLevel >= 1)
 		{
 			logBBAIForTeam(getID(), "  Team %d (%S) estimating warplan financial costs, iExtraWarExpenses: %d, iFundedPercent: %d, iSafePercent: %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), iExtraWarExpenses, iFundedPercent, iSafePercent);
 		}
-
-		bool bFinancialProWar = iFundedPercent > iSafePercent;
+		const bool bFinancialProWar = iFundedPercent > iSafePercent;
 
 		// Set some sane default values
-		bFinancesProTotalWar = bFinancialProWar;
-		bFinancesProLimitedWar = bFinancialProWar;
-		bFinancesProDogpileWar = bFinancialProWar;
-		bFinancesOpposeWar = !bFinancialProWar;
+		bool bFinancesProLimitedWar = bFinancialProWar;
+		bool bFinancesProDogpileWar = bFinancialProWar;
+		bool bFinancesOpposeWar = !bFinancialProWar;
 
 		// Only check limited and dogpile finances if we can not afford a total war. If we can afford a total war, we can afford any war.
 		if (bFinancesOpposeWar)
 		{
 			// Afforess - It is possible a more limited war could be cheaper
-			// Account for that here
-			int iLimitedWarFundedPercent = kTeamLeader.AI_costAsPercentIncome(iExtraWarExpenses / 2);
+			const int iLimitedWarFundedPercent = kTeamLeader.AI_costAsPercentIncome(iExtraWarExpenses / 2);
 			if (gTeamLogLevel >= 1)
 			{
 				logBBAIForTeam(getID(), "  Team %d (%S) estimating LIMITED warplan financial costs, iExtraWarExpenses: %d, iLimitedWarFundedPercent: %d, iSafePercent: %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), iExtraWarExpenses / 2, iLimitedWarFundedPercent, iSafePercent);
 			}
 			bFinancesProLimitedWar = iLimitedWarFundedPercent > iSafePercent;
 
-			int iDogPileFundedPercent = kTeamLeader.AI_costAsPercentIncome(iExtraWarExpenses / 3);
+			const int iDogPileFundedPercent = kTeamLeader.AI_costAsPercentIncome(iExtraWarExpenses / 3);
 			if (gTeamLogLevel >= 1)
 			{
 				logBBAIForTeam(getID(), "  Team %d (%S) estimating DOGPILE warplan financial costs, iExtraWarExpenses: %d, iDogPileFundedPercent: %d, iSafePercent: %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), iExtraWarExpenses / 3, iDogPileFundedPercent, iSafePercent);
 			}
-			bFinancesProDogpileWar = iLimitedWarFundedPercent > iSafePercent;
+			bFinancesProDogpileWar = iDogPileFundedPercent > iSafePercent;
 
 			// Finances oppose war if we can't afford any of em
-			bFinancesOpposeWar = !bFinancesProDogpileWar && !bFinancesProLimitedWar && !bFinancesProTotalWar;
+			bFinancesOpposeWar = !bFinancesProDogpileWar && !bFinancesProLimitedWar;
 		}
 
-		// Afforess - Resume normal BTS warplanning
-
-		// overall war check (quite frequently true)
-		bool bMakeWarChecks = false;
-		if ((iGetBetterUnitsCount - iDaggerCount) * 3 < iNumMembers * 2)
+		// Overall war check (quite frequently true)
+		if ((bFinancialProWar || !bFinancesOpposeWar)
+		&& (iGetBetterUnitsCount - iDaggerCount) * 3 < iNumMembers * 2
+		// random overall war chance (at noble+ difficulties this is 100%)
+		&& GC.getGameINLINE().getSorenRandNum(100, "AI Declare War 1") < GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIDeclareWarProb())
 		{
-			if (bFinancialProWar || !bFinancesOpposeWar)
-			{
-				// random overall war chance (at noble+ difficulties this is 100%)
-				if (GC.getGameINLINE().getSorenRandNum(100, "AI Declare War 1") < GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIDeclareWarProb())
-				{
-					bMakeWarChecks = true;
-				}
-			}
-		}
+			// if random in this range is 0, we go to war of this type (so lower numbers are higher probablity)
+			// average of everyone on our team
+			int iTotalWarRand;
+			int iLimitedWarRand;
+			int iDogpileWarRand;
+			AI_getWarRands(iTotalWarRand, iLimitedWarRand, iDogpileWarRand);
 
-		if (bMakeWarChecks)
-		{
-			iOurPower = getPower(true);
+			int iTotalWarThreshold;
+			int iLimitedWarThreshold;
+			int iDogpileWarThreshold;
+			AI_getWarThresholds(iTotalWarThreshold, iLimitedWarThreshold, iDogpileWarThreshold);
 
-			if (bAggressive && (getAnyWarPlanCount(true) == 0))
+			int iOurPower = getPower(true);
+
+			if (bAggressive && getAnyWarPlanCount(true) == 0)
 			{
 				iOurPower *= 4;
 				iOurPower /= 3;
 			}
 
-			iOurPower *= (100 - iEnemyPowerPercent);
+			iOurPower *= 100 - iEnemyPowerPercent;
 			iOurPower /= 100;
 
-			if ((bFinancesProTotalWar || !bFinancesOpposeWar) &&
+			if ((bFinancialProWar || !bFinancesOpposeWar) &&
 				(GC.getGameINLINE().getSorenRandNum(iTotalWarRand, "AI Maximum War") <= iTotalWarThreshold))
 			{
-				iNoWarRoll = GC.getGameINLINE().getSorenRandNum(100, "AI No War");
-				iNoWarRoll = range(iNoWarRoll + (bAggressive ? 10 : 0) + (bFinancesProTotalWar ? 10 : 0) - (20*iGetBetterUnitsCount)/iNumMembers, 0, 99);
+				int iNoWarRoll = GC.getGameINLINE().getSorenRandNum(100, "AI No War");
+				iNoWarRoll = range(iNoWarRoll + (bAggressive ? 10 : 0) + (bFinancialProWar ? 10 : 0) - (20*iGetBetterUnitsCount)/iNumMembers, 0, 99);
 
-				iBestValue = 0;
-				eBestTeam = NO_TEAM;
+				int iBestValue = 0;
+				TeamTypes eBestTeam = NO_TEAM;
 
-				for (iPass = 0; iPass < 3; iPass++)
+				for (int iPass = 0; iPass < 3; iPass++)
 				{
-					for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
+					for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 					{
-						if (GET_TEAM((TeamTypes)iI).isAlive())
+						if (GET_TEAM((TeamTypes)iI).isAlive() && iI != getID()
+						&& isHasMet((TeamTypes)iI) && canEventuallyDeclareWar((TeamTypes)iI)
+						&& (!GET_TEAM((TeamTypes)iI).isAVassal() || AI_isOkayVassalTarget((TeamTypes)iI))
+						&& iNoWarRoll >= AI_noWarAttitudeProb(AI_getAttitude((TeamTypes)iI))
+						&& GET_TEAM((TeamTypes)iI).getDefensivePower() * 2/3 < iOurPower * (iPass > 1 ? AI_maxWarDistantPowerRatio() : AI_maxWarNearbyPowerRatio()) / 100
+						&& (iPass > 1 || AI_isLandTarget((TeamTypes)iI) || AI_isAnyCapitalAreaAlone() || GET_TEAM((TeamTypes)iI).AI_isAnyMemberDoVictoryStrategyLevel4())
+						&& (iPass > 0 || AI_calculateAdjacentLandPlots((TeamTypes)iI) >= getTotalLand()*AI_maxWarMinAdjacentLandPercent()/100 || GET_TEAM((TeamTypes)iI).AI_isAnyMemberDoVictoryStrategyLevel4()))
 						{
-							if (iI != getID())
+							const int iValue = AI_startWarVal((TeamTypes)iI);
+							if (iValue > 0)
 							{
-								if (isHasMet((TeamTypes)iI))
+								if (gTeamLogLevel >= 2)
 								{
-									if (canEventuallyDeclareWar((TeamTypes)iI))
-									{
-										if( GET_TEAM((TeamTypes)iI).isAVassal() && !AI_isOkayVassalTarget((TeamTypes)iI) )
-										{
-											continue;
-										}
+									logBBAIForTeam(getID(), "      Team %d (%S) considering starting TOTAL warplan with team %d with value %d on pass %d with %d adjacent plots", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), iI, iValue, iPass, AI_calculateAdjacentLandPlots((TeamTypes)iI) );
+								}
 
-										if (iNoWarRoll >= AI_noWarAttitudeProb(AI_getAttitude((TeamTypes)iI)))
-										{
-											int iDefensivePower = (GET_TEAM((TeamTypes)iI).getDefensivePower() * 2) / 3;
-											
-											if (iDefensivePower < ((iOurPower * ((iPass > 1) ? AI_maxWarDistantPowerRatio() : AI_maxWarNearbyPowerRatio())) / 100))
-											{
-												// XXX make sure they share an area....
-
-												FAssertMsg(!(GET_TEAM((TeamTypes)iI).isBarbarian()), "Expected to not be declaring war on the barb civ");
-												FAssertMsg(iI != getID(), "Expected not to be declaring war on self (DOH!)");
-
-												if ((iPass > 1) || AI_isLandTarget((TeamTypes)iI) || AI_isAnyCapitalAreaAlone() || GET_TEAM((TeamTypes)iI).AI_isAnyMemberDoVictoryStrategyLevel4())
-												{
-													if ((iPass > 0) || (AI_calculateAdjacentLandPlots((TeamTypes)iI) >= ((getTotalLand() * AI_maxWarMinAdjacentLandPercent()) / 100)) || GET_TEAM((TeamTypes)iI).AI_isAnyMemberDoVictoryStrategyLevel4())
-													{
-														iValue = AI_startWarVal((TeamTypes)iI);
-
-														if( iValue > 0 && gTeamLogLevel >= 2 )
-														{
-															logBBAIForTeam(getID(), "      Team %d (%S) considering starting TOTAL warplan with team %d with value %d on pass %d with %d adjacent plots", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), iI, iValue, iPass, AI_calculateAdjacentLandPlots((TeamTypes)iI) );
-														}
-
-														if (iValue > iBestValue)
-														{
-															iBestValue = iValue;
-															eBestTeam = ((TeamTypes)iI);
-														}
-													}
-												}
-											}
-										}
-									}
+								if (iValue > iBestValue)
+								{
+									iBestValue = iValue;
+									eBestTeam = ((TeamTypes)iI);
 								}
 							}
 						}
@@ -6056,34 +5842,25 @@ void CvTeamAI::AI_doWar()
 
 					if (eBestTeam != NO_TEAM)
 					{
-						if( gTeamLogLevel >= 1 )
+						if (gTeamLogLevel >= 1)
 						{
 							logBBAIForTeam(getID(), "    Team %d (%S) starting TOTAL warplan preparations against team %d on pass %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eBestTeam, iPass );
 						}
-
 						AI_setWarPlan(eBestTeam, (iDaggerCount > 0) ? WARPLAN_TOTAL : WARPLAN_PREPARING_TOTAL);
 						break;
 					}
 				}
 			}
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       01/02/09                                jdog5000      */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
-			else if ((bFinancesProLimitedWar || !bFinancesOpposeWar) &&
-				(GC.getGameINLINE().getSorenRandNum(iLimitedWarRand, "AI Limited War") <= iLimitedWarThreshold))
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
+			else if ((bFinancesProLimitedWar || !bFinancesOpposeWar)
+			&& GC.getGameINLINE().getSorenRandNum(iLimitedWarRand, "AI Limited War") <= iLimitedWarThreshold)
 			{
-				iNoWarRoll = GC.getGameINLINE().getSorenRandNum(100, "AI No War") - 10;
+				int iNoWarRoll = GC.getGameINLINE().getSorenRandNum(100, "AI No War") - 10;
 				iNoWarRoll = range(iNoWarRoll + (bAggressive ? 10 : 0) + (bFinancesProLimitedWar ? 10 : 0), 0, 99);
 
-				iBestValue = 0;
-				eBestTeam = NO_TEAM;
+				int iBestValue = 0;
+				TeamTypes eBestTeam = NO_TEAM;
 
-				for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
+				for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 				{
 					if (GET_TEAM((TeamTypes)iI).isAlive())
 					{
@@ -6105,7 +5882,7 @@ void CvTeamAI::AI_doWar()
 											if (GET_TEAM((TeamTypes)iI).getDefensivePower() < ((iOurPower * AI_limitedWarPowerRatio()) / 100) &&
 												!AI_shareWar((TeamTypes)iI) )
 											{
-												iValue = AI_startWarVal((TeamTypes)iI);
+												const int iValue = AI_startWarVal((TeamTypes)iI);
 
 												if( iValue > 0 && gTeamLogLevel >= 2 )
 												{
@@ -6139,13 +5916,13 @@ void CvTeamAI::AI_doWar()
 			else if ((bFinancesProDogpileWar || !bFinancesOpposeWar) &&
 				(GC.getGameINLINE().getSorenRandNum(iDogpileWarRand, "AI Dogpile War") <= iDogpileWarThreshold))
 			{
-				iNoWarRoll = GC.getGameINLINE().getSorenRandNum(100, "AI No War") - 20;
+				int iNoWarRoll = GC.getGameINLINE().getSorenRandNum(100, "AI No War") - 20;
 				iNoWarRoll = range(iNoWarRoll + (bAggressive ? 10 : 0) + (bFinancesProDogpileWar ? 10 : 0), 0, 99);
 
-				iBestValue = 0;
-				eBestTeam = NO_TEAM;
+				int iBestValue = 0;
+				TeamTypes eBestTeam = NO_TEAM;
 
-				for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
+				for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 				{
 					if (GET_TEAM((TeamTypes)iI).isAlive())
 					{
@@ -6166,9 +5943,9 @@ void CvTeamAI::AI_doWar()
 										{
 											if (AI_isLandTarget((TeamTypes)iI) || GET_TEAM((TeamTypes)iI).AI_isAnyMemberDoVictoryStrategyLevel4())
 											{
-												iDogpilePower = iOurPower;
+												int iDogpilePower = iOurPower;
 
-												for (iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
+												for (int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
 												{
 													if (GET_TEAM((TeamTypes)iJ).isAlive())
 													{
@@ -6186,7 +5963,7 @@ void CvTeamAI::AI_doWar()
 
 												if (((GET_TEAM((TeamTypes)iI).getDefensivePower() * 3) / 2) < iDogpilePower)
 												{
-													iValue = AI_startWarVal((TeamTypes)iI);
+													const int iValue = AI_startWarVal((TeamTypes)iI);
 
 													if( iValue > 0 && gTeamLogLevel >= 2 )
 													{
