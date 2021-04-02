@@ -1,0 +1,51 @@
+
+Factors that influence AI war planning initiative.
+I won't go into detail about the more complex things that an xml modders don't need to know much about.
+
+Funding:
+ ♦ An estimated expense increase percentage is included when evaluating if funding is healthy enough for war planning.
+•• ♠ ESTIMATED_EXTRA_WAR_EXPENSE_PERCENT (EEWEP) (default 12)
+•• ♣ When GAMEOPTION_NO_REVOLUTION is turned off, when revolution is an active mechanic:
+•••• EEWEP = 1.25 * EEWEP, meaning default is pushed up from 12 to 15.
+•••• This becuase war is financially more risky where revolution may happen due to poor finance.
+•••• Translates to slightly more careful AI when revolution mechanic is active in game.
+•• ♥ The resulting EEWEP value is used as is for "total war" planning;
+•••• for limited war it is divided by 2 (=6/7);
+•••• for dogpile war planning it is divided by 3 (=4/5).
+ ♦ The safe funding value threshold depends on several factors, I won't go into details on numbers here, 
+•• just know that the safe funding level is not always the same in each case.
+•• e.g. 60% funded may be considered safe for one AI to plan wars on, while another needs perhaps 65% funding to consider it safe.
+ ♦ With my recent changes, funding requirement is much less strict than it was.
+
+War plan abandonment:
+ ♦ If funding goes below safe level, and war plan has existed for X amount of turns.
+•• ♠ X scaled by gamespeed
+•• ♣ X scaled by size of the funding gap, bigger funding gap means less turns into plan before abandonment may happen.
+•• ♥ Limited war plans are abandoned at lower X value than total war plans are, limited war plans are supposed to quickly lead to war, while total war plans need longer planning phase.
+ ♦ Dogpile war plans are abandoned if victim is no longer at war with anyone, dogpile is all about joining another war.
+
+Note:
+ ♦ In general, the AI won't prepeare war plans if already at war or if already preparing a warplan agains any AI.
+•• The exception to that is if the combined power of all enemies the AI is at war with or planning war against is less than 45% of its own power, then it may start to prepare war on someone else.
+•• There are some secondary reasons that will trigger warplaning, like rejecting a diplomatic demand from an AI.
+•• AI may also suddenly declare war in some cases without a prepared warplan.
+ ♦ GAMEOPTION_AGGRESSIVE_AI will make all AI plan war as if they were actively pursuing the domination victory condition.
+ 
+Consider starting a war plan code section:
+ ♦ Before even cosidering to start a war plan, the iAIDeclareWarProb from handicap info needs to random roll true.
+•• If this value is "100" it will always roll true, and at "0" it will never roll true.
+ ♦ Leader tags iMaxWarRand, iLimitedWarRand, and iDogpileWarRand are likelyhoods for starting war plans of the different types.
+•• ♠ iMaxWarRand is used for total war plan random roll.
+•• ♣ The xml value itself is just a base, it is modified by AI strategy and situation, so a derived value is used in the random roll.
+•• ♥ Higher value means less likely to start a war plan each turn.
+ ♦ If funding for total war is ok, it will do a random roll on total war, if the roll fails it will do the roll for limited war, if that fails it will do the roll for dogpile war.
+ ♦ The different war plans have slightly different conditions to initiate even after a succsessful warRand roll, this is mostly about power ratios and strategical priorities.
+ ♦ There is one factor of importance to an xml modder after a successful WarRand roll.
+•• ♠ The NoWarAttitudeProbs leader tag, higher values means less likely to start war plan on a player that you have this or that attitude towards
+•••• A value of 100 means the AI won't even consider planning war on a player it has this attitude towards, unless it is endgame situation and domination/conquest strategies reduces the xml value by a certain amount.
+•••• A Value of 130 would in most cases make the AI not plan war on a player if it has that attitude with it, unless you play with Aggressive AI.
+•••• A value of 140 will stop any war plans with Aggressive AI, so the option is not super impactful in this regard; it only subtract 10 from the NoWarAttitudeProbs value.
+•••• Ruthless AI option has a huge impact though, you would need a value of 300 to avoid AI from planning war on their best friends.
+•••• With both options only a value of 310 will stop AI from planning war on a player it has that attitude with.
+
+

@@ -5216,64 +5216,43 @@ int CvTeamAI::AI_makePeaceRand(bool bRecalculate) const
 
 int CvTeamAI::AI_noWarAttitudeProb(AttitudeTypes eAttitude) const
 {
-	int iProb;
-	int iCount;
-	int iI;
-
-	iProb = 0;
-	iCount = 0;
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      03/20/10                                jdog5000      */
-/*                                                                                              */
-/* War Strategy AI                                                                              */
-/************************************************************************************************/
 	int iVictoryStrategyAdjust = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	int iCount = 0;
+	int iProb = 0;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
 		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				iProb += GC.getLeaderHeadInfo(GET_PLAYER((PlayerTypes)iI).getPersonalityType()).getNoWarAttitudeProb(eAttitude);
-				iCount++;
+			iProb += GC.getLeaderHeadInfo(GET_PLAYER((PlayerTypes)iI).getPersonalityType()).getNoWarAttitudeProb(eAttitude);
+			iCount++;
 
-				// In final stages of miltaristic victory, AI may turn on its friends!
-				if( GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4) )
-				{
-					iVictoryStrategyAdjust += 30;
-				}
-				else if( GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4) )
-				{
-					iVictoryStrategyAdjust += 20;
-				}
+			// In final stages of miltaristic victory, AI may turn on its friends!
+			if (GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
+			{
+				iVictoryStrategyAdjust += 30;
+			}
+			else if (GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
+			{
+				iVictoryStrategyAdjust += 20;
 			}
 		}
 	}
-
 	if (iCount > 1)
 	{
 		iProb /= iCount;
 		iVictoryStrategyAdjust /= iCount;
 	}
+	iProb -= iVictoryStrategyAdjust;
 
-	iProb = std::max( 0, iProb - iVictoryStrategyAdjust );
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
-/************************************************************************************************/
-/* Afforess	                  Start		 02/19/10                                               */
-/*                                                                                              */
-/* Ruthless AI: Friends are just enemies we haven't made yet.                                   */
-/************************************************************************************************/
+	if (iProb < 1)
+	{
+		return 0;
+	}
+	// Afforess - Ruthless AI: Friends are just enemies we haven't made yet.
 	if (GC.getGameINLINE().isOption(GAMEOPTION_RUTHLESS_AI))
-		iProb /= 10;
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-
+	{
+		return iProb/3;
+	}
 	return iProb;
 }
 
@@ -5755,8 +5734,7 @@ void CvTeamAI::AI_doWar()
 
 			if (bFinancialProWar && GC.getGameINLINE().getSorenRandNum(iTotalWarRand, "AI Maximum War") <= iTotalWarThreshold)
 			{
-				int iNoWarRoll = GC.getGameINLINE().getSorenRandNum(100, "AI No War");
-				iNoWarRoll = range(iNoWarRoll + (bAggressive ? 10 : 0) + (bFinancialProWar ? 10 : 0) - (20*iGetBetterUnitsCount)/iNumMembers, 0, 99);
+				const int iNoWarRoll = range(GC.getGameINLINE().getSorenRandNum(100, "AI No War") + (bAggressive ? 10 : 0) - iGetBetterUnitsCount * 20/iNumMembers, 0, 99);
 
 				for (int iPass = 0; iPass < 3; iPass++)
 				{
