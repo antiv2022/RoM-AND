@@ -285,7 +285,7 @@ public:
 	
 	DllExport PlayerTypes getNationality() const;
 	void setNationality(PlayerTypes eNewNationality);
- 	void combatWon(CvUnit* pLoser, bool bAttacking);
+ 	void combatWon(CvUnit* pLoser);
 
 	int interceptionChance(const CvPlot* pPlot) const;
 	

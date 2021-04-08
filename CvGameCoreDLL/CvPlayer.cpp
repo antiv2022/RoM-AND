@@ -34300,14 +34300,10 @@ int CvPlayer::getEnslavementChance() const
 
 void CvPlayer::changeEnslavementChance(int iChange)
 {
-	if (iChange > 0)
+	if (iChange != 0)
 	{
-		m_iEnslavementChance = (m_iEnslavementChance + iChange);
+		m_iEnslavementChance += iChange;
 	}
-	else
-	{
-		m_iEnslavementChance = 0;	//45deg: fix for setting 0 enslavement chance when quitting slavery
-	}	
 }
 
 bool CvPlayer::isTradingMilitaryBonus(PlayerTypes ePlayer) const

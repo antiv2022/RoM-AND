@@ -2494,7 +2494,7 @@ void CvUnit::updateCombat(bool bQuick)
 /*                                                                                              */
 /*                                                                                              */
 /************************************************************************************************/
-            pDefender->combatWon(this, false);
+            pDefender->combatWon(this);
 /************************************************************************************************/
 /* JOOYO_ADDON                          END                                                     */
 /************************************************************************************************/
@@ -2598,7 +2598,7 @@ void CvUnit::updateCombat(bool bQuick)
 /*                                                                                              */
 /*                                                                                              */
 /************************************************************************************************/
-            combatWon(pDefender, true);
+            combatWon(pDefender);
 /************************************************************************************************/
 /* JOOYO_ADDON                          END                                                     */
 /************************************************************************************************/
@@ -13060,22 +13060,19 @@ bool CvUnit::canAttack(const CvUnit& defender) const
 
 bool CvUnit::canDefend(const CvPlot* pPlot) const
 {
-	if (pPlot == NULL)
-	{
-		pPlot = plot();
-	}
-
 	if (!canFight())
 	{
 		return false;
 	}
 
-	if (!pPlot->isValidDomainForAction(*this))
+	if (pPlot == NULL)
 	{
-		if (GC.getLAND_UNITS_CAN_ATTACK_WATER_CITIES() == 0)
-		{
-			return false;
-		}
+		pPlot = plot();
+	}
+
+	if (!pPlot->isValidDomainForAction(*this) && GC.getLAND_UNITS_CAN_ATTACK_WATER_CITIES() == 0)
+	{
+		return false;
 	}
 
 	return true;
@@ -23918,19 +23915,19 @@ void CvUnit::changeCanLeadThroughPeaksCount(int iChange)
 	FAssert(getCanLeadThroughPeaksCount() >= 0);
 }
 
-void CvUnit::combatWon(CvUnit* pLoser, bool bAttacking)
+void CvUnit::combatWon(CvUnit* pLoser)
 {
-	UnitTypes iUnit = NO_UNIT;
+	UnitTypes eUnit = NO_UNIT;
 
 	if (GET_PLAYER(getOwnerINLINE()).getEnslavementChance() > 0 && !plot()->isWater()
-	&& !pLoser->isAnimal() && pLoser->canDefend() && pLoser->getDomainType() == DOMAIN_LAND
+	&& !pLoser->isAnimal() && pLoser->canFight() && pLoser->getDomainType() == DOMAIN_LAND
 	&& GC.getGameINLINE().getSorenRandNum(100, "Enslavement") <= GET_PLAYER(getOwnerINLINE()).getEnslavementChance())
 	{
-		iUnit = (UnitTypes)GC.getDefineINT("SLAVE_UNIT");
+		eUnit = (UnitTypes)GC.getDefineINT("SLAVE_UNIT");
 	}
-	if (iUnit != NO_UNIT && !isNoCapture())
+	if (eUnit != NO_UNIT && !isNoCapture())
 	{
-		GET_PLAYER(getOwnerINLINE()).initUnit((UnitTypes)iUnit, plot()->getX_INLINE(), plot()->getY_INLINE(), UNITAI_WORKER, NO_DIRECTION, GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 29"));
+		GET_PLAYER(getOwnerINLINE()).initUnit(eUnit, plot()->getX_INLINE(), plot()->getY_INLINE(), UNITAI_WORKER, NO_DIRECTION, GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 29"));
 	}
 }
 
