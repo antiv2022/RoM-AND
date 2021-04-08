@@ -2150,10 +2150,7 @@ void CvUnit::updateCombat(bool bQuick)
 		{
 			return;
 		}
-		else
-		{
-			bFinish = true;
-		}
+		bFinish = true;
 	}
 
 	CvPlot* pPlot = getAttackPlot();
@@ -21563,10 +21560,13 @@ void CvUnit::updateStackCombat(bool bQuick)
 
 				AddMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(GC.getGameINLINE().getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
 			}
+			pDefender->combatWon(this);
+
 			// report event to Python, along with some other key state
 			CvEventReporter::getInstance().combatResult(pDefender, this);
 
 			getUnitInfo().getKillOutcomeList()->execute(*pDefender, getOwnerINLINE(), getUnitType());
+
 		}
 		else if (pDefender->isDead())
 		{
@@ -21656,6 +21656,7 @@ void CvUnit::updateStackCombat(bool bQuick)
 
 				AddMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer,GC.getEraInfo(GC.getGameINLINE().getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
 			}
+			combatWon(pDefender);
 			// report event to Python, along with some other key state
 			CvEventReporter::getInstance().combatResult(this, pDefender);
 			CvUnitInfo* pDefenderUnitInfo = &(pDefender->getUnitInfo());
@@ -23920,11 +23921,14 @@ void CvUnit::combatWon(CvUnit* pLoser)
 	if (!isNoCapture() && GET_PLAYER(getOwnerINLINE()).getEnslavementChance() > 0 && !plot()->isWater()
 	&& !pLoser->isAnimal() && pLoser->canFight() && pLoser->getDomainType() == DOMAIN_LAND)
 	{
+		FAssertMsg(false, "CvUnit::combatWon 1")
 		const UnitTypes eUnit = (UnitTypes)GC.getDefineINT("SLAVE_UNIT");
 
 		if (eUnit != NO_UNIT && GC.getGameINLINE().getSorenRandNum(100, "Enslavement") <= GET_PLAYER(getOwnerINLINE()).getEnslavementChance())
 		{
+			FAssertMsg(false, "CvUnit::combatWon 2")
 			GET_PLAYER(getOwnerINLINE()).initUnit(eUnit, plot()->getX_INLINE(), plot()->getY_INLINE(), NO_UNITAI, NO_DIRECTION, GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 29"));
+			FAssertMsg(false, "CvUnit::combatWon 3")
 		}
 	}
 }

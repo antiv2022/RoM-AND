@@ -957,7 +957,7 @@ int CvUnitInfo::getNumUnitNames() const
 	return m_iNumUnitNames;
 }
 
-bool CvUnitInfo::isAnimal() const				
+bool CvUnitInfo::isAnimal() const
 {
 	return m_bAnimal;
 }

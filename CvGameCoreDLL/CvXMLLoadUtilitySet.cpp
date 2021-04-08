@@ -590,13 +590,17 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 		SetGlobalDefine("BARBARIAN_LEADER", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("BARBARIAN_LEADER", idx);
+
+		SetGlobalDefine("SLAVE_UNIT", szVal);
+		idx = FindInInfoClass(szVal);
+		GC.getDefinesVarSystem()->SetValue("SLAVE_UNIT", idx);
 /************************************************************************************************/
 /* Afforess	                  Start		 07/12/10                                               */
 /*                                                                                              */
 /*                                                                                              */
 /************************************************************************************************/
-	gDLL->ChangeINIKeyValue("CONFIG", "HideMinSpecWarning ", "1");
-	gDLL->ChangeINIKeyValue("GAME", "ModularLoading  ", "0");
+		gDLL->ChangeINIKeyValue("CONFIG", "HideMinSpecWarning ", "1");
+		gDLL->ChangeINIKeyValue("GAME", "ModularLoading  ", "0");
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
