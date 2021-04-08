@@ -23920,41 +23920,18 @@ void CvUnit::changeCanLeadThroughPeaksCount(int iChange)
 
 void CvUnit::combatWon(CvUnit* pLoser, bool bAttacking)
 {
-    //PromotionTypes ePromotion;
-    //bool bConvert = false;
-    int iUnit = NO_UNIT;
-	int POW = NO_UNIT;
-	//CvUnit* pLoopUnit;
-    //CLLNode<IDInfo>* pUnitNode;
-    //CvUnit* pLoopUnit;
-    //CvPlot* pPlot;
-    CvUnit* pUnit;
+	UnitTypes iUnit = NO_UNIT;
 
-    if (((//m_pUnitInfo->getEnslavementChance() +
-	GET_PLAYER(getOwnerINLINE()).getEnslavementChance()) > 0) && (!plot()->isWater()))
-    {
-        if (//getDuration() == 0 && pLoser->isAlive() && !pLoser->isAnimal() &&
-		(iUnit == NO_UNIT) && (!pLoser->isAnimal()) && (pLoser->canDefend()) && pLoser->getDomainType() == DOMAIN_LAND)
-        {
-            if (GC.getGameINLINE().getSorenRandNum(100, "Enslavement") <= (//m_pUnitInfo->getEnslavementChance() +
-			GET_PLAYER(getOwnerINLINE()).getEnslavementChance()))
-            {
-                iUnit = ((UnitTypes)(GC.getDefineINT("SLAVE_UNIT")));
-				//GC.getInfoTypeForString("UNIT_SLAVE");
-            }
-        }
-    }
-    if (iUnit != NO_UNIT)
-    {
-        if ((//!pLoser->isImmuneToCapture() &&
-		!isNoCapture()// && !pLoser->isImmortal()
-		)
-		//|| GC.getUnitInfo((UnitTypes)pLoser->getUnitType()).getEquipmentPromotion() != NO_PROMOTION
-		)
-        {
-            pUnit = GET_PLAYER(getOwnerINLINE()).initUnit((UnitTypes)iUnit, plot()->getX_INLINE(), plot()->getY_INLINE(), UNITAI_WORKER, NO_DIRECTION, GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 29"));
-        }
-    }
+	if (GET_PLAYER(getOwnerINLINE()).getEnslavementChance() > 0 && !plot()->isWater()
+	&& !pLoser->isAnimal() && pLoser->canDefend() && pLoser->getDomainType() == DOMAIN_LAND
+	&& GC.getGameINLINE().getSorenRandNum(100, "Enslavement") <= GET_PLAYER(getOwnerINLINE()).getEnslavementChance())
+	{
+		iUnit = (UnitTypes)GC.getDefineINT("SLAVE_UNIT");
+	}
+	if (iUnit != NO_UNIT && !isNoCapture())
+	{
+		GET_PLAYER(getOwnerINLINE()).initUnit((UnitTypes)iUnit, plot()->getX_INLINE(), plot()->getY_INLINE(), UNITAI_WORKER, NO_DIRECTION, GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 29"));
+	}
 }
 
 int CvUnit::getMaxHurryFood(CvCity* pCity) const
