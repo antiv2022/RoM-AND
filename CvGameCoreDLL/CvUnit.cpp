@@ -23917,17 +23917,15 @@ void CvUnit::changeCanLeadThroughPeaksCount(int iChange)
 
 void CvUnit::combatWon(CvUnit* pLoser)
 {
-	UnitTypes eUnit = NO_UNIT;
+	if (!isNoCapture() && GET_PLAYER(getOwnerINLINE()).getEnslavementChance() > 0 && !plot()->isWater()
+	&& !pLoser->isAnimal() && pLoser->canFight() && pLoser->getDomainType() == DOMAIN_LAND)
+	{
+		const UnitTypes eUnit = (UnitTypes)GC.getDefineINT("SLAVE_UNIT");
 
-	if (GET_PLAYER(getOwnerINLINE()).getEnslavementChance() > 0 && !plot()->isWater()
-	&& !pLoser->isAnimal() && pLoser->canFight() && pLoser->getDomainType() == DOMAIN_LAND
-	&& GC.getGameINLINE().getSorenRandNum(100, "Enslavement") <= GET_PLAYER(getOwnerINLINE()).getEnslavementChance())
-	{
-		eUnit = (UnitTypes)GC.getDefineINT("SLAVE_UNIT");
-	}
-	if (eUnit != NO_UNIT && !isNoCapture())
-	{
-		GET_PLAYER(getOwnerINLINE()).initUnit(eUnit, plot()->getX_INLINE(), plot()->getY_INLINE(), UNITAI_WORKER, NO_DIRECTION, GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 29"));
+		if (eUnit != NO_UNIT && GC.getGameINLINE().getSorenRandNum(100, "Enslavement") <= GET_PLAYER(getOwnerINLINE()).getEnslavementChance())
+		{
+			GET_PLAYER(getOwnerINLINE()).initUnit(eUnit, plot()->getX_INLINE(), plot()->getY_INLINE(), NO_UNITAI, NO_DIRECTION, GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 29"));
+		}
 	}
 }
 
