@@ -23921,14 +23921,11 @@ void CvUnit::combatWon(CvUnit* pLoser)
 	if (!isNoCapture() && GET_PLAYER(getOwnerINLINE()).getEnslavementChance() > 0 && !plot()->isWater()
 	&& !pLoser->isAnimal() && pLoser->canFight() && pLoser->getDomainType() == DOMAIN_LAND)
 	{
-		FAssertMsg(false, "CvUnit::combatWon 1")
 		const UnitTypes eUnit = (UnitTypes)GC.getDefineINT("SLAVE_UNIT");
 
 		if (eUnit != NO_UNIT && GC.getGameINLINE().getSorenRandNum(100, "Enslavement") <= GET_PLAYER(getOwnerINLINE()).getEnslavementChance())
 		{
-			FAssertMsg(false, "CvUnit::combatWon 2")
 			GET_PLAYER(getOwnerINLINE()).initUnit(eUnit, plot()->getX_INLINE(), plot()->getY_INLINE(), NO_UNITAI, NO_DIRECTION, GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 29"));
-			FAssertMsg(false, "CvUnit::combatWon 3")
 		}
 	}
 }
