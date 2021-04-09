@@ -13709,9 +13709,8 @@ void CvGame::findMountainRanges()
 {
 	CvPlot* pLoopPlot;
 	int iPeakCount;
-	//bool bFoundPeak = false;
-	int iMinimumRangeSize = GC.getDefineINT("MINIMUM_MOUNTAIN_RANGE_SIZE");
-	iMinimumRangeSize += (int)GC.getMapINLINE().getWorldSize();
+	const int iMinimumRangeSize = GC.getDefineINT("MINIMUM_MOUNTAIN_RANGE_SIZE") + GC.getMapINLINE().getWorldSize();
+
 	for (int iPlot = 0; iPlot < GC.getMapINLINE().numPlotsINLINE(); iPlot++)
 	{
 		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iPlot);
@@ -13834,8 +13833,8 @@ void CvGame::findForests()
 {
 	CvPlot* pLoopPlot;
 	int iForestCount;
-	int iMinimumForestSize = GC.getDefineINT("MINIMUM_FOREST_SIZE");
-	iMinimumForestSize += (int)GC.getMapINLINE().getWorldSize() * 2;
+	const int iMinimumForestSize = GC.getDefineINT("MINIMUM_FOREST_SIZE") + GC.getMapINLINE().getWorldSize() * 2;
+
 	for (int iPlot = 0; iPlot < GC.getMapINLINE().numPlotsINLINE(); iPlot++)
 	{
 		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iPlot);
@@ -13865,8 +13864,8 @@ void CvGame::findJungles()
 {
 	CvPlot* pLoopPlot;
 	int iJungleCount;
-	int iMinimumJungleSize = GC.getDefineINT("MINIMUM_JUNGLE_SIZE");
-	iMinimumJungleSize += (int)GC.getMapINLINE().getWorldSize() * 2;
+	const int iMinimumJungleSize = GC.getDefineINT("MINIMUM_JUNGLE_SIZE") + GC.getMapINLINE().getWorldSize() * 2;
+
 	for (int iPlot = 0; iPlot < GC.getMapINLINE().numPlotsINLINE(); iPlot++)
 	{
 		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iPlot);
@@ -13898,8 +13897,6 @@ void CvGame::findDeserts()
 {
 	CvPlot* pLoopPlot;
 	int iDesertCount;
-	int iMinimumDesertSize = GC.getDefineINT("MINIMUM_DESERT_SIZE");
-	iMinimumDesertSize += (int)GC.getMapINLINE().getWorldSize() * 2;
 	for (int iPlot = 0; iPlot < GC.getMapINLINE().numPlotsINLINE(); iPlot++)
 	{
 		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iPlot);

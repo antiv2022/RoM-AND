@@ -686,8 +686,6 @@ public:
 /************************************************************************************************/
 /* Afforess                                END                                                  */
 /************************************************************************************************/
-	int getNumPipelineThreads() const;
-	int setNumPipelineThreads(int iThreads);
 
 	int getNumCityTabInfos();
 	std::vector<CvInfoBase*>& getCityTabInfo();
@@ -1863,7 +1861,6 @@ protected:
 /************************************************************************************************/
 /* MODULES                                 END                                                  */
 /************************************************************************************************/
-	int	m_iNumPipelineThreads;
 	bool m_bMultimapsEnabled;
 	bool m_bViewportsEnabled;
 	int	m_iViewportFocusBorder;

@@ -389,7 +389,6 @@ m_bMultimapsEnabled(false),
 m_bViewportsEnabled(false),
 m_iViewportFocusBorder(0),
 m_iViewportCenterOnSelectionCenterBorder(5),
-m_iNumPipelineThreads(1),	//	Single thread by default
 m_szAlternateProfilSampleName(""),
 m_bGraphicalDetailPagingEnabled(false),
 
@@ -3899,8 +3898,6 @@ void cvInternalGlobals::cacheGlobals()
 		m_szAlternateProfilSampleName = "";
 	}
 
-	m_iNumPipelineThreads = getDefineINT("NUM_CITY_PIPELINE_THREADS");
-
 	m_iLAND_UNITS_CAN_ATTACK_WATER_CITIES = getDefineINT("LAND_UNITS_CAN_ATTACK_WATER_CITIES");
 	m_iBASE_UNIT_UPGRADE_COST = getDefineINT("BASE_UNIT_UPGRADE_COST");
 	m_iCITY_BARBARIAN_DEFENSE_MODIFIER = getDefineINT("CITY_BARBARIAN_DEFENSE_MODIFIER");
@@ -4444,16 +4441,6 @@ int cvInternalGlobals::getUSE_ON_UNIT_CREATED_CALLBACK()
 int cvInternalGlobals::getUSE_ON_UNIT_LOST_CALLBACK()
 {
 	return m_iUSE_ON_UNIT_LOST_CALLBACK;
-}
-
-int cvInternalGlobals::getNumPipelineThreads() const
-{
-	return m_iNumPipelineThreads;
-}
-
-int cvInternalGlobals::setNumPipelineThreads(int iThreads)
-{
-	return m_iNumPipelineThreads = std::max(1, iThreads);
 }
 
 int cvInternalGlobals::getLAND_UNITS_CAN_ATTACK_WATER_CITIES() const

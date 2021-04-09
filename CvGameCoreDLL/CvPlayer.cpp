@@ -6224,8 +6224,6 @@ void CvPlayer::doTurn()
 
 		//DWORD end = GetTickCount();
 
-		//GC.getGameINLINE().logMsg("Player %d (num threads: %d) Elapsed pipeline: %d ms", getID(), GC.getNumPipelineThreads(), (end - start));
-
 		resumeUpdates();
 
 		delete pPipeline;

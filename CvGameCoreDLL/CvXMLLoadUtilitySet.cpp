@@ -310,10 +310,10 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 		FAssertMsg(false,"Inthegrave_GlobalDefines Failed to load!");
 	}
 
-	// if (!ReadGlobalDefines("xml\\LeadFromBehind_GlobalDefines.xml", cache))
-	// {
-		// FAssertMsg(false,"A_New_Dawn_GlobalDefines Failed to load!");
-	// }
+	if (!ReadGlobalDefines("xml\\LeadFromBehind_GlobalDefines.xml", cache))
+	{
+		FAssertMsg(false,"A_New_Dawn_GlobalDefines Failed to load!");
+	}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/

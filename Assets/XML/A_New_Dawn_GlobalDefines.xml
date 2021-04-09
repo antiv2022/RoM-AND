@@ -1,0 +1,371 @@
+<?xml version="1.0"?>
+
+<!-- Global Defines -->
+<Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
+  <!-- Dexy - Surround and Destroy START -->
+	<Define>
+		<DefineName>SAD_FACTOR_1</DefineName>
+		<fDefineFloatVal>6.0</fDefineFloatVal>
+	</Define>
+	<Define>
+		<DefineName>SAD_FACTOR_2</DefineName>
+		<fDefineFloatVal>10.0</fDefineFloatVal>
+	</Define>
+	<Define>
+		<DefineName>SAD_FACTOR_3</DefineName>
+		<fDefineFloatVal>15.0</fDefineFloatVal>
+	</Define>
+	<Define>
+		<DefineName>SAD_FACTOR_4</DefineName>
+		<fDefineFloatVal>20.0</fDefineFloatVal>
+	</Define>
+	<Define>
+		<DefineName>SAD_MAX_MODIFIER</DefineName>
+		<iDefineIntVal>60</iDefineIntVal>
+	</Define>
+	<!-- Dexy - Surround and Destroy  END  -->
+	<!--Afforess:
+	This sets the maximum bombard resistance a city can have. Set to 100 for normal games, less, for a lower minimum-->
+	<Define>
+		<DefineName>MAX_BOMBARD_DEFENSE</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!--Afforess:
+	Units can not Claim Water Tiles-->
+	<Define>
+		<DefineName>CANNOT_CLAIM_OCEAN</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!--Afforess:
+	Don't round up for 5% tax increments with taxation anger, only round down.-->
+	<Define>
+		<DefineName>TAXATION_ANGER_ROUND_DOWN</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!--Afforess:
+	Disbanding units earn gold-->
+	<Define>
+		<DefineName>DISBANDING_EARNS_GOLD</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!--Afforess:
+	The divisor (or denominator) for the disbanded units gold. 1 will yield the full production cost. Has no effect if the above setting is disabled.-->
+	<Define>
+		<DefineName>UNIT_GOLD_DISBAND_DIVISOR</DefineName>
+		<iDefineIntVal>7</iDefineIntVal>
+	</Define>
+<!--Afforess:
+	The number of turns that the Cut Lower's Game Option Checks-->
+	<Define>
+		<DefineName>CUT_LOSERS_TURN_INCREMENT</DefineName>
+		<iDefineIntVal>50</iDefineIntVal>
+	</Define>
+<!--Afforess:
+	Every X turns the game checks the High to Low Option-->
+	<Define>
+		<DefineName>HIGH_TO_LOW_FIRST_TURN_CHECK</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
+	</Define>
+<!--Afforess:
+	Every X turns the game checks the Increasing Difficulty Option-->
+	<Define>
+		<DefineName>INCREASING_DIFFICULTY_TURN_CHECK_INCREMENTS</DefineName>
+		<iDefineIntVal>50</iDefineIntVal>
+	</Define>
+	<!--Afforess:
+	How much Golden Ages lower the food requirement for city growth-->
+	<Define>
+		<DefineName>GOlDEN_AGE_PERCENT_LESS_FOOD_FOR_GROWTH</DefineName>
+		<iDefineIntVal>-25</iDefineIntVal>
+	</Define>
+	<!--Afforess:
+	GameFont Testing.-->
+	<Define>
+		<DefineName>TEST_GAMEFONTS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!--Afforess:
+	Sets a Maximum Airlift and Rebase range for aircraft. -1 for no limit to range or rebase.-->
+	<Define>
+		<DefineName>MAX_AIRLIFT_RANGE</DefineName>
+		<iDefineIntVal>-1</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>MINIMUM_JUNGLE_SIZE</DefineName>
+		<iDefineIntVal>12</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>MINIMUM_FOREST_SIZE</DefineName>
+		<iDefineIntVal>12</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>MINIMUM_MOUNTAIN_RANGE_SIZE</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>PEAK_EXTRA_DEFENSE</DefineName>
+		<iDefineIntVal>75</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>PEAK_EXTRA_MOVEMENT</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>PEAK_BUILD_TIME_MODIFIER</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!--Afforess:
+	Disables Military Unit Trading in Advanced Diplomacy. 0 Allows Military Unit Trading, any other value disables it.-->
+	<Define>
+		<DefineName>NO_MILITARY_UNIT_TRADING</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>LANDMARK_ANGER_DIVISOR</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>NUM_BAY_NAMES</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>NUM_FOREST_NAMES</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>NUM_JUNGLE_NAMES</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>NUM_PEAK_NAMES</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>NUM_MOUNTAINS_NAMES</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>NUM_DESERT_NAMES</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>NUM_LAKE_NAMES</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>BATTLEFIELD_PROMOTIONS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>EMBASSY_ESPIONAGE_MISSION_COST_MODIFIER</DefineName>
+		<iDefineIntVal>25</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>COMMERCE_ATTACKS_FADE_RATE</DefineName>
+		<iDefineIntVal>8</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>CORPORATION_SPREAD_DISTANCE_DIVISOR</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>CORPORATION_SPREAD_RAND</DefineName>
+		<iDefineIntVal>2500</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>CORPORATION_RESOURCE_BASE_INFLUENCE</DefineName>
+		<iDefineIntVal>25</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>RAND_CORPORATION_BEST_SPREAD</DefineName>
+		<iDefineIntVal>500</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>FREE_TRADE_CORPORATION_SPREAD_MOD</DefineName>
+		<iDefineIntVal>25</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>HURRY_INFLATION_DECAY_RATE</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>FREE_TRADE_AGREEMENT_ESPIONAGE_MISSION_COST_MODIFIER</DefineName>
+		<iDefineIntVal>25</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>XML_LOGGING_ENABLED</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- If the number of players with the prereq tech for the corporation is greater than this value, the corporation will be founded with Realistic Corporations.-->
+	<Define>
+		<DefineName>MINIMUM_PLAYERS_WITH_TECH_FOR_AUTO_CORPORATION_FOUNDING</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<!--The game will try to found a HQ for a corporation every "x" turns -->
+	<Define>
+		<DefineName>CORPORATION_FOUND_CHECK_TURNS</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<!--The Time and Gold to Build a Route over an existing route is reduced by the time and Gold already invested in the previous Route-->
+	<Define>
+		<DefineName>ROUTES_UPGRADE</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>ALWAYS_USE_MAX_COMPAT_SAVES</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>USE_MULTIPLE_THREADS_SPAWNING</DefineName>
+		<bDefineBoolVal>1</bDefineBoolVal>
+	</Define>
+	<Define>
+		<DefineName>USE_MULTIPLE_THREADS_PROPERTY_SOLVER</DefineName>
+		<bDefineBoolVal>1</bDefineBoolVal>
+	</Define>
+	<Define>
+		<!-- Use the following to determine what building art
+			is displayed on cities.  It is a bitmask of flags which may be
+			added together:
+			1 = Wonders
+			2 = city defences
+			128 = other
+			We default to Wonders and city defenses (1+2 = 3) -->
+		<DefineName>SHOW_BUILDINGS_LEVEL</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>WASTAGE_START_CONSUMPTION_PERCENT</DefineName>
+		<iDefineIntVal>50</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>WASTAGE_GROWTH_FACTOR</DefineName>
+		<fDefineFloatVal>0.05</fDefineFloatVal>
+	</Define>
+	<Define>
+		<DefineName>CITY_THIRD_RING_EXTRA_GROWTH_THRESHOLD_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+  <Define>
+    <!-- Set to non-0 value to enable dynamic activation of unit graphics entities (reduced memory usage and growth) -->
+    <DefineName>ENABLE_DYNAMIC_UNIT_ENTITIES</DefineName>
+    <iDefineIntVal>0</iDefineIntVal>
+  </Define>
+	<Define>
+		<DefineName>TREAT_NEGATIVE_GOLD_AS_MAINTENANCE</DefineName>
+    <iDefineIntVal>1</iDefineIntVal>
+  </Define>
+   <Define>
+    <DefineName>DO_CACHING</DefineName>
+    <bDefineBoolVal>0</bDefineBoolVal>
+  </Define>
+	<!--
+ If dynamic Great Wall is set toa  non-0 value the great wall will be
+       re-evaluated and postioned every turn to reflect the owner's expanding borders.
+       Note that this has no fucntional effect (the Great Wall prevents barbarians from enetering
+       all of your territory however it's displayed - the effect is just graphical.
+       The Great Wall is alwasy dynamic if viewports are enabled regardless of this setting
+	-->
+	<Define>
+		<DefineName>DYNAMIC_GREAT_WALL</DefineName>
+		<bDefineBoolVal>0</bDefineBoolVal>
+	</Define>
+	<Define>
+		<DefineName>PROFILER_ALTERNATE_SAMPLE_SET_SOURCE</DefineName>
+		<DefineTextVal></DefineTextVal>
+	</Define>
+	<Define>
+		<DefineName>ENABLE_BACKGROUND_PROFILING</DefineName>
+		<bDefineBoolVal>1</bDefineBoolVal>
+	</Define>
+	<Define>
+		<DefineName>DEFAULT_FLEXIBLE_DIFFICULTY_TURN_INCREMENTS</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>DEFAULT_FLEXIBLE_DIFFICULTY_AI_MIN_DIFFICULTY</DefineName>
+		<iDefineIntVal>-1</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>DEFAULT_FLEXIBLE_DIFFICULTY_AI_MAX_DIFFICULTY</DefineName>
+		<iDefineIntVal>-1</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>CULTURE_DECAY_TURNS</DefineName>
+		<iDefineIntVal>25</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>DISABLE_INFLATION</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+<!-- Turning off Resync Code on Afforess' suggestion until he can finish coding it and solve a couple of issues -->
+	<Define>
+		<DefineName>ENABLE_RESYNC_CODE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+<!-- Control the number of reassignments of High to Low option -->
+    <Define>
+		<DefineName>HIGH_TO_LOW_NUM_REASSIGNMENTS</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+<!-- The factor which multiply unit-per-tiles for cities. F.e. 3u/t with a factor 2 mean 6 units max. per city (understand 6 combat units + 6 non-combat units). Default is 4-->
+    <Define>
+		<DefineName>UNITS_PER_TILES_CITY_FACTOR</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+<!-- This factor is applied on non-city tiles. It multiply the UPT limit for non-combat units. (Ex: UPT is 2, Non-combat factor is 2 = 4 workers, colons, spy, etc. max on the tile). Default is 1. On cities, city factor is applied.-->
+    <Define>
+		<DefineName>UNITS_PER_TILES_NON_COMBAT_FACTOR</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+     <Define>
+		<DefineName>AI_LONG_WAR_TURNS_COUNT</DefineName>
+		<iDefineIntVal>60</iDefineIntVal>
+	</Define>
+	<!-- if set to NO_TECH, disables contact decay -->
+	 <Define>
+		<DefineName>TECH_ALLOWS_PERMENANT_CONTACT</DefineName>
+		<DefineTextVal>NO_TECH</DefineTextVal>
+	</Define>
+	 <Define>
+		<DefineName>CONTACT_DECAY_SAMPLING_RATE</DefineName>
+		<iDefineIntVal>6</iDefineIntVal>
+	</Define>
+	 <Define>
+		<DefineName>CONTACT_DECAY_NUM_OF_FAILED_CHECKS_BEFORE_CONTACT_LOST</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>REVOLUTION_TECH_COST_RATIO</DefineName>
+		<iDefineIntVal>82</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>BOOST_NEW_RELIGION_SPREAD_PERCENT</DefineName>
+		<iDefineIntVal>250</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SLAVE_UNIT</DefineName>
+		<DefineTextVal>UNIT_WORKER</DefineTextVal>
+	</Define>
+	<Define>
+		<DefineName>BASE_EXPLORATION_RADIUS</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<!-- Raging barbarians options defines -->
+	<Define> <!-- This is a production bonus given each turn to barbarian cities (when NOT using RB). It is compensated by the combat bonus against them (more unit, more spectacle)-->
+		<DefineName>CLASSIC_BARBARIAN_PRODUCTION_BONUS</DefineName>
+		<iDefineIntVal>5</iDefineIntVal>
+	</Define>
+	<Define> <!-- This is a production bonus given each turn to barbarian cities (when using RB). It is compensated by the combat bonus against them (more unit, more spectacle)-->
+		<DefineName>RAGING_BARBARIAN_PRODUCTION_BONUS</DefineName>
+		<iDefineIntVal>25</iDefineIntVal>
+	</Define>
+	<Define> <!-- Raging barbarians spawn frequency (in the fog). This is a divider so, a bigger number will result in a higher frequency (more spawns) -->
+		<DefineName>RAGING_BARBARIAN_SPAWN_RATE</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+	<Define> <!-- Raging barbarians spawn unit density (in the fog). This is a divider so, a bigger number will result in a higher limit to host new barbarians on a continent (more spawns) -->
+		<DefineName>RAGING_BARBARIAN_SPAWN_UNIT_DENSITY</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+</Civ4Defines>
