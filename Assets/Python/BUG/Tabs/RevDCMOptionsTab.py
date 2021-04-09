@@ -27,7 +27,6 @@ class RevDCMOptionsTab(BugOptionsTab.BugOptionsTab):
 		if not networkGame:
 			self.addLabel(screen, left, "RevDCM__RevDCMInterface", BugUtil.getText("TXT_KEY_REVDCMTAB_INTERFACE_OPTIONS"))
 			col1, col2 = self.addMultiColumnLayout(screen, right, 2, "interfaceOptions")
-			self.addCheckbox(screen, col1, "RevDCM__RevDCMHiddenAttitude")
 			self.addCheckbox(screen, col2, "RevDCM__DYNAMIC_CIV_NAMES")
 			#Dynamic Civ Names Debug
 			if(gc.getDefineINT("DYNAMIC_CIV_NAMES") and game.isDebugMode()):

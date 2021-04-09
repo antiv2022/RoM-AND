@@ -50,7 +50,6 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 	def createLeaderheadPanel(self, screen, panel):
 		self.addLabel(screen, panel, "Leaderheads", "Leaderheads:")
-		self.addCheckbox(screen, panel, "MiscHover__LeaderheadHiddenAttitude")
 		self.addCheckbox(screen, panel, "MiscHover__LeaderheadWorstEnemy")
 		self.addCheckbox(screen, panel, "MiscHover__LeaderheadDefensivePacts")
 		
