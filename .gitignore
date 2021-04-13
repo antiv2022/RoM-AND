@@ -3,6 +3,12 @@
 .vs/
 
 *.suo
+*.sdf
+*.opensdf
+*.vcxproj.filters
+*.vcxproj.user
+
+CvGameCoreDLL/project/Makefile.settings
 
 CvGameCoreDLL/project/temp_files/
 
@@ -14,6 +20,8 @@ CvGameCoreDLL/project/Release/
 CvGameCoreDLL/project/Release-fast/
 CvGameCoreDLL/project/Final_Release/
 CvGameCoreDLL/project/Final_Release-fast/
+CvGameCoreDLL/project/Profile/
+CvGameCoreDLL/project/Profile-fast/
 
 CvGameCoreDLL/project/obj/
 
