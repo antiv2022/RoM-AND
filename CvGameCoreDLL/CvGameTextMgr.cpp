@@ -4398,7 +4398,10 @@ It is fine for a human player mouse-over (which is what it is used for).
 			if ((gDLL->getChtLvl() > 0))
 */
 			// Only display this info in debug mode so game can be played with cheat code entered
-			if( GC.getGameINLINE().isDebugMode() )
+			if( GC.getGameINLINE().isDebugMode()
+				/*	f1rpo: Even in Debug mode, having this on display constantly
+					is annoying. */
+				&& bShift)
 			{
 				szTempBuffer.Format(L"\nStack Compare Value = %d",
 					gDLL->getInterfaceIFace()->getSelectionList()->AI_compareStacks(pPlot, false));
