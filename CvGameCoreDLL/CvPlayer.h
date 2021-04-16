@@ -1414,6 +1414,9 @@ public:
 	void invalidateYieldRankCache(YieldTypes eYield = NO_YIELD);
 	void invalidateCommerceRankCache(CommerceTypes eCommerce = NO_COMMERCE);
 
+	void setLastPlayerThatConqueredUs(const PlayerTypes ePlayer);
+	PlayerTypes getLastPlayerThatConqueredUs() const;
+
 	PlayerTypes pickConqueredCityOwner(const CvCity& kCity) const;
 	bool canHaveTradeRoutesWith(PlayerTypes ePlayer) const;
 
@@ -2132,6 +2135,8 @@ protected:
 	ReligionTypes m_eLastStateReligion;
 	PlayerTypes m_eParent;
 	TeamTypes m_eTeamType;
+
+	PlayerTypes m_eLastPlayerThatConqueredUs;
 
 	// Members for culture accumulation and cultural ages
 	AgeSegments m_eCurrentAgeSegment;

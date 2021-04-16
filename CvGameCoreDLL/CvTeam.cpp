@@ -3951,26 +3951,19 @@ bool CvTeam::isBarbarian() const
 
 bool CvTeam::isMinorCiv() const
 {
-	bool bValid;
-	int iI;
+	bool bValid = false;
 
-	bValid = false;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID() && GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
-			if (GET_PLAYER((PlayerTypes)iI).isMinorCiv())
-			{
-				bValid = true;
-			}
-			else
+			if (!GET_PLAYER((PlayerTypes)iI).isMinorCiv())
 			{
 				return false;
 			}
+			bValid = true;
 		}
 	}
-
 	return bValid;
 }
 

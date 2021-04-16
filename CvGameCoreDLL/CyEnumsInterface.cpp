@@ -1782,6 +1782,7 @@ void CyEnumsPythonInterface()
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
+		.value("MEMORY_DESTROYED_CIV", MEMORY_DESTROYED_CIV)
 
 		.value("NUM_MEMORY_TYPES", NUM_MEMORY_TYPES)
 		;

@@ -182,5 +182,9 @@
 			<Type>MEMORY_BACKSTAB_FRIEND</Type>
 			<Description>TXT_KEY_MEMORY_BACKSTAB_FRIEND</Description>
 		</MemoryInfo>
+		<MemoryInfo>
+			<Type>MEMORY_DESTROYED_CIV</Type>
+			<Description>Destroyed a civilization!</Description>
+		</MemoryInfo>
 	</MemoryInfos>
 </Civ4MemoryInfos>
