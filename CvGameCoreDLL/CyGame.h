@@ -166,10 +166,7 @@ public:
 	int getInitLand() const;
 	int getInitTech() const;
 	int getInitWonders() const;
-	// < M.A.D. Nukes Start >
-	CyPlot* getLastNukeStrikePlot();
-	void setLastNukeStrikePlot(CyPlot* pPlot);
-	// < M.A.D. Nukes End   >
+
 /************************************************************************************************/
 /* REVOLUTION_MOD                                                                 lemmy101      */
 /*                                                                                jdog5000      */

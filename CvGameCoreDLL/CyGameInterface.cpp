@@ -156,11 +156,7 @@ void CyGamePythonInterface()
 		.def("getInitLand", &CyGame::getInitLand)
 		.def("getInitTech", &CyGame::getInitTech)
 		.def("getInitWonders", &CyGame::getInitWonders)
-		// < M.A.D. Nukes Start >
 
-		.def("getLastNukeStrikePlot", &CyGame::getLastNukeStrikePlot, python::return_value_policy<python::manage_new_object>(), "CyPlot* ()")
-		.def("setLastNukeStrikePlot", &CyGame::setLastNukeStrikePlot, "void (CyPlot* pPlot)")
-		// < M.A.D. Nukes End   >
 /************************************************************************************************/
 /* REVOLUTION_MOD                                                                 lemmy101      */
 /*                                                                                jdog5000      */

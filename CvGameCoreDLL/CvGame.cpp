@@ -849,8 +849,6 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	calculateRiverBuildings();
 	calculateCoastalBuildings();
 	calculateNumWonders();
-	m_iLastNukeStrikeX = INVALID_PLOT_COORD;
-	m_iLastNukeStrikeY = INVALID_PLOT_COORD;
 #if defined QC_MASTERY_VICTORY
 	for (int loopI = 0; loopI < MAX_TEAMS; loopI++)
 	{
@@ -4922,31 +4920,6 @@ void CvGame::changeForcedAIAutoPlay(PlayerTypes iPlayer, int iChange)
 /* REVOLUTION_MOD                          END                                                  */
 /************************************************************************************************/
 
-
-// < M.A.D. Nukes Start >
-CvPlot* CvGame::getLastNukeStrikePlot() const
-{
-	return GC.getMapINLINE().plotSorenINLINE(m_iLastNukeStrikeX, m_iLastNukeStrikeY);
-}
-
-
-void CvGame::setLastNukeStrikePlot(CvPlot* pPlot)
-{
-	if (getLastNukeStrikePlot() != pPlot)
-	{
-		if (pPlot != NULL)
-		{
-			m_iLastNukeStrikeX = pPlot->getX_INLINE();
-			m_iLastNukeStrikeY = pPlot->getY_INLINE();
-		}
-		else
-		{
-			m_iLastNukeStrikeX = INVALID_PLOT_COORD;
-			m_iLastNukeStrikeY = INVALID_PLOT_COORD;
-		}
-	}
-}
-// < M.A.D. Nukes End   >
 
 unsigned int CvGame::getInitialTime()
 {
@@ -10904,10 +10877,11 @@ void CvGame::read(FDataStreamBase* pStream)
 	WRAPPER_READ(wrapper,"CvGame",&m_iInitLand);
 	WRAPPER_READ(wrapper,"CvGame",&m_iInitTech);
 	WRAPPER_READ(wrapper,"CvGame",&m_iInitWonders);
-	// < M.A.D. Nukes Start >
-	WRAPPER_READ(wrapper,"CvGame",&m_iLastNukeStrikeX);
-	WRAPPER_READ(wrapper,"CvGame",&m_iLastNukeStrikeY);
-	// < M.A.D. Nukes End   >
+
+	// Toffer - SAVEBREAK - remove
+	WRAPPER_SKIP_ELEMENT(wrapper, "CvGame", m_iLastNukeStrikeX, SAVE_VALUE_ANY);
+	WRAPPER_SKIP_ELEMENT(wrapper, "CvGame", m_iLastNukeStrikeY, SAVE_VALUE_ANY);
+	// ! Toffer
 
 /************************************************************************************************/
 /* Afforess                                     12/7/09                                         */
@@ -11298,10 +11272,6 @@ void CvGame::write(FDataStreamBase* pStream)
 	WRAPPER_WRITE(wrapper, "CvGame", m_iInitLand);
 	WRAPPER_WRITE(wrapper, "CvGame", m_iInitTech);
 	WRAPPER_WRITE(wrapper, "CvGame", m_iInitWonders);
-	// < M.A.D. Nukes Start >
-	WRAPPER_WRITE(wrapper, "CvGame", m_iLastNukeStrikeX);
-	WRAPPER_WRITE(wrapper, "CvGame", m_iLastNukeStrikeY);
-	// < M.A.D. Nukes End   >
 
 /************************************************************************************************/
 /* Afforess                                     12/7/09                                         */
@@ -15674,8 +15644,6 @@ void CvGame::resync(bool bWrite, ByteBuffer *pBuffer)
 	RESYNC_INT(bWrite, pBuffer, m_iInitLand);
 	RESYNC_INT(bWrite, pBuffer, m_iInitTech);
 	RESYNC_INT(bWrite, pBuffer, m_iInitWonders);
-	RESYNC_INT(bWrite, pBuffer, m_iLastNukeStrikeX);
-	RESYNC_INT(bWrite, pBuffer, m_iLastNukeStrikeY);
 	RESYNC_INT(bWrite, pBuffer, m_iCurrentVoteID);
 	RESYNC_INT(bWrite, pBuffer, m_iWaterAnimalSpawnChance);
 	RESYNC_INT(bWrite, pBuffer, m_iCutLosersCounter);

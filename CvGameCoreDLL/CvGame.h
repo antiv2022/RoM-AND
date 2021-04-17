@@ -337,10 +337,7 @@ public:
 	int getInitTech() const;																			// Exposed to Python
 	int getInitWonders() const;																		// Exposed to Python
 	DllExport void initScoreCalculation();
-	// < M.A.D. Nukes Start >
-	CvPlot* getLastNukeStrikePlot() const;										// Exposed to Python
-	void setLastNukeStrikePlot(CvPlot* pPlot);									// Exposed to Python
-	// < M.A.D. Nukes End   >
+
 /************************************************************************************************/
 /* REVOLUTION_MOD                                                                  lemmy101     */
 /*                                                                                 jdog5000     */
@@ -936,10 +933,7 @@ protected:
 /* Afforess	                         END                                                        */
 /************************************************************************************************/	
 	unsigned int m_uiInitialTime;
-	// < M.A.D. Nukes Start >
-	int m_iLastNukeStrikeX;
-	int m_iLastNukeStrikeY;
-	// < M.A.D. Nukes End   >
+
 	bool m_bScoreDirty;
 	bool m_bDebugMode;
 	bool m_bDebugModeCache;

@@ -1584,130 +1584,113 @@ void CvPlot::verifyUnitValidPlot()
 
 void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit)
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvCity* pLoopCity;
-	CvUnit* pLoopUnit;
-	CvPlot* pLoopPlot;
 	CLinkList<IDInfo> oldUnits;
-	CvWString szBuffer;
-	int iNukeDamage;
-	int iNukedPopulation;
-	int iDX, iDY;
-	int iI;
-
 	GC.getGameINLINE().changeNukesExploded(1);
 
-	for (iDX = -(iRange); iDX <= iRange; iDX++)
+	for (int iDX = -(iRange); iDX <= iRange; iDX++)
 	{
-		for (iDY = -(iRange); iDY <= iRange; iDY++)
+		for (int iDY = -(iRange); iDY <= iRange; iDY++)
 		{
-			pLoopPlot	= plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+			CvPlot* plotX = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
 
-			if (pLoopPlot != NULL)
+			if (plotX != NULL)
 			{
 				// if we remove roads, don't remove them on the city... XXX
+				CvCity* city = plotX->getPlotCity();
 
-				pLoopCity = pLoopPlot->getPlotCity();
-
-				if (pLoopCity == NULL)
+				if (city == NULL && !plotX->isWater() && !plotX->isImpassable()
+				&& (NO_FEATURE == plotX->getFeatureType() || !GC.getFeatureInfo(plotX->getFeatureType()).isNukeImmune())
+				&& GC.getGameINLINE().getSorenRandNum(100, "Nuke Fallout") < GC.getDefineINT("NUKE_FALLOUT_PROB"))
 				{
-					if (!(pLoopPlot->isWater()) && !(pLoopPlot->isImpassable()))
-					{
-						if (NO_FEATURE == pLoopPlot->getFeatureType() || !GC.getFeatureInfo(pLoopPlot->getFeatureType()).isNukeImmune())
-						{
-							if (GC.getGameINLINE().getSorenRandNum(100, "Nuke Fallout") < GC.getDefineINT("NUKE_FALLOUT_PROB"))
-							{
-								pLoopPlot->setImprovementType(NO_IMPROVEMENT);
-								pLoopPlot->setFeatureType((FeatureTypes)(GC.getDefineINT("NUKE_FEATURE")));
-							}
-						}
-					}
+					plotX->setImprovementType(NO_IMPROVEMENT);
+					plotX->setFeatureType((FeatureTypes)(GC.getDefineINT("NUKE_FEATURE")));
 				}
-
 				oldUnits.clear();
 
-				pUnitNode = pLoopPlot->headUnitNode();
+				CLLNode<IDInfo>* pUnitNode = plotX->headUnitNode();
 
 				while (pUnitNode != NULL)
 				{
 					oldUnits.insertAtEnd(pUnitNode->m_data);
-					pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
+					pUnitNode = plotX->nextUnitNode(pUnitNode);
 				}
 
 				pUnitNode = oldUnits.head();
 
 				while (pUnitNode != NULL)
 				{
-					pLoopUnit = ::getUnit(pUnitNode->m_data);
+					CvUnit* unitX = ::getUnit(pUnitNode->m_data);
 					pUnitNode = oldUnits.next(pUnitNode);
 
-					if (pLoopUnit != NULL)
+					if (unitX != NULL && unitX != pNukeUnit && !unitX->isMADEnabled() && !unitX->isNukeImmune() && !unitX->isDelayedDeath())
 					{
-						// < M.A.D. Nukes Start >
-						if (pLoopUnit != pNukeUnit && !pLoopUnit->isMADEnabled())
-						//if (pLoopUnit != pNukeUnit)
-						// < M.A.D. Nukes End   >
+						int iNukeDamage =
+						(
+							GC.getDefineINT("NUKE_UNIT_DAMAGE_BASE")
+							+ GC.getGameINLINE().getSorenRandNum(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_1"), "Nuke Damage 1")
+							+ GC.getGameINLINE().getSorenRandNum(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_2"), "Nuke Damage 2")
+						);
+						if (city != NULL)
 						{
-							if (!pLoopUnit->isNukeImmune() && !pLoopUnit->isDelayedDeath())
-							{
-								iNukeDamage = (GC.getDefineINT("NUKE_UNIT_DAMAGE_BASE") + GC.getGameINLINE().getSorenRandNum(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_1"), "Nuke Damage 1") + GC.getGameINLINE().getSorenRandNum(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_2"), "Nuke Damage 2"));
+							iNukeDamage *= std::max(0, city->getNukeModifier() + 100);
+							iNukeDamage /= 100;
+						}
 
-								if (pLoopCity != NULL)
-								{
-									iNukeDamage *= std::max(0, (pLoopCity->getNukeModifier() + 100));
-									iNukeDamage /= 100;
-								}
-
-								if (pLoopUnit->canFight() || pLoopUnit->airBaseCombatStr() > 0)
-								{
-									pLoopUnit->changeDamage(iNukeDamage, ((pNukeUnit != NULL) ? pNukeUnit->getOwnerINLINE() : NO_PLAYER));
-								}
-								else if (iNukeDamage >= GC.getDefineINT("NUKE_NON_COMBAT_DEATH_THRESHOLD"))
-								{
-									pLoopUnit->kill(true, ((pNukeUnit != NULL) ? pNukeUnit->getOwnerINLINE() : NO_PLAYER));
-								}
-							}
+						if (unitX->canFight() || unitX->airBaseCombatStr() > 0)
+						{
+							unitX->changeDamage(iNukeDamage, ((pNukeUnit != NULL) ? pNukeUnit->getOwnerINLINE() : NO_PLAYER));
+						}
+						else if (iNukeDamage >= GC.getDefineINT("NUKE_NON_COMBAT_DEATH_THRESHOLD"))
+						{
+							unitX->kill(true, ((pNukeUnit != NULL) ? pNukeUnit->getOwnerINLINE() : NO_PLAYER));
 						}
 					}
 				}
 
-				if (pLoopCity != NULL)
+				if (city != NULL)
 				{
 					// <f1rpo> Destroy size-1 cities always (idea: Inthegrave)
-					if (pLoopCity->getPopulation() <= 1)
+					if (city->getPopulation() < 2)
 					{
-						// (I don't think we want to call CvPlayer::raze)
-						GET_PLAYER(pLoopCity->getOwner()).disband(pLoopCity);
-						continue;
-					} // </f1rpo>
-					for (iI = 0; iI < GC.getNumBuildingInfos(); ++iI)
-					{
-						if (pLoopCity->getNumRealBuilding((BuildingTypes)iI) > 0)
+						if (pNukeUnit != NULL && city->getOwner() != pNukeUnit->getOwnerINLINE())
 						{
-							if (!(GC.getBuildingInfo((BuildingTypes) iI).isNukeImmune()))
-							{
-								if (GC.getGameINLINE().getSorenRandNum(100, "Building Nuked") < GC.getDefineINT("NUKE_BUILDING_DESTRUCTION_PROB"))
-								{
-									pLoopCity->setNumRealBuilding(((BuildingTypes)iI), pLoopCity->getNumRealBuilding((BuildingTypes)iI) - 1);
-								}
-							}
+							GET_PLAYER(city->getOwner()).setLastPlayerThatConqueredUs(pNukeUnit->getOwnerINLINE());
+						}
+						GC.getGameINLINE().addDestroyedCityName(city->getName());
+						city->kill(true);
+						continue;
+					}
+					// </f1rpo>
+
+					for (int iI = 0; iI < GC.getNumBuildingInfos(); ++iI)
+					{
+						if (city->getNumRealBuilding((BuildingTypes)iI) > 0
+						&& !GC.getBuildingInfo((BuildingTypes) iI).isNukeImmune()
+						&& GC.getGameINLINE().getSorenRandNum(100, "Building Nuked") < GC.getDefineINT("NUKE_BUILDING_DESTRUCTION_PROB"))
+						{
+							city->setNumRealBuilding(((BuildingTypes)iI), city->getNumRealBuilding((BuildingTypes)iI) - 1);
 						}
 					}
 
-					iNukedPopulation = ((pLoopCity->getPopulation()
-							* (GC.getDefineINT("NUKE_POPULATION_DEATH_BASE")
+					int iNukedPopulation =
+					(
+						city->getPopulation()
+						*
+						(
+							GC.getDefineINT("NUKE_POPULATION_DEATH_BASE")
 							+ GC.getGameINLINE().getSorenRandNum(GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_1"), "Population Nuked 1")
-							+ GC.getGameINLINE().getSorenRandNum(GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_2"), "Population Nuked 2"))) / 100);
-
-					iNukedPopulation *= std::max(0, (pLoopCity->getNukeModifier() + 100));
+							+ GC.getGameINLINE().getSorenRandNum(GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_2"), "Population Nuked 2")
+						)
+						/ 100
+					);
+					iNukedPopulation *= std::max(0, city->getNukeModifier() + 100);
 					iNukedPopulation /= 100;
 
-					pLoopCity->changePopulation(-(std::min((pLoopCity->getPopulation() - 1), iNukedPopulation)));
+					city->changePopulation(-std::min(city->getPopulation() - 1, iNukedPopulation));
 				}
 			}
 		}
 	}
-
 	CvEventReporter::getInstance().nukeExplosion(this, pNukeUnit);
 }
 

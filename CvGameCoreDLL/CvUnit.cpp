@@ -6775,10 +6775,6 @@ bool CvUnit::nuke(int iX, int iY)
 		kill(true);
 	}
 
-	// < M.A.D. Nukes Start >
-	GC.getGameINLINE().setLastNukeStrikePlot(pPlot);
-	// < M.A.D. Nukes End   >
-
 	return true;
 }
 
@@ -23599,7 +23595,7 @@ bool CvUnit::spyNuke(int iX, int iY, bool bCaught)
 		gDLL->getEngineIFace()->TriggerEffect((EffectTypes)GC.getInfoTypeForString("EFFECT_ICBM_NUCLEAR_EXPLOSION"), pPlot->getPoint(), 0);
 		gDLL->getInterfaceIFace()->playGeneralSound("AS2D_NUKE_EXPLODES", pPlot->getPoint());
 	}
-	pPlot->nukeExplosion(1);
+	pPlot->nukeExplosion(1, bCaught ? this : NULL);
 	return true;
 }
 

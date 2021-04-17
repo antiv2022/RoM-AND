@@ -627,27 +627,7 @@ void CyGame::setForcedAIAutoPlay(int iPlayer, int iNewValue, bool bForced)
 /************************************************************************************************/
 /* REVOLUTION_MOD                          END                                                  */
 /************************************************************************************************/
-// < M.A.D. Nukes Start >
-CyPlot* CyGame::getLastNukeStrikePlot()
-{
-	if (!m_pGame)
-	{
-		return NULL;
-	}
 
-	return new CyPlot(m_pGame->getLastNukeStrikePlot());
-}
-
-void CyGame::setLastNukeStrikePlot(CyPlot* pPlot)
-{
-	if (!m_pGame)
-	{
-		return;
-	}
-
-	m_pGame->setLastNukeStrikePlot(pPlot->getPlot());
-}
-// < M.A.D. Nukes End   >
 bool CyGame::isScoreDirty() const
 {
 	return m_pGame ? m_pGame->isScoreDirty() : false;
