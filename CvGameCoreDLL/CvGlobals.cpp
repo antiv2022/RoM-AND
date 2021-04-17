@@ -5386,11 +5386,6 @@ int cvInternalGlobals::getNumMissionInfos() const
 CvGameAI& cvInternalGlobals::getGame() { return *m_game; }
 CvGameAI *cvInternalGlobals::getGamePointer(){ return m_game; }
 
-int cvInternalGlobals::getMaxCivPlayers() const
-{
-	return MAX_CIV_PLAYERS;
-}
-
 bool cvInternalGlobals::IsGraphicsInitialized() const { return m_bGraphicsInitialized;}
 void cvInternalGlobals::SetGraphicsInitialized(bool bVal) { m_bGraphicsInitialized = bVal;}
 void cvInternalGlobals::setInterface(CvInterface* pVal) { m_interface = pVal; }

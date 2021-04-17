@@ -1263,28 +1263,34 @@ public:
 	// city iteration
 	CvCity* firstCity(int *pIterIdx, bool bRev=false) const;																// Exposed to Python					
 	CvCity* nextCity(int *pIterIdx, bool bRev=false) const;																	// Exposed to Python					
-	DllExport CvCity* firstCityExternal(int *pIterIdx, bool bRev=false) const;																// Exposed to Python					
-	DllExport CvCity* nextCityExternal(int *pIterIdx, bool bRev=false) const;																	// Exposed to Python					
+
+	DllExport CvCity* firstCityExternal(int *pIterIdx, bool bRev=false) const;
+	DllExport CvCity* nextCityExternal(int *pIterIdx, bool bRev=false) const;
 	DllExport int getNumCities() const;																																// Exposed to Python					
 	DllExport CvCity* getCity(int iID) const;																													// Exposed to Python					
+
 	CvCity* addCity();																																					
 	void deleteCity(int iID);																																		
 																																															
 	// unit iteration																																						
 	CvUnit* firstUnit(int *pIterIdx, bool bRev=false) const;																// Exposed to Python					
 	CvUnit* nextUnit(int *pIterIdx, bool bRev=false) const;																	// Exposed to Python					
-	DllExport CvUnit* firstUnitExternal(int *pIterIdx, bool bRev=false) const;																// Exposed to Python					
-	DllExport CvUnit* nextUnitExternal(int *pIterIdx, bool bRev=false) const;																	// Exposed to Python					
+
+	DllExport CvUnit* firstUnitExternal(int *pIterIdx, bool bRev=false) const;
+	DllExport CvUnit* nextUnitExternal(int *pIterIdx, bool bRev=false) const;
 	DllExport int getNumUnits() const;																																// Exposed to Python					
 	DllExport CvUnit* getUnit(int iID) const;																													// Exposed to Python					
+
 	CvUnit* addUnit();																																					
 	void deleteUnit(int iID);
 																																															
 	// selection groups iteration																																
 	CvSelectionGroup* firstSelectionGroup(int *pIterIdx, bool bRev=false) const;						// Exposed to Python					
 	CvSelectionGroup* nextSelectionGroup(int *pIterIdx, bool bRev=false) const;							// Exposed to Python					
-	DllExport CvSelectionGroup* firstSelectionGroupExternal(int *pIterIdx, bool bRev=false) const;						// Exposed to Python					
-	DllExport CvSelectionGroup* nextSelectionGroupExternal(int *pIterIdx, bool bRev=false) const;							// Exposed to Python					
+
+	DllExport CvSelectionGroup* firstSelectionGroupExternal(int *pIterIdx, bool bRev=false) const;
+	DllExport CvSelectionGroup* nextSelectionGroupExternal(int *pIterIdx, bool bRev=false) const;
+
 	int getNumSelectionGroups() const;																																// Exposed to Python
 	CvSelectionGroup* getSelectionGroup(int iID) const;																								// Exposed to Python
 	CvSelectionGroup* addSelectionGroup();
@@ -2206,20 +2212,10 @@ protected:
 	CLinkList<CvWString> m_cityNames;
 
 	FFreeListTrashArray<CvPlotGroup> m_plotGroups;
-
-	//FFreeListTrashArray<CvCityAI> m_cities;
-	int m_iLastCityId;
-	std::vector<CvCityAI*> m_citiesList;
-	stdext::hash_map<int, CvCityAI*> m_citiesMap;
-	mutable CRITICAL_SECTION m_cModifySection;
-	void clearAllCities();
-
+	FFreeListTrashArray<CvCityAI> m_cities;
 	FFreeListTrashArray<CvUnitAI> m_units;
+	FFreeListTrashArray<CvSelectionGroupAI> m_selectionGroups;
 
-	//FFreeListTrashArray<CvSelectionGroupAI> m_selectionGroups;
-	int m_iLastSelectionGroupId;
-	std::vector<CvSelectionGroupAI*> m_selectionGroupsList;
-	stdext::hash_map<int, CvSelectionGroupAI*> m_selectionGroupsMap;
 	void clearAllSelectionGroups();
 
 	FFreeListTrashArray<EventTriggeredData> m_eventsTriggered;

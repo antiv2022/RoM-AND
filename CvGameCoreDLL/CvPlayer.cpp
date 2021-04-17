@@ -414,8 +414,6 @@ m_cachedBonusCount(NULL)
 	m_iNumCivicsSwitched = 0;
 
 	reset(NO_PLAYER, true);
-
-	InitializeCriticalSectionAndSpinCount(&m_cModifySection, 4000);
 }
 
 
@@ -455,8 +453,6 @@ CvPlayer::~CvPlayer()
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
 	SAFE_DELETE_ARRAY(m_cachedBonusCount);
-
-	DeleteCriticalSection(&m_cModifySection);
 }
 
 
@@ -474,15 +470,9 @@ void CvPlayer::init(PlayerTypes eID)
 	//--------------------------------
 	// Init containers
 	m_plotGroups.init();
-
-	//m_cities.init();
-	clearAllCities();
-
+	m_cities.init();
 	m_units.init();
-
-	//m_selectionGroups.init();
-	clearAllSelectionGroups();
-
+	m_selectionGroups.init();
 	m_eventsTriggered.init();
 
 	//--------------------------------
@@ -665,15 +655,9 @@ void CvPlayer::initInGame(PlayerTypes eID, bool bSetAlive, bool bDeclareWar)
 	//--------------------------------
 	// Init containers
 	m_plotGroups.init();
-
-	//m_cities.init();
-	clearAllCities();
-
+	m_cities.init();
 	m_units.init();
-
-	//m_selectionGroups.init();
-	clearAllSelectionGroups();
-
+	m_selectionGroups.init();
 	m_eventsTriggered.init();
 
 	m_contractBroker.init(eID);
@@ -1048,15 +1032,9 @@ void CvPlayer::uninit()
 	m_contractBroker.reset();
 
 	m_plotGroups.uninit();
-
-	//m_cities.uninit();
-	clearAllCities();
-
+	m_cities.uninit();
 	m_units.uninit();
-
-	//m_selectionGroups.uninit();
-	clearAllSelectionGroups();
-
+	m_selectionGroups.uninit();
 	m_eventsTriggered.uninit();
 
 	clearMessages();
@@ -1795,17 +1773,12 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	}
 
 	m_plotGroups.removeAll();
-
-	//m_cities.removeAll();
-	clearAllCities();
-
+	m_cities.removeAll();
 	m_units.removeAll();
-	m_pTempUnit = NULL;
-
-	//m_selectionGroups.removeAll();
-	clearAllSelectionGroups();
-
+	m_selectionGroups.removeAll();
 	m_eventsTriggered.removeAll();
+
+	m_pTempUnit = NULL;
 
 	if (!bConstructorCall)
 	{
@@ -3928,14 +3901,11 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 void CvPlayer::killCities()
 {
-	CvCity* pLoopCity;
 	int iLoop = 0;
-
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		pLoopCity->kill(false);
 	}
-
 	GC.getGameINLINE().updatePlotGroups();
 }
 
@@ -20064,43 +20034,13 @@ void CvPlayer::deletePlotGroup(int iID)
 
 CvCity* CvPlayer::firstCity(int *pIterIdx, bool bRev) const
 {
-	if (bRev)
-	{
-		*pIterIdx = m_citiesList.size() - 1;
-	}
-	else
-	{
-		*pIterIdx = 0;
-	}
-	CvCityAI* pResult = NULL;
-	if (*pIterIdx >= 0 && *pIterIdx < (int)m_citiesList.size())
-	{
-		pResult = m_citiesList.at(*pIterIdx);
-	}
-	return pResult;
-	//return !bRev ? m_cities.beginIter(pIterIdx) : m_cities.endIter(pIterIdx);
+	return !bRev ? m_cities.beginIter(pIterIdx) : m_cities.endIter(pIterIdx);
 }
 
 CvCity* CvPlayer::nextCity(int *pIterIdx, bool bRev) const
 {
-	if (bRev)
-	{
-		(*pIterIdx)--;
-	}
-	else
-	{
-		(*pIterIdx)++;
-	}
-	CvCityAI* pResult = NULL;
-	if (*pIterIdx >= 0 && *pIterIdx < (int)m_citiesList.size())
-	{
-		pResult = m_citiesList.at(*pIterIdx);
-	}
-
-	return pResult;
-	//return !bRev ? m_cities.nextIter(pIterIdx) : m_cities.prevIter(pIterIdx);
+	return !bRev ? m_cities.nextIter(pIterIdx) : m_cities.prevIter(pIterIdx);
 }
-
 
 CvCity* CvPlayer::nextCityExternal(int *pIterIdx, bool bRev) const
 {
@@ -20110,8 +20050,7 @@ CvCity* CvPlayer::nextCityExternal(int *pIterIdx, bool bRev) const
 	{
 		pResult = (CvCityAI*)nextCity(pIterIdx, bRev);
 	}
-
-	return pResult;
+ 	return pResult;
 }
 
 CvCity* CvPlayer::firstCityExternal(int *pIterIdx, bool bRev) const
@@ -20122,102 +20061,29 @@ CvCity* CvPlayer::firstCityExternal(int *pIterIdx, bool bRev) const
 	{
 		pResult = (CvCityAI*)nextCityExternal(pIterIdx, bRev);
 	}
-
-	return pResult;
+ 	return pResult;
 }
-
 
 int CvPlayer::getNumCities() const
 {
-	return m_citiesList.size();
-	//return m_cities.getCount();
+	return m_cities.getCount();
 }
-
 
 CvCity* CvPlayer::getCity(int iID) const
 {
-	CvCityAI* pCity = NULL;
-
-	EnterCriticalSection(&m_cModifySection);
-
-	stdext::hash_map<int, CvCityAI*>::const_iterator it = m_citiesMap.find(iID);
-	if (it != m_citiesMap.end())
-	{
-		pCity = it->second;
-	}
-
-	LeaveCriticalSection(&m_cModifySection);
-
-	return pCity;
-	//return(m_cities.getAt(iID));
+	return m_cities.getAt(iID);
 }
-
 
 CvCity* CvPlayer::addCity()
 {
-	EnterCriticalSection(&m_cModifySection);
-
-	CvCityAI* pCity = new CvCityAI;
-
-	//Ensure we do not collide with an existing id
-	CvCity* temp = NULL;
-	int id;
-	do {
-		//Increment id space
-		id = m_iLastCityId + 1;
-		m_iLastCityId = id;
-		temp = getCity(id);
-	} while (temp != NULL);
-
-	pCity->setID(id);
-	m_citiesList.push_back(pCity);
-	m_citiesMap[id] = pCity;
-
-	LeaveCriticalSection(&m_cModifySection);
-
-	return pCity;
-	//return(m_cities.add());
+	return m_cities.add();
 }
-
 
 void CvPlayer::deleteCity(int iID)
 {
-	EnterCriticalSection(&m_cModifySection);
-
-	CvCityAI* pCity = (CvCityAI*) getCity(iID);
-
-	m_citiesMap.erase(iID);
-
-	std::vector<CvCityAI*>::iterator it;
-	for (it = m_citiesList.begin(); it != m_citiesList.end(); ++it)
-	{
-		CvCityAI* pLoopCity = *it;
-		if (pLoopCity == pCity)
-		{
-			m_citiesList.erase(it);
-			break;
-		}
-	}
-	SAFE_DELETE(pCity);
-
-	LeaveCriticalSection(&m_cModifySection);
-	//m_cities.removeAt(iID);
+	m_cities.removeAt(iID);
 }
 
-void CvPlayer::clearAllCities()
-{
-	std::vector<CvCityAI*>::iterator it;
-	for (it = m_citiesList.begin(); it != m_citiesList.end(); ++it)
-	{
-		CvCityAI* pLoopCity = *it;
-		m_citiesMap.erase(pLoopCity->getID());
-
-		SAFE_DELETE(pLoopCity);
-	}
-	m_citiesList.clear();
-	m_citiesMap.clear();
-	m_iLastCityId = 0;
-}
 
 CvUnit* CvPlayer::firstUnit(int *pIterIdx, bool bRev) const
 {
@@ -20229,7 +20095,6 @@ CvUnit* CvPlayer::firstUnit(int *pIterIdx, bool bRev) const
 	}
 	return pResult;
 }
-
 
 CvUnit* CvPlayer::nextUnit(int *pIterIdx, bool bRev) const
 {
@@ -20253,7 +20118,6 @@ CvUnit* CvPlayer::firstUnitExternal(int *pIterIdx, bool bRev) const
 	return pResult;
 }
 
-
 CvUnit* CvPlayer::nextUnitExternal(int *pIterIdx, bool bRev) const
 {
 	CvUnit*	pResult = nextUnit(pIterIdx, bRev);
@@ -20262,16 +20126,13 @@ CvUnit* CvPlayer::nextUnitExternal(int *pIterIdx, bool bRev) const
 	{
 		pResult = nextUnit(pIterIdx, bRev);
 	}
-
 	return pResult;
 }
-
 
 int CvPlayer::getNumUnits() const
 {
 	return m_units.getCount() - (m_pTempUnit != NULL ? 1 : 0);
 }
-
 
 CvUnit* CvPlayer::getUnit(int iID) const
 {
@@ -20283,11 +20144,8 @@ CvUnit* CvPlayer::addUnit()
 	return m_units.add();
 }
 
-
 void CvPlayer::deleteUnit(int iID)
 {
-	EnterCriticalSection(&m_cModifySection);
-
 	CvUnitAI* pUnit = (CvUnitAI*)getUnit(iID);
 
 /************************************************************************************************/
@@ -20322,69 +20180,42 @@ void CvPlayer::deleteUnit(int iID)
 
 CvSelectionGroup* CvPlayer::firstSelectionGroup(int *pIterIdx, bool bRev) const
 {
-	if (bRev)
-	{
-		*pIterIdx = m_selectionGroupsList.size() - 1;
-	}
-	else
-	{
-		*pIterIdx = 0;
-	}
-	CvSelectionGroup* pResult = NULL;
-	if (*pIterIdx >= 0 && *pIterIdx < (int)m_selectionGroupsList.size())
-	{
-		pResult = m_selectionGroupsList.at(*pIterIdx);
-	}
+	CvSelectionGroup* pResult = !bRev ? m_selectionGroups.beginIter(pIterIdx) : m_selectionGroups.endIter(pIterIdx);
 
-	if ( pResult != NULL && pResult->getHeadUnit() == m_pTempUnit )
+	if (pResult != NULL && pResult->getHeadUnit() != NULL && pResult->getHeadUnit() == m_pTempUnit)
 	{
 		pResult = nextSelectionGroup(pIterIdx, bRev);
 	}
-
 	return pResult;
 }
-
 
 CvSelectionGroup* CvPlayer::nextSelectionGroup(int *pIterIdx, bool bRev) const
 {
-	if (bRev)
-	{
-		(*pIterIdx)--;
-	}
-	else
-	{
-		(*pIterIdx)++;
-	}
-	CvSelectionGroup* pResult = NULL;
-	if (*pIterIdx >= 0 && *pIterIdx < (int)m_selectionGroupsList.size())
-	{
-		pResult = m_selectionGroupsList.at(*pIterIdx);
-	}
+	CvSelectionGroup* pResult = !bRev ? m_selectionGroups.nextIter(pIterIdx) : m_selectionGroups.prevIter(pIterIdx);
 
-	if ( pResult != NULL && pResult->getHeadUnit() == m_pTempUnit )
+	if (pResult != NULL && pResult->getHeadUnit() != NULL && pResult->getHeadUnit() == m_pTempUnit)
 	{
 		pResult = nextSelectionGroup(pIterIdx, bRev);
 	}
-
 	return pResult;
 }
-
-CvSelectionGroup* CvPlayer::firstSelectionGroupExternal(int *pIterIdx, bool bRev) const
-{
-	CvSelectionGroup*	pResult = firstSelectionGroup(pIterIdx, bRev);
-
-	if(pResult && pResult->getHeadUnit() != NULL && !pResult->getHeadUnit()->isInViewport())
-	{
-		pResult = nextSelectionGroupExternal(pIterIdx, bRev);
-	}
-
-	return pResult;
-}
-
-
+ 
+CvSelectionGroup* CvPlayer::firstSelectionGroupExternal(int *pIterIdx, bool bRev) const 
+{ 
+	CvSelectionGroup* pResult = firstSelectionGroup(pIterIdx, bRev); 
+ 
+	if(pResult && pResult->getHeadUnit() != NULL && !pResult->getHeadUnit()->isInViewport()) 
+	{ 
+		pResult = nextSelectionGroupExternal(pIterIdx, bRev); 
+	} 
+ 
+	return pResult; 
+} 
+ 
+ 
 CvSelectionGroup* CvPlayer::nextSelectionGroupExternal(int *pIterIdx, bool bRev) const
 {
-	CvSelectionGroup*	pResult = nextSelectionGroup(pIterIdx, bRev);
+	CvSelectionGroup* pResult = nextSelectionGroup(pIterIdx, bRev);
 
 	while(pResult && pResult->getHeadUnit() != NULL && !pResult->getHeadUnit()->isInViewport())
 	{
@@ -20394,99 +20225,27 @@ CvSelectionGroup* CvPlayer::nextSelectionGroupExternal(int *pIterIdx, bool bRev)
 	return pResult;
 }
 
-void CvPlayer::clearAllSelectionGroups()
-{
-	std::vector<CvSelectionGroupAI*>::iterator it;
-	for (it = m_selectionGroupsList.begin(); it != m_selectionGroupsList.end(); ++it)
-	{
-		CvSelectionGroupAI* pGroup = *it;
-		m_selectionGroupsMap.erase(pGroup->getID());
-
-		SAFE_DELETE(pGroup);
-	}
-	m_selectionGroupsList.clear();
-	m_selectionGroupsMap.clear();
-	m_iLastSelectionGroupId = 0;
-}
-
 int CvPlayer::getNumSelectionGroups() const
 {
-	return m_selectionGroupsList.size() - (m_pTempUnit != NULL ? 1 : 0);
-	//return m_selectionGroups.getCount() - (m_pTempUnit != NULL ? 1 : 0);
+	return m_selectionGroups.getCount() - (m_pTempUnit != NULL ? 1 : 0);
 }
-
 
 CvSelectionGroup* CvPlayer::getSelectionGroup(int iID) const
 {
-	CvSelectionGroupAI* pGroup = NULL;
-
-	EnterCriticalSection(&m_cModifySection);
-
-	stdext::hash_map<int, CvSelectionGroupAI*>::const_iterator it = m_selectionGroupsMap.find(iID);
-	if (it != m_selectionGroupsMap.end())
-	{
-		pGroup = it->second;
-	}
-
-	LeaveCriticalSection(&m_cModifySection);
-
-	return pGroup;
-	//return ((CvSelectionGroup *)(m_selectionGroups.getAt(iID)));
+	return (CvSelectionGroup *)m_selectionGroups.getAt(iID);
 }
-
 
 CvSelectionGroup* CvPlayer::addSelectionGroup()
 {
-	EnterCriticalSection(&m_cModifySection);
-
-	CvSelectionGroupAI* pGroup = new CvSelectionGroupAI;
-
-	//Ensure we do not collide with an existing id
-	CvSelectionGroup* temp = NULL;
-	int id;
-	do {
-		//Increment id space
-		id = m_iLastSelectionGroupId + 1;
-		m_iLastSelectionGroupId = id;
-		temp = getSelectionGroup(id);
-	} while (temp != NULL);
-
-	pGroup->setID(id);
-	m_selectionGroupsList.push_back(pGroup);
-	m_selectionGroupsMap[id] = pGroup;
-
-	LeaveCriticalSection(&m_cModifySection);
-
-	return pGroup;
-	//return ((CvSelectionGroup *)(m_selectionGroups.add()));
+	return (CvSelectionGroup *)m_selectionGroups.add();
 }
-
 
 void CvPlayer::deleteSelectionGroup(int iID)
 {
-	EnterCriticalSection(&m_cModifySection);
-
-	CvSelectionGroupAI* pGroup = (CvSelectionGroupAI*)getSelectionGroup(iID);
-
-	m_selectionGroupsMap.erase(iID);
-
-	std::vector<CvSelectionGroupAI*>::iterator it;
-	for (it = m_selectionGroupsList.begin(); it != m_selectionGroupsList.end(); ++it)
-	{
-		CvSelectionGroupAI* pLoopGroup = *it;
-		if (pLoopGroup == pGroup)
-		{
-			m_selectionGroupsList.erase(it);
-			break;
-		}
-	}
-	SAFE_DELETE(pGroup);
-
-	LeaveCriticalSection(&m_cModifySection);
-	//bool bRemoved = m_selectionGroups.removeAt(iID);
-
-	//FAssertMsg(bRemoved, "could not find group, delete failed");
+	const bool bRemoved = m_selectionGroups.removeAt(iID);
+	FAssertMsg(bRemoved, "could not find group, delete failed");
 }
+
 
 EventTriggeredData* CvPlayer::firstEventTriggered(int *pIterIdx, bool bRev) const
 {
@@ -25466,42 +25225,9 @@ void CvPlayer::read(FDataStreamBase* pStream)
 		}
 
 		ReadStreamableFFreeListTrashArray(m_plotGroups, pStream);
-
-		int iCitySaveFormat = 0;
-		WRAPPER_READ_DECORATED(wrapper, "CvPlayer", &iCitySaveFormat, "iCitySaveFormat");
-		if (iCitySaveFormat == 0)
-		{
-			FFreeListTrashArray<CvCityAI> flist;
-			ReadStreamableFFreeListTrashArray(flist, pStream);
-			flist.cancelDeinitialize();
-			for (int i = 0; i < flist.getIndexAfterLast(); i++)
-			{
-				if (flist.getAt(i))
-				{
-					CvCityAI* pUnit = flist.getAt(i);
-					m_citiesList.push_back(pUnit);
-					m_citiesMap[pUnit->getID()] = pUnit;
-				}
-			}
-		}
-		else if (iCitySaveFormat == 1)
-		{
-			clearAllCities();
-			int iSize = 0;
-			WRAPPER_READ_DECORATED(wrapper, "CvPlayer", &iSize, "m_citiesList::size");
-			for (int i = 0; i < iSize; i++)
-			{
-				CvCityAI* pCity = new CvCityAI();
-				pCity->read(pStream);
-				m_citiesList.push_back(pCity);
-				m_citiesMap[pCity->getID()] = pCity;
-			}
-
-			WRAPPER_READ(wrapper, "CvPlayer", &m_iLastCityId);
-		}
-		//ReadStreamableFFreeListTrashArray(m_cities, pStream);
-
+		ReadStreamableFFreeListTrashArray(m_cities, pStream);
 		ReadStreamableFFreeListTrashArray(m_units, pStream);
+
 	/************************************************************************************************/
 	/* Afforess	                  Start		 03/30/10                                               */
 	/*                                                                                              */
@@ -25524,39 +25250,7 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	/************************************************************************************************/
 	/* Afforess	                     END                                                            */
 	/************************************************************************************************/
-		//ReadStreamableFFreeListTrashArray(m_selectionGroups, pStream);
-		int iSelectionGroupSaveFormat = 0;
-		WRAPPER_READ_DECORATED(wrapper, "CvPlayer", &iSelectionGroupSaveFormat, "iSelectionGroupSaveFormat");
-		if (iSelectionGroupSaveFormat == 0)
-		{
-			FFreeListTrashArray<CvSelectionGroupAI> flist;
-			ReadStreamableFFreeListTrashArray(flist, pStream);
-			flist.cancelDeinitialize();
-			for (int i = 0; i < flist.getIndexAfterLast(); i++)
-			{
-				if (flist.getAt(i))
-				{
-					CvSelectionGroupAI* pGroup = flist.getAt(i);
-					m_selectionGroupsList.push_back(pGroup);
-					m_selectionGroupsMap[pGroup->getID()] = pGroup;
-				}
-			}
-		}
-		else if (iSelectionGroupSaveFormat == 1)
-		{
-			clearAllSelectionGroups();
-			int iSize = 0;
-			WRAPPER_READ_DECORATED(wrapper, "CvPlayer", &iSize, "m_selectionGroupsList::size");
-			for (int i = 0; i < iSize; i++)
-			{
-				CvSelectionGroupAI* pGroup = new CvSelectionGroupAI();
-				pGroup->read(pStream);
-				m_selectionGroupsList.push_back(pGroup);
-				m_selectionGroupsMap[pGroup->getID()] = pGroup;
-			}
-
-			WRAPPER_READ(wrapper, "CvPlayer", &m_iLastSelectionGroupId);
-		}
+		ReadStreamableFFreeListTrashArray(m_selectionGroups, pStream);
 		ReadStreamableFFreeListTrashArray(m_eventsTriggered, pStream);
 
 		std::map<CvUnit*,bool> unitsPresent;
@@ -26466,38 +26160,9 @@ void CvPlayer::write(FDataStreamBase* pStream)
 		}
 
 		WriteStreamableFFreeListTrashArray(m_plotGroups, pStream);
-
-		//WriteStreamableFFreeListTrashArray(m_cities, pStream);
-		int iCitySaveFormat = 1;
-		WRAPPER_WRITE_DECORATED(wrapper, "CvPlayer", iCitySaveFormat, "iCitySaveFormat");
-		{
-			int iSize = m_citiesList.size();
-			WRAPPER_WRITE_DECORATED(wrapper, "CvPlayer", iSize, "m_citiesList::size");
-			std::vector<CvCityAI*>::iterator it;
-			for (it = m_citiesList.begin(); it != m_citiesList.end(); ++it)
-			{
-				CvCityAI* pCity = *it;
-				pCity->write(pStream);
-			}
-		}
-		WRAPPER_WRITE(wrapper, "CvPlayer", m_iLastCityId);
-
+		WriteStreamableFFreeListTrashArray(m_cities, pStream);
 		WriteStreamableFFreeListTrashArray(m_units, pStream);
-
-		//WriteStreamableFFreeListTrashArray(m_selectionGroups, pStream);
-		int iSelectionGroupSaveFormat = 1;
-		WRAPPER_WRITE_DECORATED(wrapper, "CvPlayer", iSelectionGroupSaveFormat, "iSelectionGroupSaveFormat");
-		{
-			int iSize = m_selectionGroupsList.size();
-			WRAPPER_WRITE_DECORATED(wrapper, "CvPlayer", iSize, "m_selectionGroupsList::size");
-			std::vector<CvSelectionGroupAI*>::iterator it;
-			for (it = m_selectionGroupsList.begin(); it != m_selectionGroupsList.end(); ++it)
-			{
-				CvSelectionGroupAI* pGroup = *it;
-				pGroup->write(pStream);
-			}
-		}
-		WRAPPER_WRITE(wrapper, "CvPlayer", m_iLastSelectionGroupId);
+		WriteStreamableFFreeListTrashArray(m_selectionGroups, pStream);
 
 		WriteStreamableFFreeListTrashArray(m_eventsTriggered, pStream);
 
@@ -27219,210 +26884,8 @@ void CvPlayer::resync(bool bWrite, ByteBuffer* pBuffer)
 		}
 
 		ResyncStreamableFFreeListTrashArray(bWrite, pBuffer, m_plotGroups);
-
-		RESYNC_INT(bWrite, pBuffer, m_iLastCityId);
-		//Merge Cities
-		if (bWrite)
-		{
-			pBuffer->putInt(m_citiesList.size());
-			std::vector<CvCityAI*>::iterator it;
-			for (it = m_citiesList.begin(); it != m_citiesList.end(); ++it)
-			{
-				CvCityAI* pCity = (*it);
-
-				//Prefix with city id for verification purposes later
-				pBuffer->putInt(pCity->getID());
-				pCity->resync(true, pBuffer);
-			}
-		}
-		else
-		{
-			stdext::hash_map<int, CvCityAI*> unaccountedForCities;
-			//Cities are removed from unaccountedForCities as we find their id from the resync
-			//At the end, cities left in the map were not sent to us from the resync and should not exist
-			std::vector<CvCityAI*>::iterator it;
-			for (it = m_citiesList.begin(); it != m_citiesList.end(); ++it)
-			{
-				CvCityAI* pCity = (*it);
-				unaccountedForCities[pCity->getID()] = pCity;
-			}
-
-			//Also keep track of the order of the ids sent to us by the host game, we need to re-organize our city list in this order when we are done
-			std::vector<int> idOrder;
-
-			int iCount = pBuffer->getInt();
-			for (int iI = 0; iI < iCount; iI++)
-			{
-				int iExpectedID = pBuffer->getInt();
-
-				idOrder.push_back(iExpectedID);
-
-				stdext::hash_map<int, CvCityAI*>::iterator it = m_citiesMap.find(iExpectedID);
-				//Found the city in our game matching the sent id, resyncing it
-				if (it != m_citiesMap.end())
-				{
-					unaccountedForCities.erase(iExpectedID);
-
-					CvCityAI* pCity = it->second;
-					pCity->resync(false, pBuffer);
-				}
-				//We did not find the city and need to create it!
-				else
-				{
-					CvCityAI* pCity = new CvCityAI();
-					pCity->setID(iExpectedID);
-					m_citiesList.push_back(pCity);
-					m_citiesMap[iExpectedID] = pCity;
-
-					pCity->resync(false, pBuffer);
-					pCity->setupGraphical();
-				}
-			}
-
-			{
-				//Left over city not sent as part of the resync - they must be removed
-				stdext::hash_map<int, CvCityAI*>::iterator it;
-				for (it = unaccountedForCities.begin(); it != unaccountedForCities.end(); ++it)
-				{
-					CvCityAI* pCity = it->second;
-
-					CvPlot* pPlot = pCity->plot();
-					if (pCity->isCitySelected())
-					{
-						gDLL->getInterfaceIFace()->clearSelectedCities();
-					}
-					deleteCity(pCity->getID());
-
-					pCity = NULL;
-
-					pPlot->updateMinimapColor();
-
-					if (GC.IsGraphicsInitialized())
-					{
-						gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
-
-						gDLL->getEngineIFace()->SetDirty(CultureBorders_DIRTY_BIT, true);
-					}
-				}
-			}
-
-			//Reorder our city list in the order of ids sent to us
-			{
-				m_citiesList.clear();
-
-				std::vector<int>::iterator it;
-				for (it = idOrder.begin(); it != idOrder.end(); ++it)
-				{
-					int id = (*it);
-					stdext::hash_map<int, CvCityAI*>::iterator search = m_citiesMap.find(id);
-					//Found the city in our game matching the sent id, resyncing it
-					if (search != m_citiesMap.end())
-					{
-						m_citiesList.push_back(search->second);
-					}
-					else
-					{
-						//Should not happen!
-						FAssert(false);
-					}
-				}
-			}
-		}
-
-		//ResyncStreamableFFreeListTrashArray(bWrite, pBuffer, m_selectionGroups);
-		RESYNC_INT(bWrite, pBuffer, m_iLastSelectionGroupId);
-		//Merge Cities
-		if (bWrite)
-		{
-			pBuffer->putInt(m_selectionGroupsList.size());
-			std::vector<CvSelectionGroupAI*>::iterator it;
-			for (it = m_selectionGroupsList.begin(); it != m_selectionGroupsList.end(); ++it)
-			{
-				CvSelectionGroupAI* pGroup = (*it);
-
-				//Prefix with group id for verification purposes later
-				pBuffer->putInt(pGroup->getID());
-				pGroup->resync(true, pBuffer);
-			}
-		}
-		else
-		{
-			stdext::hash_map<int, CvSelectionGroupAI*> unaccountedForGroups;
-			//Selection Groups are removed from unaccountedForGroups as we find their id from the resync
-			//At the end, groups left in the map were not sent to us from the resync and should not exist
-			std::vector<CvSelectionGroupAI*>::iterator it;
-			for (it = m_selectionGroupsList.begin(); it != m_selectionGroupsList.end(); ++it)
-			{
-				CvSelectionGroupAI* pGroup = (*it);
-				unaccountedForGroups[pGroup->getID()] = pGroup;
-			}
-
-			//Also keep track of the order of the ids sent to us by the host game, we need to re-organize our selection group list in this order when we are done
-			std::vector<int> idOrder;
-
-			int iCount = pBuffer->getInt();
-			for (int iI = 0; iI < iCount; iI++)
-			{
-				int iExpectedID = pBuffer->getInt();
-
-				idOrder.push_back(iExpectedID);
-
-				stdext::hash_map<int, CvSelectionGroupAI*>::iterator it = m_selectionGroupsMap.find(iExpectedID);
-				//Found the selection group in our game matching the sent id, resyncing it
-				if (it != m_selectionGroupsMap.end())
-				{
-					unaccountedForGroups.erase(iExpectedID);
-
-					CvSelectionGroupAI* pGroup = it->second;
-					pGroup->resync(false, pBuffer);
-				}
-				//We did not find the selection group and need to create it!
-				else
-				{
-					CvSelectionGroupAI* pGroup = new CvSelectionGroupAI();
-					pGroup->setID(iExpectedID);
-					m_selectionGroupsList.push_back(pGroup);
-					m_selectionGroupsMap[iExpectedID] = pGroup;
-
-					pGroup->resync(false, pBuffer);
-				}
-			}
-
-			{
-				//Left over groups not sent as part of the resync - they must be removed
-				stdext::hash_map<int, CvSelectionGroupAI*>::iterator it;
-				for (it = unaccountedForGroups.begin(); it != unaccountedForGroups.end(); ++it)
-				{
-					CvSelectionGroupAI* pGroup = it->second;
-					deleteSelectionGroup(pGroup->getID());
-					pGroup = NULL;
-				}
-			}
-
-			//Reorder our selection group list in the order of ids sent to us
-			{
-				m_selectionGroupsList.clear();
-
-				std::vector<int>::iterator it;
-				for (it = idOrder.begin(); it != idOrder.end(); ++it)
-				{
-					int id = (*it);
-					stdext::hash_map<int, CvSelectionGroupAI*>::iterator search = m_selectionGroupsMap.find(id);
-					//Found the group in our game matching the sent id, resyncing it
-					if (search != m_selectionGroupsMap.end())
-					{
-						m_selectionGroupsList.push_back(search->second);
-					}
-					else
-					{
-						//Should not happen!
-						FAssert(false);
-					}
-				}
-			}
-		}
-
-		//ResyncStreamableFFreeListTrashArray(bWrite, pBuffer, m_cities);
+		ResyncStreamableFFreeListTrashArray(bWrite, pBuffer, m_selectionGroups);
+		ResyncStreamableFFreeListTrashArray(bWrite, pBuffer, m_cities);
 		ResyncStreamableFFreeListTrashArray(bWrite, pBuffer, m_units);
 
 		ResyncStreamableFFreeListTrashArray(bWrite, pBuffer, m_eventsTriggered);

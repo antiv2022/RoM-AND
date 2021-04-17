@@ -10878,11 +10878,6 @@ void CvGame::read(FDataStreamBase* pStream)
 	WRAPPER_READ(wrapper,"CvGame",&m_iInitTech);
 	WRAPPER_READ(wrapper,"CvGame",&m_iInitWonders);
 
-	// Toffer - SAVEBREAK - remove
-	WRAPPER_SKIP_ELEMENT(wrapper, "CvGame", m_iLastNukeStrikeX, SAVE_VALUE_ANY);
-	WRAPPER_SKIP_ELEMENT(wrapper, "CvGame", m_iLastNukeStrikeY, SAVE_VALUE_ANY);
-	// ! Toffer
-
 /************************************************************************************************/
 /* Afforess                                     12/7/09                                         */
 /*                                                                                              */

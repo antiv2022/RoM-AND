@@ -61,22 +61,7 @@
 #define RANDPLOT_NOT_VISIBLE_TO_CIV						(0x00000020)
 #define RANDPLOT_NOT_CITY											(0x00000040)
 
-#ifdef _USRDLL
-/********************************************************************************/
-/**		REVOLUTION_MOD							1/1/08				jdog5000	*/
-/**																				*/
-/**																				*/
-/********************************************************************************/
-//#define MAX_CIV_PLAYERS												(18)
-// Mod next line to change max number of players
 #define MAX_CIV_PLAYERS												(50)
-/********************************************************************************/
-/**		REVOLUTION_MOD							END								*/
-/********************************************************************************/	
-#else
-#define MAX_CIV_PLAYERS												(cvInternalGlobals::getInstance().getMaxCivPlayers())
-#endif
-
 #define MAX_CIV_TEAMS													(MAX_CIV_PLAYERS)
 #define MAX_PLAYERS														(MAX_CIV_PLAYERS + 1)
 #define MAX_TEAMS															(MAX_PLAYERS)

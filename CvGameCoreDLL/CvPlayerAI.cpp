@@ -1860,7 +1860,7 @@ void CvPlayerAI::AI_unitUpdate()
 	//	counts go through and fix it!
 	//	Note - this is fixing a symtpom rather than a cause which is distasteful, but as
 	//	yet the cause remains ellusive
-	if ( m_groupCycle.getLength() != m_selectionGroupsList.size() - (m_pTempUnit == NULL ? 0 : 1) )
+	if ( m_groupCycle.getLength() != m_selectionGroups.getCount() - (m_pTempUnit == NULL ? 0 : 1) )
 	{
 		if ( m_pTempUnit != NULL )
 		{
@@ -1882,7 +1882,7 @@ void CvPlayerAI::AI_unitUpdate()
 												pLoopSelectionGroup->plot() == NULL ? -1 : pLoopSelectionGroup->plot()->getY_INLINE()).c_str());
 		}
 
-		FAssert((int)m_selectionGroupsList.size() > m_groupCycle.getLength());	//	Other way round not seen - not handled currently
+		FAssert((int)m_selectionGroups.getCount() > m_groupCycle.getLength()); // Other way round not seen - not handled currently
 
 		OutputDebugString("Selection groups:\n");
 		for (CvSelectionGroup* pLoopSelectionGroup = firstSelectionGroup(&iLoop); pLoopSelectionGroup != NULL; pLoopSelectionGroup = nextSelectionGroup(&iLoop))

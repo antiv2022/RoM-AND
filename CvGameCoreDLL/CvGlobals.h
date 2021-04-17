@@ -232,7 +232,6 @@ public:
 	CvStatsReporter* getStatsReporterPtr();
 	CvInterface& getInterface();
 	CvInterface* getInterfacePtr();
-	int getMaxCivPlayers() const;
 
 /*********************************/
 /***** Parallel Maps - Begin *****/
@@ -2121,8 +2120,8 @@ public:
 	}
 	DllExport int getMaxCivPlayers() const
 	{
-		PROXY_TRACK("getMaxCivPlayers");	
-		return gGlobals->getMaxCivPlayers();	
+		PROXY_TRACK("getMaxCivPlayers");
+		return MAX_CIV_PLAYERS;
 	}
 	DllExport CvMapExternal& getMap()
 	{
