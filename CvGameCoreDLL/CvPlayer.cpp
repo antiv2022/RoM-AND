@@ -478,8 +478,7 @@ void CvPlayer::init(PlayerTypes eID)
 	//m_cities.init();
 	clearAllCities();
 
-	//m_units.init();
-	clearAllUnits();
+	m_units.init();
 
 	//m_selectionGroups.init();
 	clearAllSelectionGroups();
@@ -670,8 +669,7 @@ void CvPlayer::initInGame(PlayerTypes eID, bool bSetAlive, bool bDeclareWar)
 	//m_cities.init();
 	clearAllCities();
 
-	//m_units.init();
-	clearAllUnits();
+	m_units.init();
 
 	//m_selectionGroups.init();
 	clearAllSelectionGroups();
@@ -1054,8 +1052,7 @@ void CvPlayer::uninit()
 	//m_cities.uninit();
 	clearAllCities();
 
-	//m_units.uninit();
-	clearAllUnits();
+	m_units.uninit();
 
 	//m_selectionGroups.uninit();
 	clearAllSelectionGroups();
@@ -1802,8 +1799,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	//m_cities.removeAll();
 	clearAllCities();
 
-	//m_units.removeAll();
-	clearAllUnits();
+	m_units.removeAll();
 	m_pTempUnit = NULL;
 
 	//m_selectionGroups.removeAll();
@@ -4363,14 +4359,10 @@ void CvPlayer::disbandUnit(bool bAnnounce)
 
 void CvPlayer::killUnits()
 {
-	//FAssertMsg(false, "CvPlayer::killUnits()");
-	CvUnit* pLoopUnit;
 	int iLoop = 0;
-
-	for (pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+ 	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
 		pLoopUnit->kill(false);
-		//FAssertMsg(false, "CvPlayer::killUnits() killed one"); // Toffer - this loop fails to iterate all units! there are NULL units inside the players unit list!
 	}
 }
 
@@ -20229,23 +20221,7 @@ void CvPlayer::clearAllCities()
 
 CvUnit* CvPlayer::firstUnit(int *pIterIdx, bool bRev) const
 {
-	if (bRev)
-	{
-		*pIterIdx = m_unitsList.size() - 1;
-	}
-	else
-	{
-		*pIterIdx = 0;
-	}
-	CvUnit* pResult = NULL;
-	if (*pIterIdx >= 0 && *pIterIdx < (int)m_unitsList.size())
-	{
-		pResult = m_unitsList.at(*pIterIdx);
-	}
-
-	/*
 	CvUnit* pResult = !bRev ? m_units.beginIter(pIterIdx) : m_units.endIter(pIterIdx);
-	*/
 
 	if (pResult != NULL && pResult == m_pTempUnit)
 	{
@@ -20257,28 +20233,12 @@ CvUnit* CvPlayer::firstUnit(int *pIterIdx, bool bRev) const
 
 CvUnit* CvPlayer::nextUnit(int *pIterIdx, bool bRev) const
 {
-	if (bRev)
-	{
-		(*pIterIdx)--;
-	}
-	else
-	{
-		(*pIterIdx)++;
-	}
-	CvUnit* pResult = NULL;
-	if (*pIterIdx >= 0 && *pIterIdx < (int)m_unitsList.size())
-	{
-		pResult = m_unitsList.at(*pIterIdx);
-	}
-
-	/*
 	CvUnit* pResult = !bRev ? m_units.nextIter(pIterIdx) : m_units.prevIter(pIterIdx);
-	*/
-	if ( pResult != NULL && pResult == m_pTempUnit )
+
+	if (pResult != NULL && pResult == m_pTempUnit)
 	{
 		pResult = nextUnit(pIterIdx, bRev);
 	}
-
 	return pResult;
 }
 
@@ -20286,11 +20246,10 @@ CvUnit* CvPlayer::firstUnitExternal(int *pIterIdx, bool bRev) const
 {
 	CvUnit*	pResult = firstUnit(pIterIdx, bRev);
 
-	if(pResult && !pResult->isInViewport())
+	if (pResult && !pResult->isInViewport())
 	{
 		pResult = nextUnitExternal(pIterIdx, bRev);
 	}
-
 	return pResult;
 }
 
@@ -20310,53 +20269,18 @@ CvUnit* CvPlayer::nextUnitExternal(int *pIterIdx, bool bRev) const
 
 int CvPlayer::getNumUnits() const
 {
-	return m_unitsList.size() - (m_pTempUnit != NULL ? 1 : 0);
-	//return m_units.getCount() - (m_pTempUnit != NULL ? 1 : 0);
+	return m_units.getCount() - (m_pTempUnit != NULL ? 1 : 0);
 }
 
 
 CvUnit* CvPlayer::getUnit(int iID) const
 {
-	//return (m_units.getAt(iID));
-	CvUnitAI* pUnit = NULL;
-
-	EnterCriticalSection(&m_cModifySection);
-
-	stdext::hash_map<int, CvUnitAI*>::const_iterator it = m_unitsMap.find(iID);
-	if (it != m_unitsMap.end())
-	{
-		pUnit = it->second;
-	}
-
-	LeaveCriticalSection(&m_cModifySection);
-
-	return pUnit;
+	return m_units.getAt(iID);
 }
 
 CvUnit* CvPlayer::addUnit()
 {
-	EnterCriticalSection(&m_cModifySection);
-
-	CvUnitAI* pUnit = new CvUnitAI;
-
-	//Ensure we do not collide with an existing id
-	CvUnit* temp = NULL;
-	int id;
-	do {
-		//Increment id space
-		id = m_iLastUnitId + 1;
-		m_iLastUnitId = id;
-		temp = getUnit(id);
-	} while (temp != NULL);
-
-	pUnit->setID(id);
-	m_unitsList.push_back(pUnit);
-	m_unitsMap[id] = pUnit;
-
-	LeaveCriticalSection(&m_cModifySection);
-
-	return pUnit;
-	//return m_units.add();
+	return m_units.add();
 }
 
 
@@ -20392,42 +20316,7 @@ void CvPlayer::deleteUnit(int iID)
 			}
 		}
 	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-
-	m_unitsMap.erase(iID);
-
-	std::vector<CvUnitAI*>::iterator it;
-	for (it = m_unitsList.begin(); it != m_unitsList.end(); ++it)
-	{
-		CvUnitAI* pLoopUnit = *it;
-		if (pLoopUnit == pUnit)
-		{
-			m_unitsList.erase(it);
-			break;
-		}
-	}
-	SAFE_DELETE(pUnit);
-
-	LeaveCriticalSection(&m_cModifySection);
-	//m_units.removeAt(iID);
-}
-
-void CvPlayer::clearAllUnits()
-{
-	std::vector<CvUnitAI*>::iterator it;
-	for (it = m_unitsList.begin(); it != m_unitsList.end(); ++it)
-	{
-		CvUnitAI* pLoopUnit = *it;
-		m_unitsMap.erase(pLoopUnit->getID());
-
-		SAFE_DELETE(pLoopUnit);
-	}
-	m_unitsList.clear();
-	m_unitsMap.clear();
-	m_iLastUnitId = 0;
-	m_pTempUnit = NULL;
+	m_units.removeAt(iID);
 }
 
 
@@ -25612,39 +25501,7 @@ void CvPlayer::read(FDataStreamBase* pStream)
 		}
 		//ReadStreamableFFreeListTrashArray(m_cities, pStream);
 
-		int iUnitSaveFormat = 0;
-		WRAPPER_READ_DECORATED(wrapper, "CvPlayer", &iUnitSaveFormat, "iUnitSaveFormat");
-		if (iUnitSaveFormat == 0)
-		{
-			FFreeListTrashArray<CvUnitAI> flist;
-			ReadStreamableFFreeListTrashArray(flist, pStream);
-			flist.cancelDeinitialize();
-			for (int i = 0; i < flist.getIndexAfterLast(); i++)
-			{
-				if (flist.getAt(i))
-				{
-					CvUnitAI* pUnit = flist.getAt(i);
-					m_unitsList.push_back(pUnit);
-					m_unitsMap[pUnit->getID()] = pUnit;
-				}
-			}
-		}
-		else if (iUnitSaveFormat == 1)
-		{
-			clearAllUnits();
-			int iSize = 0;
-			WRAPPER_READ_DECORATED(wrapper, "CvPlayer", &iSize, "m_unitsList::size");
-			for (int i = 0; i < iSize; i++)
-			{
-				CvUnitAI* pUnit = new CvUnitAI();
-				pUnit->read(pStream);
-				m_unitsList.push_back(pUnit);
-				m_unitsMap[pUnit->getID()] = pUnit;
-			}
-
-			WRAPPER_READ(wrapper, "CvPlayer", &m_iLastUnitId);
-		}
-		//ReadStreamableFFreeListTrashArray(m_units, pStream);
+		ReadStreamableFFreeListTrashArray(m_units, pStream);
 	/************************************************************************************************/
 	/* Afforess	                  Start		 03/30/10                                               */
 	/*                                                                                              */
@@ -26625,20 +26482,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 		}
 		WRAPPER_WRITE(wrapper, "CvPlayer", m_iLastCityId);
 
-		//WriteStreamableFFreeListTrashArray(m_units, pStream);
-		int iUnitSaveFormat = 1;
-		WRAPPER_WRITE_DECORATED(wrapper, "CvPlayer", iUnitSaveFormat, "iUnitSaveFormat");
-		{
-			int iSize = m_unitsList.size();
-			WRAPPER_WRITE_DECORATED(wrapper, "CvPlayer", iSize, "m_unitsList::size");
-			std::vector<CvUnitAI*>::iterator it;
-			for (it = m_unitsList.begin(); it != m_unitsList.end(); ++it)
-			{
-				CvUnitAI* pUnit = *it;
-				pUnit->write(pStream);
-			}
-		}
-		WRAPPER_WRITE(wrapper, "CvPlayer", m_iLastUnitId);
+		WriteStreamableFFreeListTrashArray(m_units, pStream);
 
 		//WriteStreamableFFreeListTrashArray(m_selectionGroups, pStream);
 		int iSelectionGroupSaveFormat = 1;
@@ -27578,221 +27422,8 @@ void CvPlayer::resync(bool bWrite, ByteBuffer* pBuffer)
 			}
 		}
 
-		//Merge Units
-		//Units can only be resynced with units of the same id, because the id is used as the index to retrieve them from storage
-		RESYNC_INT(bWrite, pBuffer, m_iLastUnitId);
-		if (bWrite)
-		{
-			pBuffer->putInt(m_unitsList.size());
-			std::vector<CvUnitAI*>::iterator it;
-			for (it = m_unitsList.begin(); it != m_unitsList.end(); ++it)
-			{
-				CvUnitAI* pUnit = (*it);
-
-				//Prefix with unit id for verification purposes later
-				pBuffer->putInt(pUnit->getID());
-				pUnit->resync(true, pBuffer);
-			}
-		}
-		else
-		{
-			int iI;
-
-			for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
-			{
-				GC.getMapINLINE().plotByIndexINLINE(iI)->enableCenterUnitRecalc(false);
-			}
-
-			stdext::hash_map<int, CvUnitAI*> unaccountedForUnits;
-			//Units are removed from unaccountedForUnits as we find their id from the resync
-			//At the end, units left in the map were not sent to us from the resync and should not exist
-			std::vector<CvUnitAI*>::iterator it;
-			for (it = m_unitsList.begin(); it != m_unitsList.end(); ++it)
-			{
-				CvUnitAI* pUnit = (*it);
-				unaccountedForUnits[pUnit->getID()] = pUnit;
-			}
-
-			//Also keep track of the order of the ids sent to us by the host game, we need to re-organize our units list in this order when we are done
-			std::vector<int> idOrder;
-
-			int iCount = pBuffer->getInt();
-			for (int iI = 0; iI < iCount; iI++)
-			{
-				int iExpectedID = pBuffer->getInt();
-
-				idOrder.push_back(iExpectedID);
-
-				stdext::hash_map<int, CvUnitAI*>::iterator it = m_unitsMap.find(iExpectedID);
-				//Found the unit in our game matching the sent id, resyncing it
-				if (it != m_unitsMap.end())
-				{
-					unaccountedForUnits.erase(iExpectedID);
-
-					CvUnitAI* pUnit = it->second;
-
-					//Check to make sure this is not the temp unit or other nonsense (where accessing its plot() will blow up)
-					bool bFakeUnit = pUnit->getX_INLINE() == INVALID_PLOT_COORD && pUnit->getY_INLINE() == INVALID_PLOT_COORD;
-
-					//Set the old tile dirty
-					if (!bFakeUnit)
-					{
-						pUnit->plot()->setFlagDirty(true);
-					}
-
-					pUnit->resync(false, pBuffer);
-
-					//Set the new tile dirty
-					if (!bFakeUnit)
-					{
-						pUnit->plot()->setFlagDirty(true);
-
-						if (GC.IsGraphicsInitialized() && pUnit->isInViewport())
-						{
-							if (pUnit->plot()->isActiveVisible(true))
-							{
-								pUnit->plot()->updateMinimapColor();
-							}
-							pUnit->SetPosition(pUnit->plot());
-						}
-
-						pUnit->setInfoBarDirty(true);
-					}
-				}
-				//We did not find the unit and need to create it!
-				else
-				{
-					CvUnitAI* pUnit = new CvUnitAI();
-					pUnit->setID(iExpectedID);
-					m_unitsList.push_back(pUnit);
-					m_unitsMap[iExpectedID] = pUnit;
-
-					pUnit->resync(false, pBuffer);
-
-					//Check to make sure this is not the temp unit or other nonsense (where accessing its plot() will blow up)
-					bool bFakeUnit = pUnit->getX_INLINE() == INVALID_PLOT_COORD && pUnit->getY_INLINE() == INVALID_PLOT_COORD;
-
-					if (!bFakeUnit)
-					{
-						pUnit->plot()->setFlagDirty(true);
-						if (GC.IsGraphicsInitialized() && pUnit->isInViewport())
-						{
-							if (pUnit->plot()->isActiveVisible(true))
-							{
-								pUnit->plot()->updateMinimapColor();
-							}
-							pUnit->SetPosition(pUnit->plot());
-						}
-
-						pUnit->setInfoBarDirty(true);
-					}
-				}
-
-			}
-
-			{
-				//Left over units not sent as part of the resync - they must be removed
-				stdext::hash_map<int, CvUnitAI*>::iterator it;
-				for (it = unaccountedForUnits.begin(); it != unaccountedForUnits.end(); ++it)
-				{
-					CvUnitAI* pUnit = it->second;
-
-					// XXX this is NOT a hack, without it, the game crashes.
-					if (!pUnit->isUsingDummyEntities() && pUnit->isInViewport())
-					{
-						gDLL->getEntityIFace()->RemoveUnitFromBattle(pUnit);
-					}
-					deleteUnit(pUnit->getID());
-				}
-			}
-
-			//Reorder our unit list in the order of ids sent to us
-			{
-				m_unitsList.clear();
-
-				std::vector<int>::iterator it;
-				for (it = idOrder.begin(); it != idOrder.end(); ++it)
-				{
-					int id = (*it);
-					stdext::hash_map<int, CvUnitAI*>::iterator search = m_unitsMap.find(id);
-					//Found the unit in our game matching the sent id, resyncing it
-					if (search != m_unitsMap.end())
-					{
-						m_unitsList.push_back(search->second);
-					}
-					else
-					{
-						//Should not happen!
-						FAssert(false);
-					}
-				}
-			}
-
-			{
-				int iLoop = 0;
-				CvUnit* pLoopUnit;
-				CvPlot* pLoopPlot;
-				for (pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
-				{
-
-					//Check to make sure this is not the temp unit or other nonsense (where accessing its plot() will blow up)
-					bool bFakeUnit = pLoopUnit->getX_INLINE() == INVALID_PLOT_COORD && pLoopUnit->getY_INLINE() == INVALID_PLOT_COORD;
-
-					if (!bFakeUnit)
-					{
-						pLoopUnit->reloadEntity();
-						pLoopPlot = pLoopUnit->plot();
-
-						if (pLoopPlot != NULL)
-						{
-							CvFlagEntity* pFlag = pLoopPlot->getFlagSymbol();
-
-							if (pFlag != NULL)
-							{
-								if (gDLL->getFlagEntityIFace()->getPlayer(pFlag) == getID())
-								{
-									gDLL->getFlagEntityIFace()->destroy(pFlag);
-									CvFlagEntity* pNewFlag = gDLL->getFlagEntityIFace()->create(getID());
-									if (pFlag != NULL)
-									{
-										gDLL->getFlagEntityIFace()->setPlot(pNewFlag, pLoopPlot, false);
-									}
-
-									gDLL->getFlagEntityIFace()->updateGraphicEra(pNewFlag);
-								}
-							}
-
-							pLoopPlot->setFlagDirty(true);
-
-							pLoopPlot->updateCenterUnit();
-						}
-					}
-				}
-
-				gDLL->getInterfaceIFace()->setDirty(Flag_DIRTY_BIT, true);
-				gDLL->getInterfaceIFace()->makeInterfaceDirty();
-				gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
-				gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
-				gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
-			}
-
-			Commanders.clear();
-			int iLoop = 0;
-			for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
-			{
-				if (pLoopUnit->isCommander())	//search for GGs among loaded units and add them to Commanders array
-				{
-					Commanders.push_back(pLoopUnit);
-				}
-				if (pLoopUnit->isZoneOfControl())
-				{
-					GC.getGameINLINE().toggleAnyoneHasUnitZoneOfControl();
-				}
-			}
-		}
-
 		//ResyncStreamableFFreeListTrashArray(bWrite, pBuffer, m_cities);
-		//ResyncStreamableFFreeListTrashArray(bWrite, pBuffer, m_units);
+		ResyncStreamableFFreeListTrashArray(bWrite, pBuffer, m_units);
 
 		ResyncStreamableFFreeListTrashArray(bWrite, pBuffer, m_eventsTriggered);
 

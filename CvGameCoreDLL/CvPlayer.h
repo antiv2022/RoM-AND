@@ -2211,14 +2211,10 @@ protected:
 	int m_iLastCityId;
 	std::vector<CvCityAI*> m_citiesList;
 	stdext::hash_map<int, CvCityAI*> m_citiesMap;
+	mutable CRITICAL_SECTION m_cModifySection;
 	void clearAllCities();
 
-	//FFreeListTrashArray<CvUnitAI> m_units;
-	int m_iLastUnitId;
-	std::vector<CvUnitAI*> m_unitsList;
-	stdext::hash_map<int, CvUnitAI*> m_unitsMap;
-	mutable CRITICAL_SECTION m_cModifySection;
-	void clearAllUnits();
+	FFreeListTrashArray<CvUnitAI> m_units;
 
 	//FFreeListTrashArray<CvSelectionGroupAI> m_selectionGroups;
 	int m_iLastSelectionGroupId;
