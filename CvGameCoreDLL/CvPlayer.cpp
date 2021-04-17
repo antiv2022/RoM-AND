@@ -1343,8 +1343,6 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_iHurryInflationModifier = 0;
 	m_iHurryCount = 0;
 
-	m_bAliveSanityCounter = 0;
-
 	m_eBestRoute = NO_ROUTE;
 
 	m_iNoLandmarkAngerCount = 0;
@@ -4365,12 +4363,14 @@ void CvPlayer::disbandUnit(bool bAnnounce)
 
 void CvPlayer::killUnits()
 {
+	//FAssertMsg(false, "CvPlayer::killUnits()");
 	CvUnit* pLoopUnit;
 	int iLoop = 0;
 
 	for (pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
 		pLoopUnit->kill(false);
+		//FAssertMsg(false, "CvPlayer::killUnits() killed one"); // Toffer - this loop fails to iterate all units! there are NULL units inside the players unit list!
 	}
 }
 
@@ -16498,22 +16498,24 @@ void CvPlayer::verifyAlive()
 {
 	if (isAlive())
 	{
+		if (isBarbarian() || getAdvancedStartPoints() > -1)
+		{
+			return;
+		}
 		bool bKill = false;
 
-		if (!isBarbarian())
+		if (getNumCities() == 0)
 		{
-			if (getNumCities() == 0 && getAdvancedStartPoints() < 0)
-			{
-				// Keep a rebel player alive until they lose all units
-				if (getNumUnits() == (AI_getNumAIUnits(UNITAI_SPY) + AI_getNumAIUnits(UNITAI_MERCHANT)) || (!(GC.getGameINLINE().isOption(GAMEOPTION_COMPLETE_KILLS)) && isFoundedFirstCity() && !(isRebel()))) //45� changed so that invisible units (especially Great Spies) are not counted because you can't see them and kill them
-				{
-					bKill = true;
-				}
-			}
-			if (!bKill && GC.getGameINLINE().getMaxCityElimination() > 0 && getCitiesLost() >= GC.getGameINLINE().getMaxCityElimination())
+			// Keep a rebel player alive until they lose all units
+			if (getNumUnits() == AI_getNumAIUnits(UNITAI_SPY) + AI_getNumAIUnits(UNITAI_MERCHANT)
+			|| !GC.getGameINLINE().isOption(GAMEOPTION_COMPLETE_KILLS) && isFoundedFirstCity() && !isRebel()) //45� changed so that invisible units (especially Great Spies) are not counted because you can't see them and kill them
 			{
 				bKill = true;
 			}
+		}
+		if (!bKill && GC.getGameINLINE().getMaxCityElimination() > 0 && getCitiesLost() >= GC.getGameINLINE().getMaxCityElimination())
+		{
+			bKill = true;
 		}
 
 		if (bKill)
@@ -16576,7 +16578,6 @@ void CvPlayer::verifyAlive()
 					}
 				}
 			}
-
 			setAlive(false);
 
 			// Assign player to earliest AI to take over if we die when on autoplay.
@@ -16668,48 +16669,6 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				}
 			}
 
-			//Afforess: AI Alive Sanity Checking
-			if (getNumCities() == 0
-				&& !isBarbarian()) // f1rpo
-			{
-				//We are dead if we have no cities and do not need complete kills
-				bool bDead = !GC.getGameINLINE().isOption(GAMEOPTION_COMPLETE_KILLS);
-				if (!bDead)
-				{
-					bool bFoundCombatUnit = false;
-					int iLoop = 0;
-					for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
-					{
-						//Only land units can capture cities
-						if ((pLoopUnit->canAttack() || pLoopUnit->isFound()) && pLoopUnit->getDomainType() == DOMAIN_LAND)
-						{
-							bFoundCombatUnit = true;
-							break;
-						}
-					}
-					//We are dead if we have no units that can engage in combat
-					bDead = !bFoundCombatUnit;
-				}
-
-				if (bDead)
-				{
-					m_bAliveSanityCounter++;
-					if (m_bAliveSanityCounter > 10)
-					{
-						setAlive(false);
-						m_bAliveSanityCounter = 0;
-					}
-				}
-				else
-				{
-					m_bAliveSanityCounter = 0;
-				}
-			}
-			else
-			{
-				m_bAliveSanityCounter = 0;
-			}
-			//Afforess End
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      10/26/09                                jdog5000      */
 /*                                                                                              */
@@ -25223,6 +25182,8 @@ void CvPlayer::read(FDataStreamBase* pStream)
 		WRAPPER_READ(wrapper, "CvPlayer", (int*)&m_eCurrentEra);
 		WRAPPER_READ_CLASS_ENUM(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_RELIGIONS, (int*)&m_eLastStateReligion);
 		WRAPPER_READ(wrapper, "CvPlayer", (int*)&m_eParent);
+
+		WRAPPER_READ(wrapper, "CvPlayer", (int*)&m_eLastPlayerThatConqueredUs);
 		updateTeamType(); //m_eTeamType not saved
 		updateHuman();
 
@@ -26218,8 +26179,6 @@ void CvPlayer::read(FDataStreamBase* pStream)
 
 		uninit();
 	}
-	WRAPPER_READ(wrapper, "CvPlayer", (int*)&m_eLastPlayerThatConqueredUs);
-
 
 	WRAPPER_READ_OBJECT_END(wrapper);
 /************************************************************************************************/
@@ -26452,6 +26411,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 		WRAPPER_WRITE_CLASS_ENUM(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_RELIGIONS, m_eLastStateReligion);
 		WRAPPER_WRITE(wrapper, "CvPlayer", m_eParent);
 		//m_eTeamType not saved
+		WRAPPER_WRITE(wrapper, "CvPlayer", m_eLastPlayerThatConqueredUs);
 
 		WRAPPER_WRITE_ARRAY(wrapper, "CvPlayer", NUM_YIELD_TYPES, m_aiSeaPlotYield);
 		WRAPPER_WRITE_ARRAY(wrapper, "CvPlayer", NUM_YIELD_TYPES, m_aiYieldRateModifier);
@@ -26959,7 +26919,6 @@ void CvPlayer::write(FDataStreamBase* pStream)
 		}
 		WRAPPER_WRITE(wrapper, "CvPlayer", m_iAllowsAmbassadorsCount);
 	}
-	WRAPPER_WRITE(wrapper, "CvPlayer", m_eLastPlayerThatConqueredUs);
 
 	WRAPPER_WRITE_OBJECT_END(wrapper);
 }

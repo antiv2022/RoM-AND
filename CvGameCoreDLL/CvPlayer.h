@@ -1825,8 +1825,6 @@ protected:
 
 	bool m_turnHadUIInteraction;
 
-	short m_bAliveSanityCounter;
-	
 public:
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
