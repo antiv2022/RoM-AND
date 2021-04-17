@@ -6732,7 +6732,7 @@ bool CvUnit::nuke(int iX, int iY)
 		}
 	}
 
-	// Toffer - Used a Nuke on something; Inthegrave didn't want it to fire when unuke is used on empty land, as in a nuclear test explosion
+	// Toffer - Used a Nuke on something; Inthegrave didn't want it to fire when nuke is used on empty land, as in a nuclear test explosion
 	if (ePlotOwner != NO_PLAYER && ePlotOwner != eMyOwner
 	|| pPlot->getImprovementType() != NO_IMPROVEMENT
 	|| pPlot->headUnitNode() != NULL
@@ -6745,6 +6745,7 @@ bool CvUnit::nuke(int iX, int iY)
 				for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 				{
 					if(GET_PLAYER((PlayerTypes)iI).isAlive()
+					&& GET_PLAYER((PlayerTypes)iI).getTeam() == iI
 					&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_US) == 0
 					&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_FRIEND) == 0)
 					{
