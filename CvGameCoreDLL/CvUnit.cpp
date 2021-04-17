@@ -6742,14 +6742,14 @@ bool CvUnit::nuke(int iX, int iY)
 		{
 			if (iI != eMyTeam && GET_TEAM((TeamTypes)iI).isAlive() && myTeam.isHasMet((TeamTypes)iI))
 			{
-				for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+				for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 				{
-					if(GET_PLAYER((PlayerTypes)iI).isAlive()
-					&& GET_PLAYER((PlayerTypes)iI).getTeam() == iI
-					&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_US) == 0
-					&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_FRIEND) == 0)
+					if(GET_PLAYER((PlayerTypes)iJ).isAlive()
+					&& GET_PLAYER((PlayerTypes)iJ).getTeam() == iI
+					&& GET_PLAYER((PlayerTypes)iJ).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_US) == 0
+					&& GET_PLAYER((PlayerTypes)iJ).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_FRIEND) == 0)
 					{
-						GET_PLAYER((PlayerTypes)iI).AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, 1);
+						GET_PLAYER((PlayerTypes)iJ).AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, 1);
 					}
 				}
 			}
@@ -23559,13 +23559,14 @@ bool CvUnit::spyNuke(int iX, int iY, bool bCaught)
 		{
 			if (iI != eMyTeam && GET_TEAM((TeamTypes)iI).isAlive() && myTeam.isHasMet((TeamTypes)iI))
 			{
-				for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+				for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 				{
-					if(GET_PLAYER((PlayerTypes)iI).isAlive()
-					&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_US) == 0
-					&& GET_PLAYER((PlayerTypes)iI).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_FRIEND) == 0)
+					if(GET_PLAYER((PlayerTypes)iJ).isAlive()
+					&& GET_PLAYER((PlayerTypes)iJ).getTeam() == iI
+					&& GET_PLAYER((PlayerTypes)iJ).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_US) == 0
+					&& GET_PLAYER((PlayerTypes)iJ).AI_getMemoryCount(eMyOwner, MEMORY_NUKED_FRIEND) == 0)
 					{
-						GET_PLAYER((PlayerTypes)iI).AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, 1);
+						GET_PLAYER((PlayerTypes)iJ).AI_changeMemoryCount(eMyOwner, MEMORY_USED_NUKE, 1);
 					}
 				}
 			}
