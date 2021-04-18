@@ -55,12 +55,13 @@ public:
 	DllExport void setNetStats(CvWString& szString, PlayerTypes ePlayer);
 	DllExport void setMinimizePopupHelp(CvWString& szString, const CvPopupInfo & info);
 
-	DllExport void setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, bool bOneLine = false, bool bShort = false);
-	DllExport void setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot, bool bOneLine, bool bShort);
-	DllExport bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
-	DllExport void setPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
-	DllExport void setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity);
-	DllExport void setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer);
+	void setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, bool bOneLine = false, bool bShort = false,
+			bool bColorAllegiance = false); // f1rpo
+	void setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot, bool bOneLine, bool bShort);
+	bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
+	void setPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
+	void setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity);
+	void setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer);
 /************************************************************************************************/
 /* Afforess	                  Start		 08/26/10                                               */
 /*                                                                                              */
@@ -335,13 +336,43 @@ public:
 	void buildGameObjectRelationString(CvWStringBuffer& szBuffer, GameObjectTypes eObject, RelationTypes eRelation, int iData);
 
 private:
+	std::vector<int*> m_apbPromotion;
+
 	void eventTechHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, TechTypes eTech, PlayerTypes ePlayer, PlayerTypes eOtherPlayer);
 	void eventGoldHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, PlayerTypes ePlayer, PlayerTypes eOtherPlayer);
 
-	std::vector<int*> m_apbPromotion;
-
 	void setCityPlotYieldValueString(CvWStringBuffer &szString, CvCity* pCity, int iIndex, bool bAvoidGrowth, bool bIgnoreGrowth, bool bIgnoreFood = false);
 	void setYieldValueString(CvWStringBuffer &szString, int iValue, bool bActive = false, bool bMakeWhitespace = false);
+	// <f1rpo>
+	void appendCombatModifiers(CvWStringBuffer& szBuffer, CvPlot const& kPlot,
+			CvUnit const& kAttacker, CvUnit const& kDefender,
+			bool bAttackModifier, bool bACOEnabled,
+			bool bOnlyGeneric = false, bool bOnlyNonGeneric = false);
+	struct CombatModifierOutputParams
+	{
+		CombatModifierOutputParams()
+		{
+			m_bAttackModifier = m_bGenericModifier = m_bACOEnabled
+					= m_bOnlyPositive = m_bOnlyNegative = false;
+		}
+		bool m_bAttackModifier;
+		bool m_bGenericModifier;
+		bool m_bACOEnabled;
+		bool m_bOnlyPositive;
+		bool m_bOnlyNegative;
+	};
+	void appendAttackerModifiers(CvWStringBuffer& szBuffer, CvPlot const& kPlot,
+			CvUnit const& kAttacker, CvUnit const& kDefender,
+			CombatModifierOutputParams const& kParams);
+	void appendDefenderModifiers(CvWStringBuffer& szBuffer, CvPlot const& kPlot,
+			CvUnit const& kAttacker, CvUnit const& kDefender,
+			CombatModifierOutputParams const& kParams);
+	void appendCombatModifier(CvWStringBuffer& szBuffer, int iModifier,
+			CombatModifierOutputParams const& kParams, char const* szTextKey,
+			wchar const* szTextArg = NULL);
+	void appendFirstStrikes(CvWStringBuffer& szBuffer,
+			CvUnit const& kFirstStriker, CvUnit const& kOther, bool bNegativeColor);
+	// </f1rpo>
 };
 
 // Singleton Accessor
