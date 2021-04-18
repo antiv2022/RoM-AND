@@ -760,7 +760,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 			szString.append(szTempBuffer);
 		}
 	}
-    if (bAlt && (gDLL->getChtLvl() > 0))
+    if (bAlt //&& gDLL->getChtLvl() > 0
+		&& GC.getGameINLINE().isDebugMode()) // f1rpo
     {
 		CvSelectionGroup* eGroup = pUnit->getGroup();
 		if (eGroup != NULL)
@@ -1658,7 +1659,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 			szString.append(pUnit->getUnitInfo().getHelp());
 		}
 
-        if (bShift && (gDLL->getChtLvl() > 0))
+        if (bShift //&& gDLL->getChtLvl() > 0
+			&& GC.getGameINLINE().isDebugMode()) // f1rpo
         {
             szTempBuffer.Format(L"\nUnitAI Type = %s.", GC.getUnitAIInfo(pUnit->AI_getUnitAIType()).getDescription());
             szString.append(szTempBuffer);
@@ -1676,7 +1678,8 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot, bo
 	int numPromotionInfos = GC.getNumPromotionInfos();
 
 	// if cheatmode and ctrl, display grouping info instead
-	if ((gDLL->getChtLvl() > 0) && gDLL->ctrlKey())
+	if (gDLL->ctrlKey() //&& gDLL->getChtLvl() > 0
+		&& GC.getGameINLINE().isDebugMode()) // f1rpo
 	{
 		if (pPlot->isVisible(GC.getGameINLINE().getActiveTeam(), GC.getGameINLINE().isDebugMode()))
 		{
@@ -2332,7 +2335,8 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 	PROFILE_FUNC();
 
 	// BETTER_BTS_AI_MOD, 05/22/08, jdog5000 (DEBUG):
-	if (gDLL->altKey() && (gDLL->getChtLvl() > 0))
+	if (gDLL->altKey() //&& gDLL->getChtLvl() > 0
+		&& GC.getGameINLINE().isDebugMode()) // f1rpo
 	{
 		setPlotHelp( szString, pPlot );
 		return true;
@@ -4088,7 +4092,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		return;
 	}
 
-	if (bCtrl && (gDLL->getChtLvl() > 0))
+	if (bCtrl //&& gDLL->getChtLvl() > 0
+		&& GC.getGameINLINE().isDebugMode()) // f1rpo
 	{
 		if (pPlot->getOwnerINLINE() != NO_PLAYER)
 		{
@@ -4123,8 +4128,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			int iCityDefenders = pPlot->plotCount(PUF_canDefendGroupHead, -1, -1, ePlayer, NO_TEAM, PUF_isCityAIType);
 			int iAttackGroups = pPlot->plotCount(PUF_isUnitAIType, UNITAI_ATTACK, -1, ePlayer);
 			szString.append(CvWString::format(L"\nDefenders [D+A]/N ([%d + %d] / %d)", iCityDefenders, iAttackGroups, pPlotCity->AI_neededDefenders()));
-
-			szString.append(CvWString::format(L"\nFloating Defenders H/N (%d / %d)", kPlayer.AI_getTotalFloatingDefenders(pPlotCity->area()), kPlayer.AI_getTotalFloatingDefendersNeeded(pPlotCity->area())));
+			if (!kPlayer.isBarbarian()) // f1rpo: Barbarians have no floating defenders
+				szString.append(CvWString::format(L"\nFloating Defenders H/N (%d / %d)", kPlayer.AI_getTotalFloatingDefenders(pPlotCity->area()), kPlayer.AI_getTotalFloatingDefendersNeeded(pPlotCity->area())));
 			szString.append(CvWString::format(L"\nAir Defenders H/N (%d / %d)", pPlotCity->plot()->plotCount(PUF_canAirDefend, -1, -1, pPlotCity->getOwnerINLINE(), NO_TEAM, PUF_isDomainType, DOMAIN_AIR), pPlotCity->AI_neededAirDefenders()));
 //			int iHostileUnits = kPlayer.AI_countNumAreaHostileUnits(pPlotCity->area());
 //			if (iHostileUnits > 0)
@@ -4524,7 +4529,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		}
 		return;
 	}
-	else if (bShift && !bAlt && (gDLL->getChtLvl() > 0))
+	else if (bShift && !bAlt //&& gDLL->getChtLvl() > 0
+		&& GC.getGameINLINE().isDebugMode()) // f1rpo
 	{
 		szString.append(GC.getTerrainInfo(pPlot->getTerrainType()).getDescription());
 
@@ -4735,7 +4741,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			}
 		}
 	}
-	else if (!bShift && bAlt && (gDLL->getChtLvl() > 0))
+	else if (!bShift && bAlt //&& gDLL->getChtLvl() > 0
+		&& GC.getGameINLINE().isDebugMode()) // f1rpo
 	{
 	    if (pPlot->isOwned())
 	    {
@@ -5001,7 +5008,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 /************************************************************************************************/
 	    }
 	}
-	else if (bShift && bAlt && (gDLL->getChtLvl() > 0))
+	else if (bShift && bAlt //&& gDLL->getChtLvl() > 0
+		&& GC.getGameINLINE().isDebugMode()) // f1rpo
 	{
 		CvCity*	pCity = pPlot->getWorkingCity();
 		if (pCity != NULL)
@@ -10016,7 +10024,8 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 
 	// show debug info if cheat level > 0 and alt down
 	bool bAlt = gDLL->altKey();
-    if (bAlt && (gDLL->getChtLvl() > 0))
+    if (bAlt //&& gDLL->getChtLvl() > 0
+		&& GC.getGameINLINE().isDebugMode()) // f1rpo
     {
 		szBuffer.clear();
 
@@ -12559,7 +12568,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 
 	if (pCity != NULL)
 	{
-		if ((gDLL->getChtLvl() > 0) && gDLL->ctrlKey())
+		if (gDLL->ctrlKey() //&& gDLL->getChtLvl() > 0
+			&& GC.getGameINLINE().isDebugMode()) // f1rpo
 		{
 			szBuffer.append(NEWLINE);
 			for (int iUnitAI = 0; iUnitAI < NUM_UNITAI_TYPES; iUnitAI++)
@@ -15185,7 +15195,8 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 			}
 		}
 
-		if ((gDLL->getChtLvl() > 0) && gDLL->ctrlKey() && (pCity != NULL))
+		if (pCity != NULL && gDLL->ctrlKey() //&& gDLL->getChtLvl() > 0
+			&& GC.getGameINLINE().isDebugMode()) // f1rpo
 		{
 			int iBuildingValue = pCity->AI_buildingValue(eBuilding);
 			szBuffer.append(CvWString::format(L"\nAI Building Value = %d", iBuildingValue));
