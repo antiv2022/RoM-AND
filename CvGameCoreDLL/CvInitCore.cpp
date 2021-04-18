@@ -2294,8 +2294,8 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	else/* if (iGameOptionsSaveFormat == 1)*/ 
 	{
 		std::vector<GameOptionTypes> aeOptions;
-		FOR_EACH_INFO(eOption, GameOption)
-			aeOptions.push_back(eOption);
+		FOR_EACH_ENUM(GameOption)
+			aeOptions.push_back(eLoopGameOption);
 		if (iGameOptionsSaveFormat == 1)
 		{
 			std::swap(aeOptions[GAMEOPTION_NO_FUTURE],

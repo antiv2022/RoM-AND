@@ -6,6 +6,8 @@
 #ifndef CIV4_GLOBALS_H
 #define CIV4_GLOBALS_H
 
+#include "CvInfoEnums.h" // f1rpo
+
 //#include "CvStructs.h"
 //
 // 'global' vars for Civ IV.  singleton class.
@@ -313,6 +315,17 @@ public:
 	DirectionTypes* getTurnRightDirection();
 	DirectionTypes getTurnRightDirection(int i);
 	DirectionTypes getXYDirection(int i, int j);
+
+	// <f1rpo> (See CvInfoEnums.h)
+	#define MAKE_INFO_ACCESSOR(Name, Dummy) \
+	__forceinline Cv##Name##Info const& getInfo(Name##Types e##Name) const \
+	{ \
+		FAssertBounds(0, m_pa##Name##Info.size(), e##Name); \
+		/* (Slightly renamed a few data members to make them fit this pattern) */ \
+		return *m_pa##Name##Info[e##Name]; \
+	}
+	DO_FOR_EACH_INFO_TYPE(MAKE_INFO_ACCESSOR);
+	// </f1rpo>
 
 /************************************************************************************************/
 /* SORT_ALPHABET                           11/19/07                                MRGENIE      */
@@ -750,9 +763,9 @@ public:
 	std::vector<CvInfoBase*>& getMemoryInfo();
 	CvInfoBase& getMemoryInfo(MemoryTypes eMemoryNum);
 
-	inline int getNumGameOptionInfos()
+	int getNumGameOptionInfos()
 	{
-		return (int)m_paGameOptionInfos.size(); // f1rpo.opt: inline
+		return (int)m_paGameOptionInfo.size(); // f1rpo.opt: inline
 	}
 	std::vector<CvGameOptionInfo*>& getGameOptionInfo();
 	CvGameOptionInfo& getGameOptionInfo(GameOptionTypes eGameOptionNum);
@@ -934,6 +947,11 @@ public:
 	int getNumUnitArtStyleTypeInfos();
 	std::vector<CvUnitArtStyleTypeInfo*>& getUnitArtStyleTypeInfo();
 	CvUnitArtStyleTypeInfo& getUnitArtStyleTypeInfo(UnitArtStyleTypes eUnitArtStyleTypeNum);
+	// f1rpo: adapter
+	int getNumUnitArtStyleInfos()
+	{
+		return getNumUnitArtStyleTypeInfos();
+	}
 
 	//
 	// Global Types
@@ -1545,15 +1563,15 @@ protected:
 	std::vector<CvVoteSourceInfo*> m_paVoteSourceInfo;
 	std::vector<CvUnitCombatInfo*> m_paUnitCombatInfo;
 	std::vector<CvInfoBase*> m_paDomainInfo;
-	std::vector<CvInfoBase*> m_paUnitAIInfos;
-	std::vector<CvInfoBase*> m_paAttitudeInfos;
-	std::vector<CvInfoBase*> m_paMemoryInfos;
-	std::vector<CvInfoBase*> m_paFeatInfos;
-	std::vector<CvGameOptionInfo*> m_paGameOptionInfos;
-	std::vector<CvMPOptionInfo*> m_paMPOptionInfos;
-	std::vector<CvForceControlInfo*> m_paForceControlInfos;
-	std::vector<CvPlayerOptionInfo*> m_paPlayerOptionInfos;
-	std::vector<CvGraphicOptionInfo*> m_paGraphicOptionInfos;
+	std::vector<CvInfoBase*> m_paUnitAIInfo;
+	std::vector<CvInfoBase*> m_paAttitudeInfo;
+	std::vector<CvInfoBase*> m_paMemoryInfo;
+	std::vector<CvInfoBase*> m_paFeatInfo;
+	std::vector<CvGameOptionInfo*> m_paGameOptionInfo;
+	std::vector<CvMPOptionInfo*> m_paMPOptionInfo;
+	std::vector<CvForceControlInfo*> m_paForceControlInfo;
+	std::vector<CvPlayerOptionInfo*> m_paPlayerOptionInfo;
+	std::vector<CvGraphicOptionInfo*> m_paGraphicOptionInfo;
 	std::vector<CvSpecialistInfo*> m_paSpecialistInfo;
 	std::vector<CvEmphasizeInfo*> m_paEmphasizeInfo;
 	std::vector<CvUpkeepInfo*> m_paUpkeepInfo;
@@ -1571,7 +1589,7 @@ protected:
 	std::vector<CvCivicOptionInfo*> m_paCivicOptionInfo;
 	std::vector<CvCivicInfo*> m_paCivicInfo;
 	std::vector<CvDiplomacyInfo*> m_paDiplomacyInfo;
-	std::vector<CvEraInfo*> m_aEraInfo;	// [NUM_ERA_TYPES];
+	std::vector<CvEraInfo*> m_paEraInfo;
 	std::vector<CvHurryInfo*> m_paHurryInfo;
 	std::vector<CvVictoryInfo*> m_paVictoryInfo;
 	std::vector<CvRouteModelInfo*> m_paRouteModelInfo;
@@ -1592,7 +1610,7 @@ protected:
 	std::vector<CvEventTriggerInfo*> m_paEventTriggerInfo;
 	std::vector<CvEventInfo*> m_paEventInfo;
 	std::vector<CvEspionageMissionInfo*> m_paEspionageMissionInfo;
-    std::vector<CvUnitArtStyleTypeInfo*> m_paUnitArtStyleTypeInfo;
+    std::vector<CvUnitArtStyleTypeInfo*> m_paUnitArtStyleInfo;
 	std::vector<CvCulturalAgeInfo*> m_paCulturalAgeInfo;
 	std::vector<CvPropertyInfo*> m_paPropertyInfo;
 	std::vector<CvOutcomeInfo*> m_paOutcomeInfo;
@@ -3722,10 +3740,17 @@ inline CvGlobals& CvGlobals::getInstance()
 #define NUM_GLOBE_LAYER_TYPES (GC.getNumGlobeLayers())
 #endif
 
-#ifndef FIXED_MISSION_NUMBER
-#define NUM_MISSION_TYPES (GC.getNumMissionInfos())
+#ifndef FIXED_MISSION_NUMBER // (f1rpo: cast added)
+#define NUM_MISSION_TYPES (static_cast<MissionTypes>(GC.getNumMissionInfos()))
 #endif
-
+// <f1rpo>
+DO_FOR_EACH_DYN_INFO_TYPE(SET_ENUM_LENGTH);
+DO_FOR_EACH_STATIC_INFO_TYPE(SET_ENUM_LENGTH_STATIC);
+// Global types ...
+SET_ENUM_LENGTH_GLOBAL(Flavor, FLAVOR);
+SET_ENUM_LENGTH_GLOBAL(Gender, GENDER);
+SET_ENUM_LENGTH_GLOBAL(Race, RACE);
+// </f1rpo>
 
 
 /************************************************************************************************/

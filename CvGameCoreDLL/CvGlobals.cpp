@@ -2378,25 +2378,25 @@ CvCivNameInfo& cvInternalGlobals::getCivNameInfo(CivNameTypes e)
 
 std::vector<CvInfoBase*>& cvInternalGlobals::getUnitAIInfo()
 {
-	return m_paUnitAIInfos;
+	return m_paUnitAIInfo;
 }
 
 CvInfoBase& cvInternalGlobals::getUnitAIInfo(UnitAITypes eUnitAINum)
 {
 	FAssert(eUnitAINum >= 0);
 	FAssert(eUnitAINum < NUM_UNITAI_TYPES);
-	return *(m_paUnitAIInfos[eUnitAINum]);
+	return *(m_paUnitAIInfo[eUnitAINum]);
 }
 
 //	Koshling - added internal registration of supported UnitAI types, not reliant
 //	on external definition in XML
 void cvInternalGlobals::registerUnitAI(const char* szType, int enumVal)
 {
-	FAssert(m_paUnitAIInfos.size() == enumVal);
+	FAssert(m_paUnitAIInfo.size() == enumVal);
 
 	CvInfoBase* entry = new	CvInfoBase(szType);
 
-	m_paUnitAIInfos.push_back(entry);
+	m_paUnitAIInfo.push_back(entry);
 	setInfoTypeFromString(szType, enumVal);
 }
 
@@ -2598,97 +2598,97 @@ void cvInternalGlobals::registerPropertyPropagators()
 
 std::vector<CvInfoBase*>& cvInternalGlobals::getAttitudeInfo()
 {
-	return m_paAttitudeInfos;
+	return m_paAttitudeInfo;
 }
 
 CvInfoBase& cvInternalGlobals::getAttitudeInfo(AttitudeTypes eAttitudeNum)
 {
 	FAssert(eAttitudeNum >= 0);
 	FAssert(eAttitudeNum < NUM_ATTITUDE_TYPES);
-	return *(m_paAttitudeInfos[eAttitudeNum]);
+	return *(m_paAttitudeInfo[eAttitudeNum]);
 }
 
 
 std::vector<CvInfoBase*>& cvInternalGlobals::getMemoryInfo()
 {
-	return m_paMemoryInfos;
+	return m_paMemoryInfo;
 }
 
 CvInfoBase& cvInternalGlobals::getMemoryInfo(MemoryTypes eMemoryNum)
 {
 	FAssert(eMemoryNum >= 0);
 	FAssert(eMemoryNum < NUM_MEMORY_TYPES);
-	return *(m_paMemoryInfos[eMemoryNum]);
+	return *(m_paMemoryInfo[eMemoryNum]);
 }
 
 std::vector<CvGameOptionInfo*>& cvInternalGlobals::getGameOptionInfo()
 {
-	return m_paGameOptionInfos;
+	return m_paGameOptionInfo;
 }
 
 CvGameOptionInfo& cvInternalGlobals::getGameOptionInfo(GameOptionTypes eGameOptionNum)
 {
 	FAssert(eGameOptionNum >= 0);
 	FAssert(eGameOptionNum < GC.getNumGameOptionInfos());
-	return *(m_paGameOptionInfos[eGameOptionNum]);
+	return *(m_paGameOptionInfo[eGameOptionNum]);
 }
 
 int cvInternalGlobals::getNumMPOptionInfos()
 {
-	return (int)m_paMPOptionInfos.size();
+	return (int)m_paMPOptionInfo.size();
 }
 
 std::vector<CvMPOptionInfo*>& cvInternalGlobals::getMPOptionInfo()
 {
-	 return m_paMPOptionInfos;
+	 return m_paMPOptionInfo;
 }
 
 CvMPOptionInfo& cvInternalGlobals::getMPOptionInfo(MultiplayerOptionTypes eMPOptionNum)
 {
 	FAssert(eMPOptionNum >= 0);
 	FAssert(eMPOptionNum < GC.getNumMPOptionInfos());
-	return *(m_paMPOptionInfos[eMPOptionNum]);
+	return *(m_paMPOptionInfo[eMPOptionNum]);
 }
 
 int cvInternalGlobals::getNumForceControlInfos()
 {
-	return (int)m_paForceControlInfos.size();
+	return (int)m_paForceControlInfo.size();
 }
 
 std::vector<CvForceControlInfo*>& cvInternalGlobals::getForceControlInfo()
 {
-	return m_paForceControlInfos;
+	return m_paForceControlInfo;
 }
 
 CvForceControlInfo& cvInternalGlobals::getForceControlInfo(ForceControlTypes eForceControlNum)
 {
 	FAssert(eForceControlNum >= 0);
 	FAssert(eForceControlNum < GC.getNumForceControlInfos());
-	return *(m_paForceControlInfos[eForceControlNum]);
+	return *(m_paForceControlInfo[eForceControlNum]);
 }
 
 std::vector<CvPlayerOptionInfo*>& cvInternalGlobals::getPlayerOptionInfo()
 {
-	return m_paPlayerOptionInfos;
+	return m_paPlayerOptionInfo;
 }
 
 CvPlayerOptionInfo& cvInternalGlobals::getPlayerOptionInfo(PlayerOptionTypes ePlayerOptionNum)
 {
 	FAssert(ePlayerOptionNum >= 0);
 	FAssert(ePlayerOptionNum < NUM_PLAYEROPTION_TYPES);
-	return *(m_paPlayerOptionInfos[ePlayerOptionNum]);
+	return *(m_paPlayerOptionInfo[ePlayerOptionNum]);
 }
 
 std::vector<CvGraphicOptionInfo*>& cvInternalGlobals::getGraphicOptionInfo()
 {
-	return m_paGraphicOptionInfos;
+	return m_paGraphicOptionInfo;
 }
 
 CvGraphicOptionInfo& cvInternalGlobals::getGraphicOptionInfo(GraphicOptionTypes eGraphicOptionNum)
 {
 	FAssert(eGraphicOptionNum >= 0);
 	FAssert(eGraphicOptionNum < NUM_GRAPHICOPTION_TYPES);
-	return *(m_paGraphicOptionInfos[eGraphicOptionNum]);
+	return *(m_paGraphicOptionInfo[eGraphicOptionNum]);
 }
 
 
@@ -3157,19 +3157,19 @@ CvDiplomacyInfo& cvInternalGlobals::getDiplomacyInfo(int iDiplomacyNum)
 
 int cvInternalGlobals::getNumEraInfos()
 {
-	return (int)m_aEraInfo.size();
+	return (int)m_paEraInfo.size();
 }
 
 std::vector<CvEraInfo*>& cvInternalGlobals::getEraInfo()	// For Moose - XML Load Util, CvInfos
 {
-	return m_aEraInfo;
+	return m_paEraInfo;
 }
 
 CvEraInfo& cvInternalGlobals::getEraInfo(EraTypes eEraNum)
 {
 	FAssert(eEraNum > -1);
 	FAssert(eEraNum < GC.getNumEraInfos());
-	return *(m_aEraInfo[eEraNum]);
+	return *(m_paEraInfo[eEraNum]);
 }
 
 int cvInternalGlobals::getNumHurryInfos()
@@ -3447,19 +3447,19 @@ CvString& cvInternalGlobals::getArtStyleTypes(ArtStyleTypes e)
 
 int cvInternalGlobals::getNumUnitArtStyleTypeInfos()
 {
-    return (int)m_paUnitArtStyleTypeInfo.size();
+    return (int)m_paUnitArtStyleInfo.size();
 }
 
 std::vector<CvUnitArtStyleTypeInfo*>& cvInternalGlobals::getUnitArtStyleTypeInfo()
 {
-	return m_paUnitArtStyleTypeInfo;
+	return m_paUnitArtStyleInfo;
 }
 
 CvUnitArtStyleTypeInfo& cvInternalGlobals::getUnitArtStyleTypeInfo(UnitArtStyleTypes eUnitArtStyleTypeNum)
 {
 	FAssert(eUnitArtStyleTypeNum > -1);
 	FAssert(eUnitArtStyleTypeNum < GC.getNumUnitArtStyleTypeInfos());
-	return *(m_paUnitArtStyleTypeInfo[eUnitArtStyleTypeNum]);
+	return *(m_paUnitArtStyleInfo[eUnitArtStyleTypeNum]);
 }
 
 int& cvInternalGlobals::getNumCitySizeTypes()
@@ -4779,7 +4779,7 @@ void cvInternalGlobals::deleteInfoArrays()
 	deleteInfoArray(m_paLeaderHeadInfo);
 	deleteInfoArray(m_paTraitInfo);
 	deleteInfoArray(m_paCivilizationInfo);
-	deleteInfoArray(m_paUnitArtStyleTypeInfo);
+	deleteInfoArray(m_paUnitArtStyleInfo);
 
 	deleteInfoArray(m_paVoteSourceInfo);
 	deleteInfoArray(m_paHints);
@@ -4841,7 +4841,7 @@ void cvInternalGlobals::deleteInfoArrays()
 	deleteInfoArray(m_paTerrainPlaneInfo);
 	deleteInfoArray(m_paCameraOverlayInfo);
 
-	deleteInfoArray(m_aEraInfo);
+	deleteInfoArray(m_paEraInfo);
 	deleteInfoArray(m_paEffectInfo);
 	deleteInfoArray(m_paAttachableInfo);
 
@@ -4887,14 +4887,14 @@ void cvInternalGlobals::deleteInfoArrays()
 	deleteInfoArray(m_paInvisibleInfo);
 	deleteInfoArray(m_paUnitCombatInfo);
 	deleteInfoArray(m_paDomainInfo);
-	deleteInfoArray(m_paUnitAIInfos);
-	deleteInfoArray(m_paAttitudeInfos);
-	deleteInfoArray(m_paMemoryInfos);
-	deleteInfoArray(m_paGameOptionInfos);
-	deleteInfoArray(m_paMPOptionInfos);
-	deleteInfoArray(m_paForceControlInfos);
-	deleteInfoArray(m_paPlayerOptionInfos);
-	deleteInfoArray(m_paGraphicOptionInfos);
+	deleteInfoArray(m_paUnitAIInfo);
+	deleteInfoArray(m_paAttitudeInfo);
+	deleteInfoArray(m_paMemoryInfo);
+	deleteInfoArray(m_paGameOptionInfo);
+	deleteInfoArray(m_paMPOptionInfo);
+	deleteInfoArray(m_paForceControlInfo);
+	deleteInfoArray(m_paPlayerOptionInfo);
+	deleteInfoArray(m_paGraphicOptionInfo);
 
 	deleteInfoArray(m_paYieldInfo);
 	deleteInfoArray(m_paTerrainInfo);

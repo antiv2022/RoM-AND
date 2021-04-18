@@ -245,6 +245,7 @@
     <ClInclude Include="..\CvGameTextMgr.h" />
     <ClInclude Include="..\CvGlobals.h" />
     <ClInclude Include="..\CvHallOfFameInfo.h" />
+    <ClInclude Include="..\CvInfoEnums.h" />
     <ClInclude Include="..\CvInfoReplacements.h" />
     <ClInclude Include="..\CvInfos.h" />
     <ClInclude Include="..\CvInfoWater.h" />

@@ -959,7 +959,8 @@ enum GameOptionTypes				// Exposed to Python
 	// </f1rpo>
 };
 
-#define NUM_GAMEOPTION_TYPES GC.getNumGameOptionInfos()
+// (f1rpo: cast added)
+#define NUM_GAMEOPTION_TYPES (static_cast<GameOptionTypes>(GC.getNumGameOptionInfos()))
 
 enum MultiplayerOptionTypes		// Exposed to Python
 {
@@ -1483,6 +1484,8 @@ enum CalendarTypes			// Exposed to Python
 	CALENDAR_SEASONS,
 	CALENDAR_MONTHS,
 	CALENDAR_WEEKS,
+
+	NUM_CALENDAR_TYPES // f1rpo
 };
 
 enum SeasonTypes				// Exposed to Python
@@ -1536,7 +1539,9 @@ enum DenialTypes				// Exposed to Python
 	DENIAL_YOU_LACK_OUR_RELIGION,
 	DENIAL_FINANCIAL_TROUBLES,
 	DENIAL_PEACEFUL_NATURE,
-	DENIAL_MANIPULATOR
+	DENIAL_MANIPULATOR,
+
+	NUM_DENIAL_TYPES // f1rpo
 };
 
 enum DomainTypes			// Exposed to Python
@@ -2226,6 +2231,7 @@ enum AnimationPathTypes	// Exposed to Python
 	ANIMATIONPATH_GREAT_EVENT,
 	ANIMATIONPATH_SURRENDER,
 	ANIMATIONPATH_AIRPATROL,
+	NUM_ANIMATIONPATH_TYPES // f1rpo
 };
 
 //!<  Enumeration for the animation category types.
@@ -3652,19 +3658,5 @@ enum DiplomacyRequestAction
 	
 	NUM_DIPLOMACY_REQUEST_ACTIONS
 };
-
-/*	<f1rpo> From AdvCiv (change id advc.003s). No overloaded getEnumLength function
-	here though. Hence separate macros for info enum types and enum types that don't
-	correspond to CvInfo classes. Not a great solution. */
-#define FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, iEnumLength) \
-	for (EnumNamePrefix##Types eVar = (EnumNamePrefix##Types)0; \
-		eVar < iEnumLength; eVar = (EnumNamePrefix##Types)(eVar + 1))
-#define FOR_EACH_INFO(eVar, EnumNamePrefix) \
-	FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, GC.getNum##EnumNamePrefix##Infos())
-#define FOR_EACH_ENUM(eVar, EnumNamePrefix) \
-	FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, GC.getNum##EnumNamePrefix##Types())
-#define FOR_EACH_STATIC_ENUM(eVar, EnumNamePrefix, ENUM_NAME_PREFIX) \
-	FOR_EACH_ENUM_HELPER(eVar, EnumNamePrefix, NUM_##ENUM_NAME_PREFIX##_TYPES)
-// </f1rpo>
 
 #endif	// CVENUMS_h

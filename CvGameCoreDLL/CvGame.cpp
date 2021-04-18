@@ -14637,10 +14637,10 @@ void CvGame::setFutureEras()
 	}*/
 	// <f1rpo> (era options - not needed, but ...)
 	std::vector<TechTypes> aFutureTech;
-	FOR_EACH_INFO(eTech, Tech)
+	FOR_EACH_ENUM(Tech)
 	{
-		if (GC.getTechInfo(eTech).isRepeat())
-			aFutureTech.push_back(eTech);
+		if (GC.getTechInfo(eLoopTech).isRepeat())
+			aFutureTech.push_back(eLoopTech);
 	}
 	//if (eFutureTech != NO_TECH)
 	// <f1rpo>

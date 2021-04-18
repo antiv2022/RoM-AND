@@ -267,7 +267,7 @@ namespace python = boost::python;
 // <f1rpo>
 #include "CvRandom.h"
 #include "ScaledNum.h"
-#include "CvGameCoreUtils.h" // Includes CvGlobals.h, CvMap.h
+#include "CvGameCoreUtils.h" // Includes CvMap.h, CvGlobals.h and (in turn) CvInfoEnums.h
 // These rarely change; might as well precompile them. (Copied from AdvCiv.)
 #include "FProfiler.h"
 #include "CyGlobalContext.h" // Includes CvArtFileMgr.h
