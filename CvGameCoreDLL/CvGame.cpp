@@ -7461,11 +7461,11 @@ void CvGame::doSpawns()
 
 		if (!spawnInfo.getNoSpeedNormalization())
 		{
-			adjustedSpawnRate = adjustedSpawnRate * GC.getGameSpeedInfo(getGameSpeedType()).getTrainPercent() / 100;
+			adjustedSpawnRate = adjustedSpawnRate * (GC.getGameSpeedInfo(getGameSpeedType()).getTrainPercent() + 666) / 300;
 		}
 
 		//	Adjust for any rate override
-		adjustedSpawnRate = adjustedSpawnRate * 100/spawnInfo.getRateOverride();
+		adjustedSpawnRate = adjustedSpawnRate * 100 / spawnInfo.getRateOverride();
 
 		int iMinAreaPlotsPerPlayerUnit = spawnInfo.getMinAreaPlotsPerPlayerUnit();
 		int iMinAreaPlotsPerUnitType = spawnInfo.getMinAreaPlotsPerUnitType();
