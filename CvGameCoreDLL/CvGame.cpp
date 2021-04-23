@@ -7443,12 +7443,16 @@ void CvGame::doSpawns()
 		{
 			enumSpawnPlots(j, &(validPlots[j]));
 		}
-		
-		int iPlotNum = validPlots[j].size();
+
+		std::vector<CvPlot*> spawnPlots = validPlots[j];
+
+		int iPlotNum = spawnPlots.size();
 		logMsg("Spawn thread finished and joined for %s, found %d valid plots.", spawnInfo.getType(), iPlotNum);
 		
 		if (iPlotNum == 0)
 			continue;
+
+		std::random_shuffle(spawnPlots.begin(), spawnPlots.end());
 
 		double adjustedSpawnRate = (double)spawnInfo.getTurnRate();
 		double fGlobalSpawnRate = (double)spawnInfo.getGlobalTurnRate() * iPlotNum / 100.0;
@@ -7484,7 +7488,7 @@ void CvGame::doSpawns()
 
 		int spawnCount = 0;
 
-		for (std::vector<CvPlot*>::iterator it = validPlots[j].begin(); it < validPlots[j].end(); ++it)
+		for (std::vector<CvPlot*>::iterator it = spawnPlots.begin(); it < spawnPlots.end(); ++it)
 		{
 			CvPlot* pPlot = *it;
 			int iTotalAreaSize = pPlot->area()->getNumTiles();
@@ -7521,7 +7525,7 @@ void CvGame::doSpawns()
 			if ( getSorenRandNum( std::max(1,iLocalSpawnRate), "Unit spawn") == 0 )
 			{
 				// Check area unit type density not exceeded if specified
-				if ( iMaxAreaUnitDensity != 0 )
+				if (iMaxAreaUnitDensity > 0)
 				{
 					int	iExistingUnits = 0;
 
@@ -7566,6 +7570,7 @@ void CvGame::doSpawns()
 					FAssertMsg(pUnit != NULL, "pUnit is expected to be assigned a valid unit object");
 					pUnit->finishMoves();
 					spawnCount++;
+					areaPopulationMap[pPlot->getArea()][spawnInfo.getUnitType()]++;
 
 					// Spawn unit group
 					for(int k = 0; k < spawnInfo.getNumSpawnGroup(); k++)
@@ -7576,6 +7581,7 @@ void CvGame::doSpawns()
 						FAssertMsg(pUnit != NULL, "pUnit is expected to be assigned a valid unit object");
 						pUnit->finishMoves();
 						spawnCount++;
+						areaPopulationMap[pPlot->getArea()][spawnInfo.getSpawnGroup(k)]++;
 					}
 				}
 			}
