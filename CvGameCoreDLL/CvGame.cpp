@@ -7204,8 +7204,7 @@ void enumSpawnPlots(int iSpawnInfo, std::vector<CvPlot*>* plots)
 	if (!(iTurnYear >= spawnInfo.getStartDate() && iTurnYear <= spawnInfo.getEndDate()))
 		return;
 	
-	bool bIsBarbarian = spawnInfo.getTreatAsBarbarian();
-	if ( bIsBarbarian && GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS))
+	if (spawnInfo.getTreatAsBarbarian() && GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS))
 	{
 		return;
 	}
@@ -7373,7 +7372,7 @@ void CvGame::doSpawns()
 {
 	MEMORY_TRACE_FUNCTION();
 	PROFILE_FUNC();
-	bool bUseThreads = GC.getDefineBOOL("USE_MULTIPLE_THREADS_SPAWNING");
+	const bool bUseThreads = GC.getDefineBOOL("USE_MULTIPLE_THREADS_SPAWNING");
 
 	std::vector<std::vector<CvPlot*> > validPlots;
 	validPlots.resize(GC.getNumSpawnInfos());
@@ -7395,27 +7394,22 @@ void CvGame::doSpawns()
 
 	for (int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); ++i)
 	{
-		CvPlot* pPlot = GC.getMapINLINE().plotByIndexINLINE(i);
-		CLLNode<IDInfo>* pUnitNode;
-		CvUnit* pLoopUnit;
+		const CvPlot* pPlot = GC.getMapINLINE().plotByIndexINLINE(i);
 
-		pUnitNode = pPlot->headUnitNode();
+		CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
 
 		while (pUnitNode != NULL)
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
+			const CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 
-			//	Only care about barbs
-			if ( pLoopUnit->getOwnerINLINE() == BARBARIAN_PLAYER )
+			// Only care about barbs
+			if (pLoopUnit->getOwnerINLINE() == BARBARIAN_PLAYER)
 			{
-				if ( areaPopulationMap[pPlot->getArea()].find(pLoopUnit->getUnitType()) != areaPopulationMap[pPlot->getArea()].end() )
+				if (areaPopulationMap[pPlot->getArea()].find(pLoopUnit->getUnitType()) != areaPopulationMap[pPlot->getArea()].end())
 				{
 					areaPopulationMap[pPlot->getArea()][pLoopUnit->getUnitType()]++;
 				}
-				else
-				{
-					areaPopulationMap[pPlot->getArea()][pLoopUnit->getUnitType()] = 1;
-				}
+				else areaPopulationMap[pPlot->getArea()][pLoopUnit->getUnitType()] = 1;
 			}
 			pUnitNode = pPlot->nextUnitNode(pUnitNode);
 		}
@@ -7429,12 +7423,13 @@ void CvGame::doSpawns()
 			delete threads[j];
 		}
 	}
+	const bool bRagingBarbs = GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS);
 
-	for(int j = 0; j < GC.getNumSpawnInfos(); j++)
+	for (int j = 0; j < GC.getNumSpawnInfos(); j++)
 	{
-		CvSpawnInfo& spawnInfo = GC.getSpawnInfo((SpawnTypes)j);
+		const CvSpawnInfo& spawnInfo = GC.getSpawnInfo(static_cast<SpawnTypes>(j));
 
-		if ( spawnInfo.getRateOverride() == 0 )
+		if (spawnInfo.getRateOverride() == 0)
 		{
 			continue;
 		}
@@ -7448,145 +7443,145 @@ void CvGame::doSpawns()
 
 		int iPlotNum = spawnPlots.size();
 		logMsg("Spawn thread finished and joined for %s, found %d valid plots.", spawnInfo.getType(), iPlotNum);
-		
-		if (iPlotNum == 0)
-			continue;
+
+		if (iPlotNum == 0) continue;
 
 		std::random_shuffle(spawnPlots.begin(), spawnPlots.end());
 
 		double adjustedSpawnRate = (double)spawnInfo.getTurnRate();
-		double fGlobalSpawnRate = (double)spawnInfo.getGlobalTurnRate() * iPlotNum / 100.0;
+		const double fGlobalSpawnRate = (double)spawnInfo.getGlobalTurnRate() * iPlotNum / 100.0;
 		if (adjustedSpawnRate <= 0)
 		{
 			adjustedSpawnRate = fGlobalSpawnRate;
 		}
 		else if (fGlobalSpawnRate > 0)
 		{
-			adjustedSpawnRate = 1/(1/adjustedSpawnRate + 1/fGlobalSpawnRate);
+			adjustedSpawnRate = 1 / (1 / adjustedSpawnRate + 1 / fGlobalSpawnRate);
 		}
-			
-		if ( !spawnInfo.getNoSpeedNormalization() )
+
+		if (!spawnInfo.getNoSpeedNormalization())
 		{
-			adjustedSpawnRate = (adjustedSpawnRate*GC.getGameSpeedInfo(getGameSpeedType()).getTrainPercent()) / 100;
+			adjustedSpawnRate = adjustedSpawnRate * GC.getGameSpeedInfo(getGameSpeedType()).getTrainPercent() / 100;
 		}
 
 		//	Adjust for any rate override
-		adjustedSpawnRate = (adjustedSpawnRate*100)/spawnInfo.getRateOverride();
+		adjustedSpawnRate = adjustedSpawnRate * 100/spawnInfo.getRateOverride();
+
+		int iMinAreaPlotsPerPlayerUnit = spawnInfo.getMinAreaPlotsPerPlayerUnit();
+		int iMinAreaPlotsPerUnitType = spawnInfo.getMinAreaPlotsPerUnitType();
 
 		//	Double for barbarians if raging
-		bool bIsBarbarian = spawnInfo.getTreatAsBarbarian();
-		int iMaxAreaTotalDensity = spawnInfo.getMaxAreaTotalDensity();
-		int iMaxAreaUnitDensity = spawnInfo.getMaxAreaUnitDensity();
-		if ( bIsBarbarian && GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS) )
+		if (bRagingBarbs && spawnInfo.getTreatAsBarbarian())
 		{
-			adjustedSpawnRate /= GC.getDefineINT("RAGING_BARBARIAN_SPAWN_RATE");
-			iMaxAreaTotalDensity /= GC.getDefineINT("RAGING_BARBARIAN_SPAWN_UNIT_DENSITY");
-			iMaxAreaUnitDensity /= GC.getDefineINT("RAGING_BARBARIAN_SPAWN_UNIT_DENSITY");
+			adjustedSpawnRate /= std::max(1, GC.getDefineINT("RAGING_BARBARIAN_SPAWN_RATE"));
+			const int iRagingDensityModifier = std::max(1, GC.getDefineINT("RAGING_BARBARIAN_SPAWN_UNIT_DENSITY"));
+			iMinAreaPlotsPerPlayerUnit /= iRagingDensityModifier;
+			iMinAreaPlotsPerUnitType /= iRagingDensityModifier;
 		}
 
 		logMsg("Spawn chance per plot for %s is 1 to %d .", spawnInfo.getType(), (int)adjustedSpawnRate);
 
+		const UnitTypes eUnit = spawnInfo.getUnitType();
+		const int iMaxLocalDensity = spawnInfo.getMaxLocalDensity();
 		int spawnCount = 0;
 
 		for (std::vector<CvPlot*>::iterator it = spawnPlots.begin(); it < spawnPlots.end(); ++it)
 		{
-			CvPlot* pPlot = *it;
-			int iTotalAreaSize = pPlot->area()->getNumTiles();
-			int iLocalSpawnRate = (int)adjustedSpawnRate;
-			
-			//	Safety valve - if there are over a certain number of total barbarian units in existance halt all spawns
-			//	else the game can run into fatal issues when it uses up the entire id space of units (8191 at once per
-			//	player)
-			if ( GET_PLAYER(BARBARIAN_PLAYER).getNumUnits() > MAX_BARB_UNITS_FOR_SPAWNING )
+			// Safety valve - Halt all spawns if there are over a certain number of total extant barbarian units,
+			//	as the game can run into fatal issues when it uses up the entire id space of units per player (8191).
+			if (GET_PLAYER(BARBARIAN_PLAYER).getNumUnits() > MAX_BARB_UNITS_FOR_SPAWNING)
 			{
 				break;
 			}
+			CvPlot* pPlot = *it;
+			const int iTotalAreaSize = pPlot->area()->getNumTiles();
 
-			if ( iTotalAreaSize / std::max(pPlot->area()->getUnitsPerPlayer(BARBARIAN_PLAYER),1) < iMaxAreaTotalDensity )  // could be in the threads but this way the units already spawned in this turn by this system are considered
-				continue;
+			// Toffer - Bar spawn if player has the max unit density allowed in this area.
+			//	Ignore small areas, max local density limit will be adequate for those.
+			if (iTotalAreaSize > std::max(49, iMinAreaPlotsPerPlayerUnit))
+			{
+				const int iPlayerUnitsInArea = pPlot->area()->getUnitsPerPlayer(BARBARIAN_PLAYER);
+				if (iPlayerUnitsInArea > 0 && iTotalAreaSize / iPlayerUnitsInArea <= iMinAreaPlotsPerPlayerUnit)
+				{
+					continue;
+				}
+			}
+			int iLocalSpawnRate = (int)adjustedSpawnRate;
 
 			//	Adjust spawn rate for area ownership percentage
-			if ( pPlot->area()->getNumCities() == pPlot->area()->getCitiesPerPlayer(BARBARIAN_PLAYER) &&
-				 !pPlot->isWater() )
+			if (!pPlot->isWater() && pPlot->area()->getNumCities() == pPlot->area()->getCitiesPerPlayer(BARBARIAN_PLAYER))
 			{
-				//	No non-barb cities so dramatically reduce spawns since its essentially an
-				//	unplayed-in area for now
-				iLocalSpawnRate *= 10;
+				iLocalSpawnRate *= 10; // No non-barb cities so dramatically reduce spawns since its essentially an unplayed-in area for now
 			}
-			else
+			else // Adjust spawn rate upward by up to tripling the normal rate in proportion with how little wilderness is left in this area
 			{
-				int	percentOccupied = (100*pPlot->area()->getNumOwnedTiles())/pPlot->area()->getNumTiles();
-
-				//	Adjust spawn rate upward by up to trebbleing the normal rate in proportion with how
-				//	little wilderness is left in this area
-				iLocalSpawnRate = (iLocalSpawnRate*100)/(100 + 2*percentOccupied);
+				iLocalSpawnRate *= 100;
+				iLocalSpawnRate /= 100 + 200 * pPlot->area()->getNumOwnedTiles() / pPlot->area()->getNumTiles();
 			}
 
-			if ( getSorenRandNum( std::max(1,iLocalSpawnRate), "Unit spawn") == 0 )
+			if (getSorenRandNum(std::max(1, iLocalSpawnRate), "Unit spawn") == 0)
 			{
+				const int iArea = pPlot->getArea();
 				// Check area unit type density not exceeded if specified
-				if (iMaxAreaUnitDensity > 0)
+				if (iMinAreaPlotsPerUnitType > 0
+				&& areaPopulationMap[iArea].find(eUnit) != areaPopulationMap[iArea].end()
+				&& areaPopulationMap[iArea][eUnit] >= iTotalAreaSize / iMinAreaPlotsPerUnitType)
 				{
-					int	iExistingUnits = 0;
-
-					if ( areaPopulationMap[pPlot->getArea()].find(spawnInfo.getUnitType()) != areaPopulationMap[pPlot->getArea()].end() )
-					{
-						iExistingUnits = areaPopulationMap[pPlot->getArea()][spawnInfo.getUnitType()];
-					}
-
-					if ( iExistingUnits >= std::max(1,iTotalAreaSize/iMaxAreaUnitDensity) )
-					{
-						//	Total area density exceeded
-						continue;
-					}
+					continue; // Total area density exceeded
 				}
 
-				//	Check local max density not already exceeded
-				//	Use range 3 to define local
-				int localLandArea = 0;
-				int localCount = 0;
+				// 49 plot local area, radius = 3
 				int iRange = 3;
+				const int TotalLocalArea = (iRange * 2 + 1) * (iRange * 2 + 1);
+				int localAreaSize = 0;
+				int localCount = 0;
 
-				for( int iX = -iRange; iX < iRange; iX++)
+				for (int iX = -iRange; iX < iRange; iX++)
 				{
-					for(int iY = -iRange; iY < iRange; iY++)
+					for (int iY = -iRange; iY < iRange; iY++)
 					{
 						CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iX, iY);
-						if ( pLoopPlot != NULL && pLoopPlot->area() == pPlot->area() )
+						if (pLoopPlot != NULL && pLoopPlot->area() == pPlot->area())
 						{
-							localLandArea++;
-							localCount += pLoopPlot->plotCount(PUF_isUnitType, spawnInfo.getUnitType());
+							localAreaSize++;
+							localCount += pLoopPlot->plotCount(PUF_isUnitType, eUnit);
 						}
 					}
 				}
-
-				//	49 plots in range 3
-				if ( localCount < std::max(1,localLandArea/std::max(1,spawnInfo.getMaxLocalDensity())) )
+				// Max local density limit for this specific unit type.
+				if (localCount == 0 || localCount * 100 / localAreaSize < iMaxLocalDensity * 100 / TotalLocalArea)
 				{
-					//	Spawn a new unit
-					CvUnitInfo& kUnit = GC.getUnitInfo(spawnInfo.getUnitType());
-
-					CvUnit* pUnit = GET_PLAYER(BARBARIAN_PLAYER).initUnit(spawnInfo.getUnitType(), pPlot->getX_INLINE(), pPlot->getY_INLINE(), (UnitAITypes)kUnit.getDefaultUnitAIType(), NO_DIRECTION, GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 6"));
+					// Spawn a new unit
+					CvUnit* pUnit = (
+						GET_PLAYER(BARBARIAN_PLAYER).initUnit(
+							eUnit, pPlot->getX_INLINE(), pPlot->getY_INLINE(),
+							(UnitAITypes)GC.getUnitInfo(eUnit).getDefaultUnitAIType(), NO_DIRECTION,
+							GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 6")
+						)
+					);
 					FAssertMsg(pUnit != NULL, "pUnit is expected to be assigned a valid unit object");
 					pUnit->finishMoves();
 					spawnCount++;
-					areaPopulationMap[pPlot->getArea()][spawnInfo.getUnitType()]++;
+					areaPopulationMap[iArea][eUnit]++;
 
 					// Spawn unit group
-					for(int k = 0; k < spawnInfo.getNumSpawnGroup(); k++)
+					for (int k = 0; k < spawnInfo.getNumSpawnGroup(); k++)
 					{
-						kUnit = GC.getUnitInfo(spawnInfo.getSpawnGroup(k));
-
-						pUnit = GET_PLAYER(BARBARIAN_PLAYER).initUnit(spawnInfo.getSpawnGroup(k), pPlot->getX_INLINE(), pPlot->getY_INLINE(), (UnitAITypes)kUnit.getDefaultUnitAIType(), NO_DIRECTION, GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 7"));
+						pUnit = (
+							GET_PLAYER(BARBARIAN_PLAYER).initUnit(
+								spawnInfo.getSpawnGroup(k), pPlot->getX_INLINE(), pPlot->getY_INLINE(),
+								(UnitAITypes)GC.getUnitInfo(spawnInfo.getSpawnGroup(k)).getDefaultUnitAIType(), NO_DIRECTION,
+								GC.getGameINLINE().getSorenRandNum(10000, "AI Unit Birthmark 7")
+							)
+						);
 						FAssertMsg(pUnit != NULL, "pUnit is expected to be assigned a valid unit object");
 						pUnit->finishMoves();
 						spawnCount++;
-						areaPopulationMap[pPlot->getArea()][spawnInfo.getSpawnGroup(k)]++;
+						areaPopulationMap[iArea][spawnInfo.getSpawnGroup(k)]++;
 					}
 				}
 			}
 		}
-
 		logMsg("%d units spawned for %s", spawnCount, spawnInfo.getType());
 	}
 }

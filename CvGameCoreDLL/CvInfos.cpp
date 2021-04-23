@@ -6042,8 +6042,8 @@ CvSpawnInfo::CvSpawnInfo() : m_eUnitType(NO_UNIT),
 							 m_iTurns(-1),
 							 m_iGlobalTurns(-1),
 							 m_iMaxLocalDensity(0),
-							 m_iMaxAreaTotalDensity(0),
-							 m_iMaxAreaUnitDensity(0),
+							 m_iMinAreaPlotsPerPlayerUnit(0),
+							 m_iMinAreaPlotsPerUnitType(0),
 							 m_iStartDate(-50000),
 							 m_iEndDate(50000),
 							 m_bTreatAsBarbarian(false),
@@ -6096,8 +6096,8 @@ bool CvSpawnInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iTurns, "iTurns");
 	pXML->GetChildXmlValByName(&m_iGlobalTurns, "iGlobalTurns", -1);
 	pXML->GetChildXmlValByName(&m_iMaxLocalDensity, "iMaxLocalDensity");
-	pXML->GetChildXmlValByName(&m_iMaxAreaTotalDensity, "iMaxAreaTotalDensity");
-	pXML->GetChildXmlValByName(&m_iMaxAreaUnitDensity, "iMaxAreaUnitDensity");
+	pXML->GetChildXmlValByName(&m_iMinAreaPlotsPerPlayerUnit, "iMinAreaPlotsPerPlayerUnit");
+	pXML->GetChildXmlValByName(&m_iMinAreaPlotsPerUnitType, "iMinAreaPlotsPerUnitType");
 	pXML->GetChildXmlValByName(&m_iStartDate, "iStartDate", -50000);
 	pXML->GetChildXmlValByName(&m_iEndDate, "iEndDate", 50000);
 	pXML->GetChildXmlValByName(&m_bTreatAsBarbarian, "bTreatAsBarbarian", true);
@@ -6247,177 +6247,177 @@ void CvSpawnInfo::copyNonDefaults(CvSpawnInfo* pClassInfo, CvXMLLoadUtility* pXM
 	// not yet implemented
 }
 
-BoolExpr* CvSpawnInfo::getSpawnCondition()
+BoolExpr* CvSpawnInfo::getSpawnCondition() const
 {
 	return m_pExprSpawnCondition;
 }
 
-int	CvSpawnInfo::getNumBonuses()
+int	CvSpawnInfo::getNumBonuses() const
 {
 	return m_bonusTypes.size();
 }
 
-int	CvSpawnInfo::getNumTerrains()
+int	CvSpawnInfo::getNumTerrains() const
 {
 	return m_terrainTypes.size();
 }
 
-int	CvSpawnInfo::getNumFeatures()
+int	CvSpawnInfo::getNumFeatures() const
 {
 	return m_featureTypes.size();
 }
 
-int	CvSpawnInfo::getNumFeatureTerrains()
+int	CvSpawnInfo::getNumFeatureTerrains() const
 {
 	return m_featureTerrainTypes.size();
 }
 
-int	CvSpawnInfo::getNumSpawnGroup()
+int	CvSpawnInfo::getNumSpawnGroup() const
 {
 	return m_spawnGroup.size();
 }
 
-BonusTypes	CvSpawnInfo::getBonus(int index)
+BonusTypes CvSpawnInfo::getBonus(int index) const
 {
 	FAssert(0 <= index);
 	FAssert(index < (int)m_bonusTypes.size());
 	return m_bonusTypes[index];
 }
 
-TerrainTypes CvSpawnInfo::getTerrain(int index)
+TerrainTypes CvSpawnInfo::getTerrain(int index) const
 {
 	FAssert(0 <= index);
 	FAssert(index < (int)m_terrainTypes.size());
 	return m_terrainTypes[index];
 }
 
-FeatureTypes CvSpawnInfo::getFeature(int index)
+FeatureTypes CvSpawnInfo::getFeature(int index) const
 {
 	FAssert(0 <= index);
 	FAssert(index < (int)m_featureTypes.size());
 	return m_featureTypes[index];
 }
 
-TerrainTypes CvSpawnInfo::getFeatureTerrain(int index)
+TerrainTypes CvSpawnInfo::getFeatureTerrain(int index) const
 {
 	FAssert(0 <= index);
 	FAssert(index < (int)m_featureTerrainTypes.size());
 	return m_featureTerrainTypes[index];
 }
 
-UnitTypes CvSpawnInfo::getSpawnGroup(int index)
+UnitTypes CvSpawnInfo::getSpawnGroup(int index) const
 {
 	FAssert(0 <= index);
 	FAssert(index < (int)m_spawnGroup.size());
 	return m_spawnGroup[index];
 }
 
-int CvSpawnInfo::getTurnRate()
+int CvSpawnInfo::getTurnRate() const
 {
 	return m_iTurns;
 }
 
-int CvSpawnInfo::getGlobalTurnRate()
+int CvSpawnInfo::getGlobalTurnRate() const
 {
 	return m_iGlobalTurns;
 }
 
-int CvSpawnInfo::getMaxLocalDensity()
+int CvSpawnInfo::getMaxLocalDensity() const
 {
 	return m_iMaxLocalDensity;
 }
 
-int CvSpawnInfo::getMaxAreaTotalDensity()
+int CvSpawnInfo::getMinAreaPlotsPerPlayerUnit() const
 {
-	return m_iMaxAreaTotalDensity;
+	return m_iMinAreaPlotsPerPlayerUnit;
 }
 
-int CvSpawnInfo::getMaxAreaUnitDensity()
+int CvSpawnInfo::getMinAreaPlotsPerUnitType() const
 {
-	return m_iMaxAreaUnitDensity;
+	return m_iMinAreaPlotsPerUnitType;
 }
 
-int CvSpawnInfo::getStartDate()
+int CvSpawnInfo::getStartDate() const
 {
 	return m_iStartDate;
 }
 
-int	CvSpawnInfo::getEndDate()
+int	CvSpawnInfo::getEndDate() const
 {
 	return m_iEndDate;
 }
 
-UnitTypes	CvSpawnInfo::getUnitType()
+UnitTypes CvSpawnInfo::getUnitType() const
 {
 	return m_eUnitType;
 }
 
-bool CvSpawnInfo::getTreatAsBarbarian()
+bool CvSpawnInfo::getTreatAsBarbarian() const
 {
 	return m_bTreatAsBarbarian;
 }
 
-bool CvSpawnInfo::getNeutralOnly()
+bool CvSpawnInfo::getNeutralOnly() const
 {
 	return m_bNeutralOnly;
 }
 
-bool CvSpawnInfo::getNoSpeedNormalization()
+bool CvSpawnInfo::getNoSpeedNormalization() const
 {
 	return m_bNoSpeedNormalization;
 }
 
-bool CvSpawnInfo::getNotInView()
+bool CvSpawnInfo::getNotInView() const
 {
 	return m_bNotInView;
 }
 
-bool CvSpawnInfo::getHills()
+bool CvSpawnInfo::getHills() const
 {
 	return m_bHills;
 }
 
-bool CvSpawnInfo::getFlatlands()
+bool CvSpawnInfo::getFlatlands() const
 {
 	return m_bFlatlands;
 }
 
-bool CvSpawnInfo::getPeaks()
+bool CvSpawnInfo::getPeaks() const
 {
 	return m_bPeaks;
 }
 
-bool CvSpawnInfo::getFreshWaterOnly()
+bool CvSpawnInfo::getFreshWaterOnly() const
 {
 	return m_bFreshWaterOnly;
 }
 
-bool CvSpawnInfo::getLatitudeAbs()
+bool CvSpawnInfo::getLatitudeAbs() const
 {
 	return m_bLatitudeAbs;
 }
 
-int CvSpawnInfo::getMinLatitude()
+int CvSpawnInfo::getMinLatitude() const
 {
 	return m_iMinLatitude;
 }
 
-int CvSpawnInfo::getMaxLatitude()
+int CvSpawnInfo::getMaxLatitude() const
 {
 	return m_iMaxLatitude;
 }
 
-int CvSpawnInfo::getMinLongitude()
+int CvSpawnInfo::getMinLongitude() const
 {
 	return m_iMinLongitude;
 }
 
-int CvSpawnInfo::getMaxLongitude()
+int CvSpawnInfo::getMaxLongitude() const
 {
 	return m_iMaxLongitude;
 }
 
-int CvSpawnInfo::getRateOverride()
+int CvSpawnInfo::getRateOverride() const
 {
 	return m_iRateOverride;
 }
@@ -6428,8 +6428,8 @@ void CvSpawnInfo::getCheckSum(unsigned int &iSum)
 	CheckSum(iSum, m_iTurns);
 	CheckSum(iSum, m_iGlobalTurns);
 	CheckSum(iSum, m_iMaxLocalDensity);
-	CheckSum(iSum, m_iMaxAreaTotalDensity);
-	CheckSum(iSum, m_iMaxAreaUnitDensity);
+	CheckSum(iSum, m_iMinAreaPlotsPerPlayerUnit);
+	CheckSum(iSum, m_iMinAreaPlotsPerUnitType);
 	CheckSum(iSum, m_iStartDate);
 	CheckSum(iSum, m_iEndDate);
 	CheckSum(iSum, m_bTreatAsBarbarian);
