@@ -2740,7 +2740,8 @@ public:
 	BonusTypes getExtraFreeBonus(int i) const;
 	int getExtraFreeBonusNum(int i) const;
 	bool hasExtraFreeBonus(BonusTypes eBonus) const;
-	int getFreeBuildingClass() const;				// Exposed to Python
+	int getFreeBuildingClass(int i) const;					// Exposed to Python
+	int getNumFreeBuildingClass() const;					// Exposed to Python
 	int getFreeAreaBuildingClass() const;
 	int getFreeTradeRegionBuildingClass() const;
 	int getFreePromotion() const;				// Exposed to Python
@@ -3258,7 +3259,8 @@ protected:
 	int m_iNumFreeBonuses;
 	std::vector<std::pair<BonusTypes,int> > m_aExtraFreeBonuses;
 
-	int m_iFreeBuildingClass;									
+	std::vector<int> m_aiFreeBuildingClass;
+    
 	int m_iFreeAreaBuildingClass;									
 	int m_iFreeTradeRegionBuildingClass;									
 	int m_iFreePromotion;								

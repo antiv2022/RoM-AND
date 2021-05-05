@@ -52,7 +52,6 @@ m_iNoBonus(NO_BONUS),
 m_iPowerBonus(NO_BONUS),
 m_iFreeBonus(NO_BONUS),
 m_iNumFreeBonuses(0),
-m_iFreeBuildingClass(NO_BUILDINGCLASS),
 m_iFreeAreaBuildingClass(NO_BUILDINGCLASS),
 m_iFreeTradeRegionBuildingClass(NO_BUILDINGCLASS),
 m_iFreePromotion(NO_PROMOTION),
@@ -629,9 +628,16 @@ bool CvBuildingInfo::hasExtraFreeBonus(BonusTypes eBonus) const
 	return false;
 }
 
-int CvBuildingInfo::getFreeBuildingClass() const			
+int CvBuildingInfo::getFreeBuildingClass(int i) const
 {
-	return m_iFreeBuildingClass;
+	FAssert(i < (int)m_aiFreeBuildingClass.size());
+
+	return m_aiFreeBuildingClass[i];
+}
+
+int CvBuildingInfo::getNumFreeBuildingClass() const
+{
+	return (int)m_aiFreeBuildingClass.size();
 }
 
 int CvBuildingInfo::getFreeAreaBuildingClass() const			
@@ -2687,7 +2693,16 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 		stream->Read(&iNum);
 		m_aExtraFreeBonuses.push_back(std::pair<BonusTypes,int>((BonusTypes)iBonus, iNum));
 	}
-	stream->Read(&m_iFreeBuildingClass);
+    
+    int iNumBuildingClasses = 0;
+	stream->Read(&iNumBuildingClasses);
+	for(int iI = 0; iI < iNumBuildingClasses; ++iI)
+	{
+		int iFreeBuildingClass = 0;
+		stream->Read(&iFreeBuildingClass);
+		m_aiFreeBuildingClass.push_back(iFreeBuildingClass);
+	}
+    
 	stream->Read(&m_iFreeAreaBuildingClass);
 	stream->Read(&m_iFreeTradeRegionBuildingClass);
 	stream->Read(&m_iFreePromotion);
@@ -3713,8 +3728,13 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 		stream->Write(m_aExtraFreeBonuses[iI].first);
 		stream->Write(m_aExtraFreeBonuses[iI].second);
 	}
+    
+    stream->Write((int)m_aiFreeBuildingClass.size());
+	for(int iI = 0; iI < (int)m_aiFreeBuildingClass.size(); ++iI)
+	{
+		stream->Write(m_aiFreeBuildingClass[iI]);
+	}
 
-	stream->Write(m_iFreeBuildingClass);
 	stream->Write(m_iFreeAreaBuildingClass);
 	stream->Write(m_iFreeTradeRegionBuildingClass);
 	stream->Write(m_iFreePromotion);
@@ -4826,7 +4846,8 @@ void CvBuildingInfo::getCheckSum(unsigned int& iSum)
 	
 	CheckSumC(iSum, m_aExtraFreeBonuses);
 
-	CheckSum(iSum, m_iFreeBuildingClass);
+	CheckSumC(iSum, m_aiFreeBuildingClass);
+    
 	CheckSum(iSum, m_iFreeAreaBuildingClass);
 	CheckSum(iSum, m_iFreeTradeRegionBuildingClass);
 	CheckSum(iSum, m_iFreePromotion);
@@ -5421,7 +5442,16 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	}
 
 	pXML->GetChildXmlValByName(szTextVal, "FreeBuilding");
-	m_iFreeBuildingClass = pXML->FindInInfoClass(szTextVal);
+	std::vector<CvString> tokens;
+	szTextVal.getTokens(",", tokens);
+	for(int i=0;i<(int)tokens.size();i++)
+	{
+		int iFreeBuildingClass = pXML->FindInInfoClass(tokens[i]);
+		if(iFreeBuildingClass != NO_BUILDINGCLASS)
+		{
+			m_aiFreeBuildingClass.push_back(iFreeBuildingClass);
+		}
+	}
 
 	pXML->GetChildXmlValByName(szTextVal, "FreeAreaBuilding");
 	m_iFreeAreaBuildingClass = pXML->FindInInfoClass(szTextVal);
@@ -6817,8 +6847,19 @@ void CvBuildingInfo::copyNonDefaults(CvBuildingInfo* pClassInfo, CvXMLLoadUtilit
 			m_aExtraFreeBonuses.push_back(std::pair<BonusTypes,int>(pClassInfo->getExtraFreeBonus(i),pClassInfo->getExtraFreeBonusNum(i)));
 		}
 	}
-
-	if (getFreeBuildingClass() == iTextDefault) m_iFreeBuildingClass = pClassInfo->getFreeBuildingClass();
+   
+    if (getNumFreeBuildingClass() < 1)
+	{
+		for(int i=0; i < pClassInfo->getNumFreeBuildingClass(); i++)
+		{
+			int iFreeBuildingClass = pClassInfo->getFreeBuildingClass(i);
+			if(iFreeBuildingClass != NO_BUILDINGCLASS)
+			{
+				m_aiFreeBuildingClass.push_back(iFreeBuildingClass);
+			}
+		}
+	}
+    
 	if (getFreeAreaBuildingClass() == iTextDefault) m_iFreeAreaBuildingClass = pClassInfo->getFreeAreaBuildingClass();
 	if (getFreeTradeRegionBuildingClass() == iTextDefault) m_iFreeTradeRegionBuildingClass = pClassInfo->getFreeTradeRegionBuildingClass();
 	if (getFreePromotion() == iTextDefault) m_iFreePromotion = pClassInfo->getFreePromotion();

@@ -431,11 +431,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
-		if (GET_PLAYER(getOwnerINLINE()).isBuildingFree((BuildingTypes)iI))
-		{
-			setNumFreeBuilding(((BuildingTypes)iI), 1);
-		}
-		else if (GET_PLAYER(getOwnerINLINE()).isBuildingFree((BuildingTypes)iI, area()))
+        if (GET_PLAYER(getOwnerINLINE()).isBuildingFree((BuildingTypes)iI, area()))
 		{
 			setNumFreeAreaBuilding(((BuildingTypes)iI), 1);
 		}
@@ -18297,6 +18293,19 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 						}
 					}
 				}
+                
+                int iNumFreeBuildingClass = GC.getBuildingInfo(eIndex).getNumFreeBuildingClass();
+                for (int i = 0; i < iNumFreeBuildingClass; ++i)
+                {
+                    if (GC.getBuildingInfo(eIndex).getFreeBuildingClass(i) != NO_BUILDINGCLASS)
+                    {
+                        BuildingTypes eFreeBuilding = (BuildingTypes)GC.getCivilizationInfo(GET_PLAYER(getOwnerINLINE()).getCivilizationType()).getCivilizationBuildings(GC.getBuildingInfo(eIndex).getFreeBuildingClass(i));
+                        if (eFreeBuilding != NO_BUILDING)
+                        {
+                            GET_PLAYER(getOwnerINLINE()).changeFreeBuildingCount(eFreeBuilding, iChangeNumRealBuilding);
+                        }
+                    }       
+                }
 
 				GC.getGameINLINE().incrementBuildingClassCreatedCount((BuildingClassTypes)(GC.getBuildingInfo(eIndex).getBuildingClassType()));
 			}

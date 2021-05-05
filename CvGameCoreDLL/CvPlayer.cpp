@@ -10977,14 +10977,21 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pAr
 	FAssert(iChange == 1 || iChange == -1);
 
     //DPII < Maintenance Modifiers >
-	if (GC.getBuildingInfo(eBuilding).getFreeBuildingClass() != NO_BUILDINGCLASS)
-	{
-		BuildingTypes eFreeBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(GC.getBuildingInfo(eBuilding).getFreeBuildingClass());
-		if (eFreeBuilding != NO_BUILDING)
-		{
-			changeFreeBuildingCount(eFreeBuilding, iChange);
-		}
-	}
+    int iNumFreeBuildingClass = GC.getBuildingInfo(eBuilding).getNumFreeBuildingClass();
+    if (iChange == -1)
+    {
+        for (int i = 0; i < iNumFreeBuildingClass; ++i)
+        {
+            if (GC.getBuildingInfo(eBuilding).getFreeBuildingClass(i) != NO_BUILDINGCLASS)
+            {
+                BuildingTypes eFreeBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(GC.getBuildingInfo(eBuilding).getFreeBuildingClass(i));
+                if (eFreeBuilding != NO_BUILDING)
+                {
+                    changeFreeBuildingCount(eFreeBuilding, iChange);
+                }
+            }
+        }
+    }
 
 	if (GC.getBuildingInfo(eBuilding).getFreeAreaBuildingClass() != NO_BUILDINGCLASS)
 	{
@@ -18273,7 +18280,7 @@ int CvPlayer::getFreeAreaBuildingCount(BuildingTypes eIndex, CvArea* area) const
 
 bool CvPlayer::isBuildingFree(BuildingTypes eIndex, CvArea* area)	const
 {
-	return (getFreeBuildingCount(eIndex) > 0 || (area != NULL && getFreeAreaBuildingCount(eIndex, area) > 0));
+	return (area != NULL && getFreeAreaBuildingCount(eIndex, area) > 0);
 }
 
 
