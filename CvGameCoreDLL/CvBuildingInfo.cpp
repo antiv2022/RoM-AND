@@ -52,6 +52,7 @@ m_iNoBonus(NO_BONUS),
 m_iPowerBonus(NO_BONUS),
 m_iFreeBonus(NO_BONUS),
 m_iNumFreeBonuses(0),
+//m_iFreeBuildingClass(NO_BUILDINGCLASS),   DarkLunaPhantom - FreeBuilding accepts lists.
 m_iFreeAreaBuildingClass(NO_BUILDINGCLASS),
 m_iFreeTradeRegionBuildingClass(NO_BUILDINGCLASS),
 m_iFreePromotion(NO_PROMOTION),
@@ -628,6 +629,7 @@ bool CvBuildingInfo::hasExtraFreeBonus(BonusTypes eBonus) const
 	return false;
 }
 
+// DarkLunaPhantom - FreeBuilding accepts lists.
 int CvBuildingInfo::getFreeBuildingClass(int i) const
 {
 	FAssert(i < (int)m_aiFreeBuildingClass.size());
@@ -2694,6 +2696,7 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 		m_aExtraFreeBonuses.push_back(std::pair<BonusTypes,int>((BonusTypes)iBonus, iNum));
 	}
     
+    // DarkLunaPhantom - FreeBuilding accepts lists.
     int iNumBuildingClasses = 0;
 	stream->Read(&iNumBuildingClasses);
 	for(int iI = 0; iI < iNumBuildingClasses; ++iI)
@@ -3729,6 +3732,7 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 		stream->Write(m_aExtraFreeBonuses[iI].second);
 	}
     
+    // DarkLunaPhantom - FreeBuilding accepts lists.
     stream->Write((int)m_aiFreeBuildingClass.size());
 	for(int iI = 0; iI < (int)m_aiFreeBuildingClass.size(); ++iI)
 	{
@@ -4846,7 +4850,7 @@ void CvBuildingInfo::getCheckSum(unsigned int& iSum)
 	
 	CheckSumC(iSum, m_aExtraFreeBonuses);
 
-	CheckSumC(iSum, m_aiFreeBuildingClass);
+	CheckSumC(iSum, m_aiFreeBuildingClass); // DarkLunaPhantom - FreeBuilding accepts lists.
     
 	CheckSum(iSum, m_iFreeAreaBuildingClass);
 	CheckSum(iSum, m_iFreeTradeRegionBuildingClass);
@@ -5441,6 +5445,7 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 		GETXML->SetToParent( pXML->GetXML() );
 	}
 
+    // DarkLunaPhantom - FreeBuilding accepts lists.
 	pXML->GetChildXmlValByName(szTextVal, "FreeBuilding");
 	std::vector<CvString> tokens;
 	szTextVal.getTokens(",", tokens);
@@ -6847,7 +6852,8 @@ void CvBuildingInfo::copyNonDefaults(CvBuildingInfo* pClassInfo, CvXMLLoadUtilit
 			m_aExtraFreeBonuses.push_back(std::pair<BonusTypes,int>(pClassInfo->getExtraFreeBonus(i),pClassInfo->getExtraFreeBonusNum(i)));
 		}
 	}
-   
+
+    // DarkLunaPhantom - FreeBuilding accepts lists.
     if (getNumFreeBuildingClass() < 1)
 	{
 		for(int i=0; i < pClassInfo->getNumFreeBuildingClass(); i++)

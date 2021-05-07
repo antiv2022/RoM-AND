@@ -431,7 +431,12 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
-        if (GET_PLAYER(getOwnerINLINE()).isBuildingFree((BuildingTypes)iI, area()))
+		/* DarkLunaPhantom - FreeBuilding doesn't give buildings in new cities.
+        if (GET_PLAYER(getOwnerINLINE()).isBuildingFree((BuildingTypes)iI))
+		{
+			setNumFreeBuilding(((BuildingTypes)iI), 1);
+		}
+		else*/ if (GET_PLAYER(getOwnerINLINE()).isBuildingFree((BuildingTypes)iI, area()))
 		{
 			setNumFreeAreaBuilding(((BuildingTypes)iI), 1);
 		}
@@ -18294,6 +18299,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 					}
 				}
                 
+                // DarkLunaPhantom start - FreeBuilding accepts lists and gives buildings only in existing cities.
                 int iNumFreeBuildingClass = GC.getBuildingInfo(eIndex).getNumFreeBuildingClass();
                 for (int i = 0; i < iNumFreeBuildingClass; ++i)
                 {
@@ -18306,6 +18312,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
                         }
                     }       
                 }
+                // DarkLunaPhantom end
 
 				GC.getGameINLINE().incrementBuildingClassCreatedCount((BuildingClassTypes)(GC.getBuildingInfo(eIndex).getBuildingClassType()));
 			}

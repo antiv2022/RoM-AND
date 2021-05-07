@@ -3581,6 +3581,7 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 									}
 								}
                                 
+                                // DarkLunaPhantom - FreeBuilding accepts lists.
                                 int iNumFreeBuildingClass = GC.getBuildingInfo(eLoopBuilding).getNumFreeBuildingClass();
                                 
 								for (int i = 0; i < iNumFreeBuildingClass; ++i)

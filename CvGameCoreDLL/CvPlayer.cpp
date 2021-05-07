@@ -10977,6 +10977,7 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pAr
 	FAssert(iChange == 1 || iChange == -1);
 
     //DPII < Maintenance Modifiers >
+    // DarkLunaPhantom - FreeBuilding accepts lists and triggers only once.
     int iNumFreeBuildingClass = GC.getBuildingInfo(eBuilding).getNumFreeBuildingClass();
     if (iChange == -1)
     {
@@ -18280,7 +18281,8 @@ int CvPlayer::getFreeAreaBuildingCount(BuildingTypes eIndex, CvArea* area) const
 
 bool CvPlayer::isBuildingFree(BuildingTypes eIndex, CvArea* area)	const
 {
-	return (area != NULL && getFreeAreaBuildingCount(eIndex, area) > 0);
+    // DarkLunaPhantom - FreeBuilding doesn't give buildings to new cities.
+	return (/*area != NULL &&*/ getFreeAreaBuildingCount(eIndex, area) > 0);
 }
 
 

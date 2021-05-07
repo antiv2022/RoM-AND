@@ -13086,6 +13086,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		}
 	}
 
+    // DarkLunaPhantom - FreeBuilding accepts lists.
     int iNumFreeBuildingClass = kBuilding.getNumFreeBuildingClass();
 	for (int i = 0; i < iNumFreeBuildingClass; ++i)
     {
