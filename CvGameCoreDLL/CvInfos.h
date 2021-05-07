@@ -2742,6 +2742,11 @@ public:
 	bool hasExtraFreeBonus(BonusTypes eBonus) const;
 	int getFreeBuildingClass(int i) const;					// Exposed to Python    // DarkLunaPhantom - FreeBuilding accepts lists.
 	int getNumFreeBuildingClass() const;					// Exposed to Python    // DarkLunaPhantom - FreeBuilding accepts lists.
+    // DarkLunaPhantom - Extra FreeBuilding entries (cf. BuildingsSchema xml).
+    int getNumExtraFreeBuildingClass() const;
+    int getExtraFreeBuildingClass(int i) const;
+    bool getExtraFreeBuildingConnected(int i) const;
+    bool getExtraFreeBuildingContinuous(int i) const;
 	int getFreeAreaBuildingClass() const;
 	int getFreeTradeRegionBuildingClass() const;
 	int getFreePromotion() const;				// Exposed to Python
@@ -3260,6 +3265,11 @@ protected:
 	std::vector<std::pair<BonusTypes,int> > m_aExtraFreeBonuses;
 
 	std::vector<int> m_aiFreeBuildingClass; // DarkLunaPhantom - FreeBuilding accepts lists.
+    
+    // DarkLunaPhantom - Extra FreeBuilding entries (cf. BuildingsSchema xml).
+    std::vector<int> m_aiExtraFreeBuildingClass;
+    std::vector<bool> m_abExtraFreeBuildingConnected;
+    std::vector<bool> m_abExtraFreeBuildingContinuous;
     
 	int m_iFreeAreaBuildingClass;									
 	int m_iFreeTradeRegionBuildingClass;									

@@ -1118,9 +1118,17 @@ public:
 	void changeImprovementCount(ImprovementTypes eIndex, int iChange);
 
 	int getFreeBuildingCount(BuildingTypes eIndex) const;
+    // DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings in existing and new cities (cf. BuildingsSchema xml).
+    int getContFreeBuildingCount(BuildingTypes eIndex) const;
+    int getContConnFreeBuildingCount(BuildingTypes eIndex) const;
+    // DarkLunaPhantom end
 	int getFreeAreaBuildingCount(BuildingTypes eIndex, CvArea* area) const;
 	bool isBuildingFree(BuildingTypes eIndex, CvArea* area = NULL) const;																									// Exposed to Python
 	void changeFreeBuildingCount(BuildingTypes eIndex, int iChange);
+    // DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings in existing and new cities (cf. BuildingsSchema xml).
+    void changeContFreeBuildingCount(BuildingTypes eIndex, int iChange);
+    void changeContConnFreeBuildingCount(BuildingTypes eIndex, int iChange);
+    // DarkLunaPhantom end
 	void changeFreeAreaBuildingCount(BuildingTypes eIndex, CvArea* area, int iChange);
 
 	int getExtraBuildingHappiness(BuildingTypes eIndex) const;																				// Exposed to Python
@@ -2174,6 +2182,10 @@ protected:
 	int* m_paiBonusImport;
 	int* m_paiImprovementCount;
 	int* m_paiFreeBuildingCount;
+    // DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings in existing and new cities (cf. BuildingsSchema xml).
+    int* m_paiContFreeBuildingCount;
+    int* m_paiContConnFreeBuildingCount;
+    // DarkLunaPhantom end
 	int* m_paiExtraBuildingHappiness;
 	int* m_paiExtraBuildingHealth;
 	int** m_paiExtraBuildingYield;

@@ -1224,9 +1224,11 @@ public:
 	bool isValidBuildingLocation(BuildingTypes eIndex) const;
 
 	int getNumFreeBuilding(BuildingTypes eIndex) const;															// Exposed to Python
+    int getNumContConnFreeBuilding(BuildingTypes eIndex) const; // DarkLunaPhantom - Continuous and Connected Extra Free Building entries (cf. BuildingSchema xml).
 	int getNumFreeAreaBuilding(BuildingTypes eIndex) const;															// Exposed to Python
 	int getNumFreeTradeRegionBuilding(BuildingTypes eIndex) const;
 	void setNumFreeBuilding(BuildingTypes eIndex, int iNewValue);
+    void setNumContConnFreeBuilding(BuildingTypes eIndex, int iNewValue); // DarkLunaPhantom - Continuous and Connected Extra Free Building entries (cf. BuildingSchema xml).
 	void setNumFreeAreaBuilding(BuildingTypes eIndex, int iNewValue);
 	void setNumFreeTradeRegionBuilding(BuildingTypes eIndex, int iNewValue);
 	void changeNumFreeTradeRegionBuilding(BuildingTypes eIndex, int iChange);
@@ -2005,6 +2007,7 @@ protected:
 	int* m_paiFreePromotionCount;
 	int* m_paiNumRealBuilding;
 	int* m_paiNumFreeBuilding;
+    int* m_paiNumContConnFreeBuilding; // DarkLunaPhantom - Continuous and Connected Extra Free Building entries (cf. BuildingSchema xml).
 	int* m_paiNumFreeAreaBuilding;
 	int* m_paiNumFreeTradeRegionBuilding;
 	mutable int* m_paiBuildingReplaced;

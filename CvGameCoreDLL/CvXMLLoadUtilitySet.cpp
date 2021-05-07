@@ -3431,6 +3431,46 @@ void CvXMLLoadUtility::SetImprovementBonuses(CvImprovementBonusInfo** ppImprovem
 	}
 }
 
+// DarkLunaPhantom - Reads ExtraFreeBuilding entries from BuildingInfos.
+void CvXMLLoadUtility::setExtraFreeBuildings(std::vector<int> &m_aiExtraFreeBuildingClass, std::vector<bool> &m_abExtraFreeBuildingConnected, std::vector<bool> &m_abExtraFreeBuildingContinuous)
+{
+    m_aiExtraFreeBuildingClass.clear();
+    m_abExtraFreeBuildingConnected.clear();
+    m_abExtraFreeBuildingContinuous.clear();
+    if (GETXML->SetToChildByTagName(m_pFXml, "ExtraFreeBuildings"))
+	{
+		if (GETXML->SetToChild(m_pFXml))
+		{
+			if (GETXML->LocateFirstSiblingNodeByTagName(m_pFXml, "ExtraFreeBuilding"))
+			{
+				do
+				{
+                    TCHAR szTextVal[256];
+					GetChildXmlValByName(szTextVal, "BuildingClassType");
+                    int iBuildingClass = FindInInfoClass(szTextVal);
+                    if (iBuildingClass == -1)
+					{
+						char szMessage[1024];
+						sprintf(szMessage, "iBuildingClass is -1 inside SetExtraFreeBuildings function \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
+						gDLL->MessageBox(szMessage, "XML Error");
+					}
+                    m_aiExtraFreeBuildingClass.push_back(iBuildingClass);
+                    
+					bool bBool;
+					GetChildXmlValByName(&bBool, "bConnected");
+                    m_abExtraFreeBuildingConnected.push_back(bBool);
+                    
+                    GetChildXmlValByName(&bBool, "bContinuous");
+                    m_abExtraFreeBuildingContinuous.push_back(bBool);
+                    
+				} while(GETXML->NextSibling(m_pFXml));
+			}
+			GETXML->SetToParent(m_pFXml);
+		}
+		GETXML->SetToParent(m_pFXml);
+	}
+}
+
 //------------------------------------------------------------------------------------------------------
 //
 //  FUNCTION:   SetAndLoadVar(int** ppiVar, int iDefault)

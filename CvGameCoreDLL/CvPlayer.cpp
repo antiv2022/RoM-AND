@@ -291,6 +291,10 @@ m_cachedBonusCount(NULL)
 	m_paiBonusImport = NULL;
 	m_paiImprovementCount = NULL;
 	m_paiFreeBuildingCount = NULL;
+    // DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings to existing and new cities (cf. BuildingsSchema xml).
+    m_paiContFreeBuildingCount = NULL;
+    m_paiContConnFreeBuildingCount = NULL;
+    // DarkLunaPhantom end
 	m_paiExtraBuildingHappiness = NULL;
 	m_paiExtraBuildingHealth = NULL;
 	m_paiFeatureHappiness = NULL;
@@ -889,6 +893,10 @@ void CvPlayer::uninit()
 	SAFE_DELETE_ARRAY(m_paiBonusImport);
 	SAFE_DELETE_ARRAY(m_paiImprovementCount);
 	SAFE_DELETE_ARRAY(m_paiFreeBuildingCount);
+    // DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings to existing and new cities (cf. BuildingsSchema xml).
+    SAFE_DELETE_ARRAY(m_paiContFreeBuildingCount);
+    SAFE_DELETE_ARRAY(m_paiContConnFreeBuildingCount);
+    // DarkLunaPhantom end
 	SAFE_DELETE_ARRAY(m_paiExtraBuildingHappiness);
 	SAFE_DELETE_ARRAY(m_paiExtraBuildingHealth);
 	SAFE_DELETE_ARRAY(m_paiFeatureHappiness);
@@ -1434,6 +1442,12 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 
 		FAssertMsg(m_paiFreeBuildingCount==NULL, "about to leak memory, CvPlayer::m_paiFreeBuildingCount");
 		m_paiFreeBuildingCount = new int [GC.getNumBuildingInfos()];
+        // DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings to existing and new cities (cf. BuildingsSchema xml).
+        FAssertMsg(m_paiContFreeBuildingCount==NULL, "about to leak memory, CvPlayer::m_paiContFreeBuildingCount");
+		m_paiContFreeBuildingCount = new int [GC.getNumBuildingInfos()];
+        FAssertMsg(m_paiContConnFreeBuildingCount==NULL, "about to leak memory, CvPlayer::m_paiContConnFreeBuildingCount");
+		m_paiContConnFreeBuildingCount = new int [GC.getNumBuildingInfos()];
+        // DarkLunaPhantom end
 		FAssertMsg(m_paiExtraBuildingHappiness==NULL, "about to leak memory, CvPlayer::m_paiExtraBuildingHappiness");
 		m_paiExtraBuildingHappiness = new int [GC.getNumBuildingInfos()];
 		FAssertMsg(m_paiExtraBuildingHealth==NULL, "about to leak memory, CvPlayer::m_paiExtraBuildingHealth");
@@ -1441,6 +1455,10 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 		for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 		{
 			m_paiFreeBuildingCount[iI] = 0;
+            // DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings to existing and new cities (cf. BuildingsSchema xml).
+            m_paiContFreeBuildingCount[iI] = 0;
+            m_paiContConnFreeBuildingCount[iI] = 0;
+            // DarkLunaPhantom end
 			m_paiExtraBuildingHappiness[iI] = 0;
 			m_paiExtraBuildingHealth[iI] = 0;
 		}
@@ -3565,6 +3583,27 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 							if (!bConquest || bRecapture || GC.getGameINLINE().getSorenRandNum(100, "Capture Probability") < GC.getBuildingInfo((BuildingTypes)iI).getConquestProbability())
 							{
 								iNum += paiNumRealBuilding[iI];
+                                
+                                // DarkLunaPhantom - FreeBuilding entries behave as not Continuous and Connected ExtraFreeBuildings, see below.
+                                for (int i = 0; i < GC.getBuildingInfo(eBuilding).getNumFreeBuildingClass(); ++i)
+                                {
+                                    BuildingClassTypes eClass = (BuildingClassTypes)GC.getBuildingInfo(eBuilding).getFreeBuildingClass(i);
+                                    BuildingTypes eFree = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eClass);
+                                    if (eFree != NO_BUILDING)
+                                    {
+                                        pNewCity->setNumFreeBuilding(eFree, 1);
+                                    }
+                                }
+                                // DarkLunaPhantom - When building is gained with city acquisition, its not Continuous and Connected ExtraFreeBuildings entries are conserved in that city only (cf. BuildingsSchema xml).
+                                for (int i = 0; i < GC.getBuildingInfo(eBuilding).getNumExtraFreeBuildingClass(); ++i)
+                                {
+                                    BuildingClassTypes eClass = (BuildingClassTypes)GC.getBuildingInfo(eBuilding).getExtraFreeBuildingClass(i);
+                                    BuildingTypes eFree = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eClass);
+                                    if (eFree != NO_BUILDING && !GC.getBuildingInfo(eBuilding).getExtraFreeBuildingContinuous(i) && GC.getBuildingInfo(eBuilding).getExtraFreeBuildingConnected(i))
+                                    {
+                                        pNewCity->setNumFreeBuilding(eFree, 1);
+                                    }
+                                }
 							}
 						}
 					}
@@ -5681,6 +5720,23 @@ void CvPlayer::doTurn()
 	FAssertMsg(!hasBusyUnit() || GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS)  || GC.getGameINLINE().isSimultaneousTeamTurns(), "End of turn with busy units in a sequential-turn game");
 
 	CvEventReporter::getInstance().beginPlayerTurn( GC.getGameINLINE().getGameTurn(),  getID());
+    
+    // DarkLunaPhantom - Continuous and not Connected ExtraFreeBuildings are realized as Real Buildings so they are recreated if destroyed (cf. BuildingsSchema xml).
+    iLoop = 0;
+    for (int i = 0; i < GC.getNumBuildingInfos(); ++i)
+    {
+        if (getContFreeBuildingCount((BuildingTypes)i) > 0)
+        {
+            for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+            {
+                if (pLoopCity->getNumRealBuilding((BuildingTypes)i) == 0)
+                {
+                    pLoopCity->setNumRealBuilding((BuildingTypes)i, 1);
+                }
+            }
+        }
+    }        
+    
 // < M.A.D. Nukes Start >
 	if(isEnabledMAD())
 	{
@@ -10989,6 +11045,34 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pAr
                 if (eFreeBuilding != NO_BUILDING)
                 {
                     changeFreeBuildingCount(eFreeBuilding, iChange);
+                }
+            }
+        }
+    }
+    
+    // DarkLunaPhantom - ExtraFreeBuilding entries (cf. BuildingsSchema xml).
+    int iNumExtraFreeBuildingClass = GC.getBuildingInfo(eBuilding).getNumExtraFreeBuildingClass();
+    for (int i = 0; i < iNumExtraFreeBuildingClass; ++i)
+    {
+        if (GC.getBuildingInfo(eBuilding).getExtraFreeBuildingClass(i) != NO_BUILDINGCLASS)
+        {
+            BuildingTypes eFreeBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(GC.getBuildingInfo(eBuilding).getExtraFreeBuildingClass(i));
+            if (eFreeBuilding != NO_BUILDING)
+            {
+                // DarkLunaPhantom - Not Continuous and Connected buildings can only be removed here since they are not added to new cities.
+                if ((iChange == -1) && !GC.getBuildingInfo(eBuilding).getExtraFreeBuildingContinuous(i) && GC.getBuildingInfo(eBuilding).getExtraFreeBuildingConnected(i))
+                {
+                    changeFreeBuildingCount(eFreeBuilding, iChange);
+                }
+                // DarkLunaPhantom - Continuous and not Connected buildings have their own counter.
+                if (GC.getBuildingInfo(eBuilding).getExtraFreeBuildingContinuous(i) && !GC.getBuildingInfo(eBuilding).getExtraFreeBuildingConnected(i))
+                {
+                    changeContFreeBuildingCount(eFreeBuilding, iChange);
+                }
+                // DarkLunaPhantom - Continuous and Connected buildings have their own counter.
+                if (GC.getBuildingInfo(eBuilding).getExtraFreeBuildingContinuous(i) && GC.getBuildingInfo(eBuilding).getExtraFreeBuildingConnected(i))
+                {
+                    changeContConnFreeBuildingCount(eFreeBuilding, iChange);
                 }
             }
         }
@@ -18255,6 +18339,22 @@ int CvPlayer::getFreeBuildingCount(BuildingTypes eIndex) const
 	return m_paiFreeBuildingCount[eIndex];
 }
 
+// DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings to existing and new cities (cf. BuildingsSchema xml).
+int CvPlayer::getContFreeBuildingCount(BuildingTypes eIndex) const
+{
+	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
+	FAssertMsg(eIndex < GC.getNumBuildingInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	return m_paiContFreeBuildingCount[eIndex];
+}
+
+int CvPlayer::getContConnFreeBuildingCount(BuildingTypes eIndex) const
+{
+	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
+	FAssertMsg(eIndex < GC.getNumBuildingInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	return m_paiContConnFreeBuildingCount[eIndex];
+}
+// DarkLunaPhantom end
+
 int CvPlayer::getFreeAreaBuildingCount(BuildingTypes eIndex, CvArea* area) const
 {
 	int iLoop = 0;
@@ -18281,8 +18381,8 @@ int CvPlayer::getFreeAreaBuildingCount(BuildingTypes eIndex, CvArea* area) const
 
 bool CvPlayer::isBuildingFree(BuildingTypes eIndex, CvArea* area)	const
 {
-    // DarkLunaPhantom - FreeBuilding doesn't give buildings to new cities.
-	return (/*area != NULL &&*/ getFreeAreaBuildingCount(eIndex, area) > 0);
+    // DarkLunaPhantom - FreeBuilding doesn't give buildings to new cities and added getContFreeBuildingCount, getContConnFreeBuildingCount which give building to new cities (cf. BuildingsSchema xml).
+	return (/*getFreeBuildingCount(eIndex) > 0 ||*/ (area == NULL && (getContFreeBuildingCount(eIndex) + getContConnFreeBuildingCount(eIndex)) > 0) || (area != NULL && getFreeAreaBuildingCount(eIndex, area) > 0));
 }
 
 
@@ -18322,6 +18422,75 @@ void CvPlayer::changeFreeBuildingCount(BuildingTypes eIndex, int iChange)
 		}
 	}
 }
+
+// DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings to existing and new cities (cf. BuildingsSchema xml).
+void CvPlayer::changeContFreeBuildingCount(BuildingTypes eIndex, int iChange)
+{
+	CvCity* pLoopCity;
+	int iOldFreeBuildingCount;
+	int iLoop = 0;
+
+	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
+	FAssertMsg(eIndex < GC.getNumBuildingInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+
+	iOldFreeBuildingCount = getContFreeBuildingCount(eIndex);
+	if ( (iChange > 0 || iOldFreeBuildingCount != 0) && iChange != 0)
+	{
+		m_paiContFreeBuildingCount[eIndex] = (m_paiContFreeBuildingCount[eIndex] + iChange);
+		FAssert(getContFreeBuildingCount(eIndex) >= 0);
+
+		if (iOldFreeBuildingCount == 0)
+		{
+			FAssertMsg(getContFreeBuildingCount(eIndex) > 0, "getContFreeBuildingCount(eIndex) is expected to be greater than 0");
+
+			for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+			{
+				pLoopCity->setNumRealBuilding(eIndex, 1);
+			}
+		}
+		else if (getContFreeBuildingCount(eIndex) == 0)
+		{
+			FAssertMsg(iOldFreeBuildingCount > 0, "iOldFreeBuildingCount is expected to be greater than 0");
+		}
+	}
+}
+
+void CvPlayer::changeContConnFreeBuildingCount(BuildingTypes eIndex, int iChange)
+{
+	CvCity* pLoopCity;
+	int iOldFreeBuildingCount;
+	int iLoop = 0;
+
+	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
+	FAssertMsg(eIndex < GC.getNumBuildingInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+
+	iOldFreeBuildingCount = getContConnFreeBuildingCount(eIndex);
+	if ( (iChange > 0 || iOldFreeBuildingCount != 0) && iChange != 0)
+	{
+		m_paiContConnFreeBuildingCount[eIndex] = (m_paiContConnFreeBuildingCount[eIndex] + iChange);
+		FAssert(getContConnFreeBuildingCount(eIndex) >= 0);
+
+		if (iOldFreeBuildingCount == 0)
+		{
+			FAssertMsg(getContConnFreeBuildingCount(eIndex) > 0, "getContConnFreeBuildingCount(eIndex) is expected to be greater than 0");
+
+			for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+			{
+				pLoopCity->setNumContConnFreeBuilding(eIndex, 1);
+			}
+		}
+		else if (getContConnFreeBuildingCount(eIndex) == 0)
+		{
+			FAssertMsg(iOldFreeBuildingCount > 0, "iOldFreeBuildingCount is expected to be greater than 0");
+
+			for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+			{
+				pLoopCity->setNumContConnFreeBuilding(eIndex, 0);
+			}
+		}
+	}
+}
+// DarkLunaPhantom end
 
 void CvPlayer::changeFreeAreaBuildingCount(BuildingTypes eIndex, CvArea* area, int iChange)
 {
@@ -24870,6 +25039,10 @@ void CvPlayer::read(FDataStreamBase* pStream)
 		WRAPPER_READ_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BONUSES, GC.getNumBonusInfos(), m_paiBonusImport);
 		WRAPPER_READ_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_IMPROVEMENTS, GC.getNumImprovementInfos(), m_paiImprovementCount);
 		WRAPPER_READ_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BUILDINGS, GC.getNumBuildingInfos(), m_paiFreeBuildingCount);
+        // DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings in existing and new cities (cf. BuildingsSchema xml).
+        WRAPPER_READ_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BUILDINGS, GC.getNumBuildingInfos(), m_paiContFreeBuildingCount);
+        WRAPPER_READ_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BUILDINGS, GC.getNumBuildingInfos(), m_paiContConnFreeBuildingCount);
+        // DarkLunaPhantom end
 		WRAPPER_READ_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BUILDINGS, GC.getNumBuildingInfos(), m_paiExtraBuildingHappiness);
 		WRAPPER_READ_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BUILDINGS, GC.getNumBuildingInfos(), m_paiExtraBuildingHealth);
 		WRAPPER_READ_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_FEATURES, GC.getNumFeatureInfos(), m_paiFeatureHappiness);
@@ -25999,6 +26172,10 @@ void CvPlayer::write(FDataStreamBase* pStream)
 		WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BONUSES, GC.getNumBonusInfos(), m_paiBonusImport);
 		WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_IMPROVEMENTS, GC.getNumImprovementInfos(), m_paiImprovementCount);
 		WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BUILDINGS, GC.getNumBuildingInfos(), m_paiFreeBuildingCount);
+        // DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings in existing and new cities (cf. BuildingsSchema xml).
+        WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BUILDINGS, GC.getNumBuildingInfos(), m_paiContFreeBuildingCount);
+        WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BUILDINGS, GC.getNumBuildingInfos(), m_paiContConnFreeBuildingCount);
+        // DarkLunaPhantom end
 		WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BUILDINGS, GC.getNumBuildingInfos(), m_paiExtraBuildingHappiness);
 		WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_BUILDINGS, GC.getNumBuildingInfos(), m_paiExtraBuildingHealth);
 		WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvPlayer", REMAPPED_CLASS_TYPE_FEATURES, GC.getNumFeatureInfos(), m_paiFeatureHappiness);
@@ -26671,6 +26848,10 @@ void CvPlayer::resync(bool bWrite, ByteBuffer* pBuffer)
 		RESYNC_INT_ARRAY(bWrite, pBuffer, GC.getNumBonusInfos(), m_paiBonusImport);
 		RESYNC_INT_ARRAY(bWrite, pBuffer, GC.getNumImprovementInfos(), m_paiImprovementCount);
 		RESYNC_INT_ARRAY(bWrite, pBuffer, GC.getNumBuildingInfos(), m_paiFreeBuildingCount);
+        // DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings in existing and new cities (cf. BuildingsSchema xml).
+        RESYNC_INT_ARRAY(bWrite, pBuffer, GC.getNumBuildingInfos(), m_paiContFreeBuildingCount);
+        RESYNC_INT_ARRAY(bWrite, pBuffer, GC.getNumBuildingInfos(), m_paiContConnFreeBuildingCount);
+        // DarkLunaPhantom end
 		RESYNC_INT_ARRAY(bWrite, pBuffer, GC.getNumBuildingInfos(), m_paiExtraBuildingHappiness);
 		RESYNC_INT_ARRAY(bWrite, pBuffer, GC.getNumBuildingInfos(), m_paiExtraBuildingHealth);
 		RESYNC_INT_ARRAY(bWrite, pBuffer, GC.getNumFeatureInfos(), m_paiFeatureHappiness);
@@ -35628,6 +35809,10 @@ void CvPlayer::clearModifierTotals()
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
 		m_paiFreeBuildingCount[iI] = 0;
+        // DarkLunaPhantom begin - ExtraFreeBuilding entries that give Free Buildings in existing and new cities (cf. BuildingsSchema xml).
+        m_paiContFreeBuildingCount[iI] = 0;
+        m_paiContConnFreeBuildingCount[iI] = 0;
+        // DarkLunaPhantom end
 		m_paiExtraBuildingHappiness[iI] = 0;
 		m_paiExtraBuildingHealth[iI] = 0;
 	}

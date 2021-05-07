@@ -642,6 +642,31 @@ int CvBuildingInfo::getNumFreeBuildingClass() const
 	return (int)m_aiFreeBuildingClass.size();
 }
 
+// DarkLunaPhantom begin - Extra FreeBuilding entries.
+int CvBuildingInfo::getNumExtraFreeBuildingClass() const
+{
+    return (int)m_aiExtraFreeBuildingClass.size();
+}
+
+int CvBuildingInfo::getExtraFreeBuildingClass(int i) const
+{
+    FAssert(i < (int)m_aiExtraFreeBuildingClass.size());
+    return m_aiExtraFreeBuildingClass[i];
+}
+
+bool CvBuildingInfo::getExtraFreeBuildingConnected(int i) const
+{
+    FAssert(i < (int)m_abExtraFreeBuildingConnected.size());
+    return m_abExtraFreeBuildingConnected[i];
+}
+
+bool CvBuildingInfo::getExtraFreeBuildingContinuous(int i) const
+{
+    FAssert(i < (int)m_abExtraFreeBuildingContinuous.size());
+    return m_abExtraFreeBuildingContinuous[i];
+}
+// DarkLunaPhantom end
+
 int CvBuildingInfo::getFreeAreaBuildingClass() const			
 {
 	return m_iFreeAreaBuildingClass;
@@ -2697,13 +2722,33 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	}
     
     // DarkLunaPhantom - FreeBuilding accepts lists.
-    int iNumBuildingClasses = 0;
+    int iNumBuildingClasses;
+    m_aiFreeBuildingClass.clear();
 	stream->Read(&iNumBuildingClasses);
-	for(int iI = 0; iI < iNumBuildingClasses; ++iI)
+	for (int iI = 0; iI < iNumBuildingClasses; ++iI)
 	{
 		int iFreeBuildingClass = 0;
 		stream->Read(&iFreeBuildingClass);
 		m_aiFreeBuildingClass.push_back(iFreeBuildingClass);
+	}
+    
+    // DarkLunaPhantom - Extra FreeBuilding entries.
+    stream->Read(&iNumBuildingClasses);
+    m_aiExtraFreeBuildingClass.clear();
+    m_abExtraFreeBuildingConnected.clear();
+    m_abExtraFreeBuildingContinuous.clear();
+    for (int iI = 0; iI < iNumBuildingClasses; ++iI)
+	{
+		int iExtraFreeBuildingClass;
+		stream->Read(&iExtraFreeBuildingClass);
+		m_aiExtraFreeBuildingClass.push_back(iExtraFreeBuildingClass);
+        
+        bool bBool;
+        stream->Read(&bBool);
+        m_abExtraFreeBuildingConnected.push_back(bBool);
+        
+        stream->Read(&bBool);
+        m_abExtraFreeBuildingContinuous.push_back(bBool);
 	}
     
 	stream->Read(&m_iFreeAreaBuildingClass);
@@ -3734,9 +3779,18 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
     
     // DarkLunaPhantom - FreeBuilding accepts lists.
     stream->Write((int)m_aiFreeBuildingClass.size());
-	for(int iI = 0; iI < (int)m_aiFreeBuildingClass.size(); ++iI)
+	for (int iI = 0; iI < (int)m_aiFreeBuildingClass.size(); ++iI)
 	{
 		stream->Write(m_aiFreeBuildingClass[iI]);
+	}
+    
+    // DarkLunaPhantom - Extra FreeBuilding entries.
+    stream->Write((int)m_aiExtraFreeBuildingClass.size());
+    for (int iI = 0; iI < (int)m_aiExtraFreeBuildingClass.size(); ++iI)
+	{
+		stream->Write(m_aiExtraFreeBuildingClass[iI]);
+        stream->Write(m_abExtraFreeBuildingConnected[iI]);
+        stream->Write(m_abExtraFreeBuildingContinuous[iI]);
 	}
 
 	stream->Write(m_iFreeAreaBuildingClass);
@@ -4851,6 +4905,10 @@ void CvBuildingInfo::getCheckSum(unsigned int& iSum)
 	CheckSumC(iSum, m_aExtraFreeBonuses);
 
 	CheckSumC(iSum, m_aiFreeBuildingClass); // DarkLunaPhantom - FreeBuilding accepts lists.
+    // DarkLunaPhantom - Extra FreeBuilding entries.
+    CheckSumC(iSum, m_aiExtraFreeBuildingClass);
+    CheckSumC(iSum, m_abExtraFreeBuildingConnected);
+    CheckSumC(iSum, m_abExtraFreeBuildingContinuous);
     
 	CheckSum(iSum, m_iFreeAreaBuildingClass);
 	CheckSum(iSum, m_iFreeTradeRegionBuildingClass);
@@ -5449,14 +5507,18 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(szTextVal, "FreeBuilding");
 	std::vector<CvString> tokens;
 	szTextVal.getTokens(",", tokens);
-	for(int i=0;i<(int)tokens.size();i++)
+    m_aiFreeBuildingClass.clear();
+	for (int i = 0; i < (int)tokens.size(); ++i)
 	{
 		int iFreeBuildingClass = pXML->FindInInfoClass(tokens[i]);
-		if(iFreeBuildingClass != NO_BUILDINGCLASS)
+		if (iFreeBuildingClass != NO_BUILDINGCLASS)
 		{
 			m_aiFreeBuildingClass.push_back(iFreeBuildingClass);
 		}
 	}
+    
+    // DarkLunaPhantom - Extra FreeBuilding entries. In separate function for code readability.
+    pXML->setExtraFreeBuildings(m_aiExtraFreeBuildingClass, m_abExtraFreeBuildingConnected, m_abExtraFreeBuildingContinuous);
 
 	pXML->GetChildXmlValByName(szTextVal, "FreeAreaBuilding");
 	m_iFreeAreaBuildingClass = pXML->FindInInfoClass(szTextVal);
@@ -6856,12 +6918,27 @@ void CvBuildingInfo::copyNonDefaults(CvBuildingInfo* pClassInfo, CvXMLLoadUtilit
     // DarkLunaPhantom - FreeBuilding accepts lists.
     if (getNumFreeBuildingClass() < 1)
 	{
-		for(int i=0; i < pClassInfo->getNumFreeBuildingClass(); i++)
+		for (int i = 0; i < pClassInfo->getNumFreeBuildingClass(); ++i)
 		{
 			int iFreeBuildingClass = pClassInfo->getFreeBuildingClass(i);
-			if(iFreeBuildingClass != NO_BUILDINGCLASS)
+			if (iFreeBuildingClass != NO_BUILDINGCLASS)
 			{
 				m_aiFreeBuildingClass.push_back(iFreeBuildingClass);
+			}
+		}
+	}
+    
+    // DarkLunaPhantom - Extra FreeBuilding entries.
+    if (getNumExtraFreeBuildingClass() < 1)
+	{
+		for (int i = 0; i < pClassInfo->getNumExtraFreeBuildingClass(); ++i)
+		{
+			int iExtraFreeBuildingClass = pClassInfo->getExtraFreeBuildingClass(i);
+			if (iExtraFreeBuildingClass != NO_BUILDINGCLASS)
+			{
+				m_aiExtraFreeBuildingClass.push_back(iExtraFreeBuildingClass);
+                m_abExtraFreeBuildingConnected.push_back(pClassInfo->getExtraFreeBuildingConnected(i));
+                m_abExtraFreeBuildingContinuous.push_back(pClassInfo->getExtraFreeBuildingContinuous(i));
 			}
 		}
 	}

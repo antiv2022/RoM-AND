@@ -184,6 +184,8 @@ public:
 
 	// loads the improvement bonuses from the xml file
 	void SetImprovementBonuses(CvImprovementBonusInfo** ppImprovementBonus);
+    
+    void setExtraFreeBuildings(std::vector<int> &m_aiExtraFreeBuildingClass, std::vector<bool> &m_abExtraFreeBuildingConnected, std::vector<bool> &m_abExtraFreeBuildingContinuous); // DarkLunaPhantom - Reads ExtraFreeBuilding entries from BuildingInfos.
 	
 /*************************************************************************************************/
 /**	New Tag Defs	(XMLInfos)				08/09/08								Xienwolf	**/

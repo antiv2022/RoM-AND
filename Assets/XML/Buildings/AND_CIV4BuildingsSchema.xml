@@ -222,6 +222,22 @@
 		<element type="ExtraFreeBonus" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
 	<ElementType name="FreeBuilding" content="textOnly"/>
+    <!-- DarkLunaPhantom begin - Extra FreeBuilding entries.
+    bConnected controls whether they are destroyed if player loses source building.
+    bContinuous controls whether they are always present in all owned cities.
+    FreeBuilding entry now behaves like it is bConnected and not bContinuous.-->
+    <ElementType name="BuildingClassType" content="textOnly"/>
+    <ElementType name="bConnected" content="textOnly" dt:type="boolean"/>
+    <ElementType name="bContinuous" content="textOnly" dt:type="boolean"/>
+    <ElementType name="ExtraFreeBuilding" content="eltOnly">
+        <element type="BuildingClassType"/>
+        <element type="bConnected"/>
+        <element type="bContinuous"/>        
+    </ElementType>
+    <ElementType name="ExtraFreeBuildings" content="eltOnly">
+        <element type="ExtraFreeBuilding" minOccurs="0" maxOccurs="*"/>
+    </ElementType>
+    <!-- DarkLunaPhantom end -->
 	<ElementType name="FreeAreaBuilding" content="textOnly"/>
 	<ElementType name="FreeTradeRegionBuilding" content="textOnly"/>
 	<ElementType name="bTeamShare" content="textOnly" dt:type="boolean"/>
@@ -545,7 +561,7 @@
 	<ElementType name="BuildingHappinessChanges" content="eltOnly">
 		<element type="BuildingHappinessChange" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
-	<ElementType name="BuildingClassType" content="textOnly"/>
+    <!-- <ElementType name="BuildingClassType" content="textOnly"/>    DarkLunaPhantom - Moved up. -->
 	<ElementType name="iNumBuildingNeeded" content="textOnly" dt:type="int"/>
 	<ElementType name="PrereqBuildingClass" content="eltOnly">
 		<element type="BuildingClassType"/>
@@ -663,6 +679,8 @@
 		<element type="ExtraFreeBonuses" minOccurs="0"/>
 		<element type="iNumFreeBonuses" minOccurs="0"/>
 		<element type="FreeBuilding" minOccurs="0"/>
+        <!-- DarkLunaPhantom - Extra FreeBuilding entries. -->
+        <element type="ExtraFreeBuildings" minOccurs="0"/>
 		<element type="FreeAreaBuilding" minOccurs="0"/>
 		<element type="FreeTradeRegionBuilding" minOccurs="0"/>
 		<element type="FreePromotion" minOccurs="0"/>

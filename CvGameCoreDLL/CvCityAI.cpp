@@ -3592,6 +3592,16 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
                                         iValue += (AI_buildingValue(eFreeBuilding, iFocusFlags) * (GET_PLAYER(getOwnerINLINE()).getNumCities() - GET_PLAYER(getOwnerINLINE()).getBuildingClassCountPlusMaking((BuildingClassTypes)GC.getBuildingInfo(eLoopBuilding).getFreeBuildingClass(i))));
                                     }
 								}
+                                // DarkLunaPhantom - Extra FreeBuilding entries (cf. BuildingSchema xml).
+                                int iNumExtraFreeBuildingClass = GC.getBuildingInfo(eLoopBuilding).getNumExtraFreeBuildingClass();
+								for (int i = 0; i < iNumExtraFreeBuildingClass; ++i)
+                                {
+                                    BuildingTypes eFreeBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(GC.getBuildingInfo(eLoopBuilding).getExtraFreeBuildingClass(i));
+                                    if (NO_BUILDING != eFreeBuilding)
+                                    {
+                                        iValue += (AI_buildingValue(eFreeBuilding, iFocusFlags) * (GET_PLAYER(getOwnerINLINE()).getNumCities() - GET_PLAYER(getOwnerINLINE()).getBuildingClassCountPlusMaking((BuildingClassTypes)GC.getBuildingInfo(eLoopBuilding).getExtraFreeBuildingClass(i))));
+                                    }
+								}
 
 								if ( gCityLogLevel > 3 )
 								{

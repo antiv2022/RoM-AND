@@ -13103,7 +13103,45 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
         if (NO_BUILDING != eFreeBuilding)
         {
             szBuffer.append(NEWLINE);
-            szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_FREE_IN_CITY", GC.getBuildingInfo(eFreeBuilding).getTextKeyWide()));
+            szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_FREE_IN_CITY_10", GC.getBuildingInfo(eFreeBuilding).getTextKeyWide())); // DarkLunaPhantom - New text for FreeBuilding entries reflecting new rules (cf. BuildingsSchema xml).
+        }
+    }
+    
+    // DarkLunaPhantom - Text for Extra FreeBuilding entries (cf. BuildingsSchema xml).
+    int iNumExtraFreeBuildingClass = kBuilding.getNumExtraFreeBuildingClass();
+	for (int i = 0; i < iNumExtraFreeBuildingClass; ++i)
+    {
+        BuildingTypes eFreeBuilding;
+        if (ePlayer != NO_PLAYER)
+        {
+            eFreeBuilding = ((BuildingTypes)(GC.getCivilizationInfo(GET_PLAYER(ePlayer).getCivilizationType()).getCivilizationBuildings(kBuilding.getExtraFreeBuildingClass(i))));
+        }
+        else
+        {
+            eFreeBuilding = (BuildingTypes)GC.getBuildingClassInfo((BuildingClassTypes)kBuilding.getExtraFreeBuildingClass(i)).getDefaultBuildingIndex();
+        }
+
+        if (NO_BUILDING != eFreeBuilding)
+        {
+            bool bConnected = kBuilding.getExtraFreeBuildingConnected(i);
+            bool bContinuous = kBuilding.getExtraFreeBuildingContinuous(i);
+            szBuffer.append(NEWLINE);
+            if (!bConnected && !bContinuous)
+            {
+                szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_FREE_IN_CITY_00", GC.getBuildingInfo(eFreeBuilding).getTextKeyWide()));
+            }
+            if (!bConnected && bContinuous)
+            {
+                szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_FREE_IN_CITY", GC.getBuildingInfo(eFreeBuilding).getTextKeyWide()));
+            }
+            if (bConnected && !bContinuous)
+            {
+                szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_FREE_IN_CITY_10", GC.getBuildingInfo(eFreeBuilding).getTextKeyWide()));
+            }
+            if (bConnected && bContinuous)
+            {
+                szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_FREE_IN_CITY_11", GC.getBuildingInfo(eFreeBuilding).getTextKeyWide()));
+            }
         }
     }
 

@@ -137,4 +137,18 @@
 		<English>Your %s1 was destroyed by a %s3_owner_adjective %s2 volley!</English>
 	</TEXT>
 	<!-- ! Toffer -->
+    <!-- DarkLunaPhantom begin-->
+    <TEXT>
+		<Tag>TXT_KEY_BUILDING_FREE_IN_CITY_00</Tag>
+		<English>[ICON_BULLET]Free [COLOR_BUILDING_TEXT][LINK=literal]%s1_Name[\LINK][COLOR_REVERT] in Every Current City</English>
+	</TEXT>
+    <TEXT>
+		<Tag>TXT_KEY_BUILDING_FREE_IN_CITY_10</Tag>
+		<English>[ICON_BULLET]Free Connected [COLOR_BUILDING_TEXT][LINK=literal]%s1_Name[\LINK][COLOR_REVERT] in Every Current City</English>
+	</TEXT>
+    <TEXT>
+		<Tag>TXT_KEY_BUILDING_FREE_IN_CITY_11</Tag>
+		<English>[ICON_BULLET]Free Connected [COLOR_BUILDING_TEXT][LINK=literal]%s1_Name[\LINK][COLOR_REVERT] in Every City</English>
+	</TEXT>
+    <!-- DarkLunaPhantom end-->
 </Civ4GameText>
