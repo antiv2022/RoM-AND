@@ -449,7 +449,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
         // DarkLunaPhantom - Continuous and Connected Extra FreeBuilding entries give Free Buildings in new cities (cf. BuildingsSchema xml).
         if (GET_PLAYER(getOwnerINLINE()).getContConnFreeBuildingCount((BuildingTypes)iI) > 0)
 		{
-			setNumContConnFreeBuilding(((BuildingTypes)iI), 1);
+			setNumContConnFreeBuilding(((BuildingTypes)iI), GET_PLAYER(getOwnerINLINE()).getContConnFreeBuildingCount((BuildingTypes)iI));
 		}
         // DarkLunaPhantom - Same functionality as the second half of the commented out part above.
         if (GET_PLAYER(getOwnerINLINE()).getFreeAreaBuildingCount(((BuildingTypes)iI), area()) > 0)

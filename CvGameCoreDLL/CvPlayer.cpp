@@ -3591,7 +3591,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
                                     BuildingTypes eFree = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eClass);
                                     if (eFree != NO_BUILDING)
                                     {
-                                        pNewCity->setNumFreeBuilding(eFree, 1);
+                                        pNewCity->setNumFreeBuilding(eFree, pNewCity->getNumFreeBuilding(eFree) + 1);
                                     }
                                 }
                                 // DarkLunaPhantom - When building is gained with city acquisition, its not Continuous and Connected ExtraFreeBuildings entries are conserved in that city only (cf. BuildingsSchema xml).
@@ -3601,7 +3601,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
                                     BuildingTypes eFree = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eClass);
                                     if (eFree != NO_BUILDING && !GC.getBuildingInfo(eBuilding).getExtraFreeBuildingContinuous(i) && GC.getBuildingInfo(eBuilding).getExtraFreeBuildingConnected(i))
                                     {
-                                        pNewCity->setNumFreeBuilding(eFree, 1);
+                                        pNewCity->setNumFreeBuilding(eFree, pNewCity->getNumFreeBuilding(eFree) + 1);
                                     }
                                 }
 							}
@@ -18402,23 +18402,10 @@ void CvPlayer::changeFreeBuildingCount(BuildingTypes eIndex, int iChange)
 		m_paiFreeBuildingCount[eIndex] = (m_paiFreeBuildingCount[eIndex] + iChange);
 		FAssert(getFreeBuildingCount(eIndex) >= 0);
 
-		if (iOldFreeBuildingCount == 0)
+        // DarkLunaPhantom - Simplified and hopefully more compatible with various edge cases.
+		for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 		{
-			FAssertMsg(getFreeBuildingCount(eIndex) > 0, "getFreeBuildingCount(eIndex) is expected to be greater than 0");
-
-			for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-			{
-				pLoopCity->setNumFreeBuilding(eIndex, 1);
-			}
-		}
-		else if (getFreeBuildingCount(eIndex) == 0)
-		{
-			FAssertMsg(iOldFreeBuildingCount > 0, "iOldFreeBuildingCount is expected to be greater than 0");
-
-			for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-			{
-				pLoopCity->setNumFreeBuilding(eIndex, 0);
-			}
+			pLoopCity->setNumFreeBuilding(eIndex, std::max(0, pLoopCity->getNumFreeBuilding(eIndex) + iChange));
 		}
 	}
 }
@@ -18439,7 +18426,7 @@ void CvPlayer::changeContFreeBuildingCount(BuildingTypes eIndex, int iChange)
 		m_paiContFreeBuildingCount[eIndex] = (m_paiContFreeBuildingCount[eIndex] + iChange);
 		FAssert(getContFreeBuildingCount(eIndex) >= 0);
 
-		if (iOldFreeBuildingCount == 0)
+		if (iChange > 0)
 		{
 			FAssertMsg(getContFreeBuildingCount(eIndex) > 0, "getContFreeBuildingCount(eIndex) is expected to be greater than 0");
 
@@ -18470,25 +18457,11 @@ void CvPlayer::changeContConnFreeBuildingCount(BuildingTypes eIndex, int iChange
 		m_paiContConnFreeBuildingCount[eIndex] = (m_paiContConnFreeBuildingCount[eIndex] + iChange);
 		FAssert(getContConnFreeBuildingCount(eIndex) >= 0);
 
-		if (iOldFreeBuildingCount == 0)
+		for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 		{
-			FAssertMsg(getContConnFreeBuildingCount(eIndex) > 0, "getContConnFreeBuildingCount(eIndex) is expected to be greater than 0");
-
-			for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-			{
-				pLoopCity->setNumContConnFreeBuilding(eIndex, 1);
-			}
+			pLoopCity->setNumContConnFreeBuilding(eIndex, pLoopCity->getNumContConnFreeBuilding(eIndex) + iChange);
 		}
-		else if (getContConnFreeBuildingCount(eIndex) == 0)
-		{
-			FAssertMsg(iOldFreeBuildingCount > 0, "iOldFreeBuildingCount is expected to be greater than 0");
-
-			for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-			{
-				pLoopCity->setNumContConnFreeBuilding(eIndex, 0);
-			}
-		}
-	}
+    }
 }
 // DarkLunaPhantom end
 
