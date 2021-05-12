@@ -1,8 +1,8 @@
 SOURCE_DIR = ..
 # f1rpo: As in AND except that I've added /WX, /Ob1 and removed /DMEMORY_TRACKING.
-# I've kept the BBAI log (LOG_AI) for all builds, like in AND.
+# Also removed MOD_SENTRY (at Inthegrave's request). Kept the BBAI log (LOG_AI) for all builds, like in AND.
 # Note that the same flags are set in the VS project file (for IntelliSense)
-PROJECT_CFLAGS = /WX /W3 /DLOG_AI /D_MOD_SENTRY /D_MOD_FRACTRADE /D_MOD_GOVWORKERS /DQC_MASTERY_VICTORY /D_MOD_GWARM /D_MOD_SHAM_SPOILER /DC2C_BUILD /DUSE_RAPID_XML
+PROJECT_CFLAGS = /WX /W3 /DLOG_AI /D_MOD_FRACTRADE /D_MOD_GOVWORKERS /DQC_MASTERY_VICTORY /D_MOD_GWARM /D_MOD_SHAM_SPOILER /DC2C_BUILD /DUSE_RAPID_XML
 # Allow inline expansion of functions with an inline keyword even for debug builds
 PROJECT_Debug_CFLAGS = /Ob1 /DVALIDATE_CAN_TRAIN_CACHE_CONSISTENCY /DVALIDATE_CAN_CONSTRUCT_CACHE /DVERIFY_YIELD_CACHE_RESULTS /DVERIFY_PLOT_DANGER_CACHE_RESULTS
 # Should _not_ be set when inspecting disassembly as it will disable __forceinline

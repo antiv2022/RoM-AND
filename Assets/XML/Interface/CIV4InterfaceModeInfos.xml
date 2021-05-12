@@ -514,8 +514,9 @@
 			<bSelectAll>0</bSelectAll>
 			<Button>,Art/Interface/Buttons/Empty.dds,Art/Interface/Buttons/Atlases/AND_misc_buttons.dds,7,3</Button>
 		</InterfaceModeInfo>
-		<!-- Sentry Actions -->
-		<InterfaceModeInfo>
+		<!-- Sentry Actions
+			 f1rpo: Commented out; deactivated through _MOD_SENTRY switch in the DLL. -->
+		<!--InterfaceModeInfo>
 			<Type>INTERFACEMODE_GO_TO_SENTRY</Type>
 			<Description>TXT_KEY_INTERFACEMODE_GO_TO_SENTRY</Description>
 			<Help>TXT_KEY_INTERFACEMODE_GO_TO_SENTRY_HELP</Help>
@@ -537,7 +538,7 @@
 			<bSelectType>0</bSelectType>
 			<bSelectAll>0</bSelectAll>
 			<Button>,Art/Interface/Buttons/Actions/GoTo.dds,Art/Interface/Buttons/atlases/sentry_actions.dds,4,1</Button>
-		</InterfaceModeInfo>
+		</InterfaceModeInfo-->
 		<InterfaceModeInfo>
 		  <Type>INTERFACEMODE_PRETARGET_NUKE</Type>
 		  <Description>TXT_KEY_INTERFACEMODE_PRETARGET_NUKE</Description>
