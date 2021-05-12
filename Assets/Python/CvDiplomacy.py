@@ -246,7 +246,12 @@ class CvDiplomacy:
 			if (gc.getTeam(gc.getGame().getActiveTeam()).canDeclareWar(gc.getPlayer(self.diploScreen.getWhoTradingWith()).getTeam())):
 				self.addUserComment("USER_DIPLOCOMMENT_WAR", -1, -1)
 
-			self.addUserComment("USER_DIPLOCOMMENT_ATTITUDE", -1, -1)
+			#self.addUserComment("USER_DIPLOCOMMENT_ATTITUDE", -1, -1)
+			# <f1rpo> Show the response only when there is someone to ask about
+			for i in range(gc.getMAX_CIV_PLAYERS()):
+				if self.canAskAttitude(i):
+					self.addUserComment("USER_DIPLOCOMMENT_ATTITUDE", -1, -1)
+					break # </f1rpo>
 
 			if (gc.getGame().getActiveTeam() == gc.getPlayer(self.diploScreen.getWhoTradingWith()).getTeam() or gc.getTeam(gc.getPlayer(self.diploScreen.getWhoTradingWith()).getTeam()).isVassal(gc.getGame().getActiveTeam())):
 				self.addUserComment("USER_DIPLOCOMMENT_RESEARCH", -1, -1)
@@ -272,10 +277,8 @@ class CvDiplomacy:
 					self.isComment(eComment, "AI_DIPLOCOMMENT_ATTITUDE_PLAYER_PLEASED") or 
 					self.isComment(eComment, "AI_DIPLOCOMMENT_ATTITUDE_PLAYER_FRIENDLY")):
 			for i in range(gc.getMAX_CIV_PLAYERS()):
-				if (gc.getPlayer(i).isAlive()):
-					if ((i != gc.getGame().getActivePlayer()) and (i != self.diploScreen.getWhoTradingWith())):
-						if (gc.getTeam(gc.getGame().getActiveTeam()).isHasMet(gc.getPlayer(i).getTeam()) and gc.getTeam(gc.getPlayer(self.diploScreen.getWhoTradingWith()).getTeam()).isHasMet(gc.getPlayer(i).getTeam())):
-							self.addUserComment("USER_DIPLOCOMMENT_ATTITUDE_PLAYER", i, -1, gc.getPlayer(i).getNameKey())
+				if self.canAskAttitude(i): # f1rpo: Moved into subroutine
+					self.addUserComment("USER_DIPLOCOMMENT_ATTITUDE_PLAYER", i, -1, gc.getPlayer(i).getNameKey())
 
 			self.addUserComment("USER_DIPLOCOMMENT_SOMETHING_ELSE", -1, -1)
 			self.addUserComment("USER_DIPLOCOMMENT_EXIT", -1, -1)
@@ -327,6 +330,15 @@ class CvDiplomacy:
 			# Exit potential
 			self.addUserComment("USER_DIPLOCOMMENT_EXIT", -1, -1)
 			self.diploScreen.endTrade();
+
+	# firpo: Cut from determineResponses
+	def canAskAttitude(self, iPlayer):
+		i = iPlayer
+		if (gc.getPlayer(i).isAlive()):
+			if ((i != gc.getGame().getActivePlayer()) and (i != self.diploScreen.getWhoTradingWith())):
+				if (gc.getTeam(gc.getGame().getActiveTeam()).isHasMet(gc.getPlayer(i).getTeam()) and gc.getTeam(gc.getPlayer(self.diploScreen.getWhoTradingWith()).getTeam()).isHasMet(gc.getPlayer(i).getTeam())):
+					return True
+		return False
 
 	def addUserComment(self, eComment, iData1, iData2, *args):
 		" Helper for adding User Comments "
