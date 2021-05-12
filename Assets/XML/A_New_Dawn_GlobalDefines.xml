@@ -322,10 +322,11 @@
 		<DefineName>AI_LONG_WAR_TURNS_COUNT</DefineName>
 		<iDefineIntVal>60</iDefineIntVal>
 	</Define>
-	<!-- if set to NO_TECH, disables contact decay -->
+	<!-- if set to NO_TECH, disables contact decay.
+		 f1rpo: No, set to NONE. NO_TECH will trigger an assertion. -->
 	 <Define>
 		<DefineName>TECH_ALLOWS_PERMENANT_CONTACT</DefineName>
-		<DefineTextVal>NO_TECH</DefineTextVal>
+		<DefineTextVal>NONE</DefineTextVal>
 	</Define>
 	 <Define>
 		<DefineName>CONTACT_DECAY_SAMPLING_RATE</DefineName>
