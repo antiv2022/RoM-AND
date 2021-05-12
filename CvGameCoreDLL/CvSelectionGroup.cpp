@@ -159,6 +159,11 @@ void CvSelectionGroup::kill()
 
 bool CvSelectionGroup::sentryAlert() const
 {
+/*	<f1rpo> If the extra Sentry missions aren't available, let the
+	standard Sentry mission behave like SENTRY_LAND_UNITS or SENTRY_SEA_UNITS. */
+#ifndef _MOD_SENTRY
+	return sentryAlertSameDomainType();
+#endif // </f1rpo>
 	CvUnit* pHeadUnit = NULL;
 	int iMaxRange = 0;
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
@@ -201,7 +206,7 @@ bool CvSelectionGroup::sentryAlert() const
 }
 
 // BUG - Sentry Actions - start
-#ifdef _MOD_SENTRY
+//#ifdef _MOD_SENTRY // f1rpo: Want to use this also for the standard Sentry mission
 /*
  * Similar to sentryAlert() except only checks water/land plots based on the domain type of the head unit.
  */
@@ -256,7 +261,7 @@ bool CvSelectionGroup::sentryAlertSameDomainType() const
 
 	return false;
 }
-#endif
+//#endif
 // BUG - Sentry Actions - end
 
 void CvSelectionGroup::doTurn()

@@ -363,9 +363,9 @@ protected:
 	bool sentryAlert() const;
 
 // BUG - Sentry Actions - start
-#ifdef _MOD_SENTRY
+	//#ifdef _MOD_SENTRY // f1rpo: always enable
 	bool sentryAlertSameDomainType() const;
-#endif
+	//#endif
 // BUG - Sentry Actions - end
 
 //	KOSHLING Mod - add path validity results cache
