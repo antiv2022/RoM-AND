@@ -321,7 +321,14 @@ class CvDiplomacy:
 			#RevolutionDCM - start new diplomacy option
 			thePlayerContacted = gc.getPlayer(self.diploScreen.getWhoTradingWith())
 			if not thePlayerContacted == None and not gc.getGame().isNetworkMultiPlayer():
-				if not thePlayerContacted.isDoNotBotherStatus(gc.getGame().getActivePlayer()):
+				if ((not thePlayerContacted.isDoNotBotherStatus(gc.getGame().getActivePlayer()) or
+						# <f1rpo> The above only gets set with a delay; check eComment in addition.
+						self.isComment(eComment, "AI_RESUME_TALKS_RELUCTANT") or
+						self.isComment(eComment, "AI_RESUME_TALKS") or
+						self.isComment(eComment, "AI_RESUME_TALKS_GLADLY")) and
+						not self.isComment(eComment, "AI_ASSUME_REALLY_SNUFFED") and
+						not self.isComment(eComment, "AI_ASSUME_SNUFFED") and
+						not self.isComment(eComment, "AI_ASSUME_NOT_SNUFFED")): # </f1rpo>
 					self.addUserComment("USER_DO_NOT_BOTHER_US", -1, -1)
 				else:
 					self.addUserComment("USER_RESUME_TALKS", -1, -1)
