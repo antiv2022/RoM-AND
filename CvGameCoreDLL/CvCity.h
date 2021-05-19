@@ -884,9 +884,6 @@ public:
 	void setCultureUpdateTimer(int iNewValue);
 	void changeCultureUpdateTimer(int iChange);												// Exposed to Python
 
-	int getCitySizeBoost() const;
-	void setCitySizeBoost(int iBoost);
-
 	// < M.A.D. Nukes Start >
 	int getMADIncoming();											// Exposed to Python
 	void setMADIncoming(int iValue);								// Exposed to Python
@@ -1895,13 +1892,12 @@ protected:
 	int m_iNukeModifier;
 	int m_iFreeSpecialist;
 	int m_iPowerCount;
-	int m_iNoPowerCount;	
+	int m_iNoPowerCount;
 	int m_iDirtyPowerCount;
 	int m_iDefenseDamage;
 	int m_iLastDefenseDamage;
 	int m_iOccupationTimer;
 	int m_iCultureUpdateTimer;
-	int m_iCitySizeBoost;
 	int m_iSpecialistFreeExperience;
 	int m_iEspionageDefenseModifier;
 	// < M.A.D. Nukes Start >

@@ -712,13 +712,12 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 	m_iNukeModifier = 0;
 	m_iFreeSpecialist = 0;
 	m_iPowerCount = 0;
-	m_iNoPowerCount = 0;	
+	m_iNoPowerCount = 0;
 	m_iDirtyPowerCount = 0;
 	m_iDefenseDamage = 0;
 	m_iLastDefenseDamage = 0;
 	m_iOccupationTimer = 0;
 	m_iCultureUpdateTimer = 0;
-	m_iCitySizeBoost = 0;
 	m_iSpecialistFreeExperience = 0;
 	m_iEspionageDefenseModifier = 0;
 
@@ -13539,23 +13538,6 @@ void CvCity::changeCultureUpdateTimer(int iChange)
 	setCultureUpdateTimer(getCultureUpdateTimer() + iChange);
 }
 
-
-int CvCity::getCitySizeBoost() const
-{
-	return m_iCitySizeBoost;
-}
-
-
-void CvCity::setCitySizeBoost(int iBoost)
-{
-	if (getCitySizeBoost() != iBoost)
-	{
-		m_iCitySizeBoost = iBoost;
-
-		setLayoutDirty(true);
-	}
-}
-
 // < M.A.D. Nukes Start >
 int CvCity::getMADIncoming()
 {
@@ -21492,7 +21474,6 @@ void CvCity::resync(bool bWrite, ByteBuffer* pBuffer)
 	RESYNC_INT(bWrite, pBuffer, m_iLastDefenseDamage);
 	RESYNC_INT(bWrite, pBuffer, m_iOccupationTimer);
 	RESYNC_INT(bWrite, pBuffer, m_iCultureUpdateTimer);
-	RESYNC_INT(bWrite, pBuffer, m_iCitySizeBoost);
 	RESYNC_INT(bWrite, pBuffer, m_iSpecialistFreeExperience);
 	RESYNC_INT(bWrite, pBuffer, m_iEspionageDefenseModifier);
 	RESYNC_INT(bWrite, pBuffer, m_iMADIncoming);
@@ -21981,7 +21962,9 @@ void CvCity::read(FDataStreamBase* pStream)
 	WRAPPER_READ(wrapper, "CvCity", &m_iLastDefenseDamage);
 	WRAPPER_READ(wrapper, "CvCity", &m_iOccupationTimer);
 	WRAPPER_READ(wrapper, "CvCity", &m_iCultureUpdateTimer);
-	WRAPPER_READ(wrapper, "CvCity", &m_iCitySizeBoost);
+	// Toffer - SAVEBREAK REMOVE
+	WRAPPER_SKIP_ELEMENT(wrapper, "CvCity", m_iCitySizeBoost, SAVE_VALUE_ANY);
+	// ! SAVEBREAK
 	WRAPPER_READ(wrapper, "CvCity", &m_iSpecialistFreeExperience);
 	WRAPPER_READ(wrapper, "CvCity", &m_iEspionageDefenseModifier);
 	// < M.A.D. Nukes Start >
@@ -22483,7 +22466,6 @@ void CvCity::write(FDataStreamBase* pStream)
 	WRAPPER_WRITE(wrapper, "CvCity", m_iLastDefenseDamage);
 	WRAPPER_WRITE(wrapper, "CvCity", m_iOccupationTimer);
 	WRAPPER_WRITE(wrapper, "CvCity", m_iCultureUpdateTimer);
-	WRAPPER_WRITE(wrapper, "CvCity", m_iCitySizeBoost);
 	WRAPPER_WRITE(wrapper, "CvCity", m_iSpecialistFreeExperience);
 	WRAPPER_WRITE(wrapper, "CvCity", m_iEspionageDefenseModifier);
 	// < M.A.D. Nukes Start >
@@ -22828,7 +22810,7 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& 
 	// compute how many buildings are generics vs. unique Civ buildings?
 	const int iNumUniques = ((int)kVisible.size() > iMaxNumUniques) ? iMaxNumUniques : kVisible.size();
 
-	iChosenNumGenerics = iTotalVisibleBuildings - iNumUniques + getCitySizeBoost();
+	iChosenNumGenerics = iTotalVisibleBuildings - iNumUniques;
 
 	for (int i = 0; i < iNumUniques; i++)
 	{

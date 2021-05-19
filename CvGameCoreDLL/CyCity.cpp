@@ -1927,12 +1927,6 @@ void CyCity::setWallOverride(bool bOverride)
 		m_pCity->setWallOverride(bOverride);
 }
 
-void CyCity::setCitySizeBoost(int iBoost)
-{
-	if (m_pCity)
-		m_pCity->setCitySizeBoost(iBoost);
-}
-
 bool CyCity::isPlundered()
 {
 	return m_pCity ? m_pCity->isPlundered() : false;

@@ -427,7 +427,6 @@ public:
 	void setProductionAutomated(bool bNewValue);
 	bool isWallOverride() const;
 	void setWallOverride(bool bOverride);
-	void setCitySizeBoost(int iBoost);
 	bool isPlundered();
 	void setPlundered(bool bNewValue);
 	int /*PlayerTypes*/getOwner();
