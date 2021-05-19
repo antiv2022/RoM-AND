@@ -415,7 +415,7 @@ bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
 
 int getPopulationAsset(int iPopulation)
 {
-	return (iPopulation * 2);
+	return iPopulation * 2;
 }
 
 int getLandPlotsAsset(int iLandPlots)
@@ -425,7 +425,7 @@ int getLandPlotsAsset(int iLandPlots)
 
 int getPopulationPower(int iPopulation)
 {
-	return (iPopulation / 2);
+	return iPopulation;
 }
 
 int getPopulationScore(int iPopulation)

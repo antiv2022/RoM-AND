@@ -13626,27 +13626,22 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 
 int CvPlayer::getAveragePopulation() const
 {
-	if (getNumCities() == 0)
-	{
-		return 0;
-	}
-
-	return ((getTotalPopulation() / getNumCities()) + 1);
+	return getNumCities() > 0 ? getTotalPopulation() / getNumCities() : 0;
 }
 
 
 void CvPlayer::changeTotalPopulation(int iChange)
 {
-	changeAssets(-(getPopulationAsset(getTotalPopulation())));
-	changePower(-(getPopulationPower(getTotalPopulation())));
-	changePopScore(-(getPopulationScore(getTotalPopulation())));
+	changeAssets(-(getPopulationAsset(m_iTotalPopulation)));
+	changePower(-(getPopulationPower(m_iTotalPopulation)));
+	changePopScore(-(getPopulationScore(m_iTotalPopulation)));
 
-	m_iTotalPopulation = (m_iTotalPopulation + iChange);
-	FAssert(getTotalPopulation() >= 0);
+	m_iTotalPopulation += iChange;
+	FAssert(m_iTotalPopulation >= 0);
 
-	changeAssets(getPopulationAsset(getTotalPopulation()));
-	changePower(getPopulationPower(getTotalPopulation()));
-	changePopScore(getPopulationScore(getTotalPopulation()));
+	changeAssets(getPopulationAsset(m_iTotalPopulation));
+	changePower(getPopulationPower(m_iTotalPopulation));
+	changePopScore(getPopulationScore(m_iTotalPopulation));
 }
 
 
@@ -15994,26 +15989,24 @@ int CvPlayer::getUnitPower() const
 void CvPlayer::changePower(int iChange)
 {
 	int iOldValue;
-
-	//	Do this in a thread-safe manner
-	do
-	{
-		iOldValue = m_iPower;
-	} while( InterlockedCompareExchange((volatile LONG*)&m_iPower, iOldValue + iChange, iOldValue) != iOldValue );
-	//m_iPower = (m_iPower + iChange);
-	FAssert(getPower() >= 0);
+	do { iOldValue = m_iPower; }
+	while
+	(
+		InterlockedCompareExchange((volatile LONG*)&m_iPower, iOldValue + iChange, iOldValue) != iOldValue 
+	);
+	FAssert(m_iPower >= 0);
 }
 
 void CvPlayer::changeTechPower(int iChange)
 {
-	m_iTechPower = (m_iTechPower + iChange);
-	FAssert(getTechPower() >= 0);
+	m_iTechPower += iChange;
+	FAssert(m_iTechPower >= 0);
 }
 
 void CvPlayer::changeUnitPower(int iChange)
 {
-	m_iUnitPower = (m_iUnitPower + iChange);
-	FAssert(getUnitPower() >= 0);
+	m_iUnitPower += iChange;
+	FAssert(m_iUnitPower >= 0);
 }
 
 

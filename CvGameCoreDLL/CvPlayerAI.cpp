@@ -8434,33 +8434,27 @@ void CvPlayerAI::AI_chooseResearch()
 
 DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 {
-	TeamTypes eWorstEnemy;
-
 	if (GET_PLAYER(ePlayer).getTeam() != getTeam())
 	{
-		eWorstEnemy = GET_TEAM(getTeam()).AI_getWorstEnemy();
+		const TeamTypes eWorstEnemy = GET_TEAM(getTeam()).AI_getWorstEnemy();
 
-		if ((eWorstEnemy != NO_TEAM) && (eWorstEnemy != GET_PLAYER(ePlayer).getTeam()) && GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isHasMet(eWorstEnemy) && (GC.getASyncRand().get(4) == 0))
+		if (eWorstEnemy != NO_TEAM && eWorstEnemy != GET_PLAYER(ePlayer).getTeam() && GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isHasMet(eWorstEnemy) && GC.getASyncRand().get(4) == 0)
 		{
 			if (GET_PLAYER(ePlayer).AI_hasTradedWithTeam(eWorstEnemy) && !atWar(GET_PLAYER(ePlayer).getTeam(), eWorstEnemy))
 			{
 				return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_WORST_ENEMY_TRADING");
 			}
-			else
-			{
-				return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_WORST_ENEMY");
-			}
+			return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_WORST_ENEMY");
 		}
-		else if ((getNumNukeUnits() > 0) && (GC.getASyncRand().get(4) == 0))
+		if (getNumNukeUnits() > 0 && GC.getASyncRand().get(4) == 0)
 		{
 			return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_NUKES");
 		}
-		else if ((GET_PLAYER(ePlayer).getPower() < getPower()) && AI_getAttitude(ePlayer) < ATTITUDE_PLEASED && (GC.getASyncRand().get(4) == 0))
+		if (GET_PLAYER(ePlayer).getPower() < getPower() && AI_getAttitude(ePlayer) < ATTITUDE_PLEASED && GC.getASyncRand().get(4) == 0)
 		{
 			return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_UNIT_BRAG");
 		}
 	}
-
 	return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_GREETINGS");
 }
 
