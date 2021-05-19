@@ -22760,49 +22760,45 @@ public:
 
 void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& iChosenNumGenerics)
 {
-	int iNumBuildings;
-	BuildingTypes eCurType;
-	std::vector<BuildingTypes> kVisible;
-	int iShowFlags = GC.getDefineINT("SHOW_BUILDINGS_LEVEL");
-
-	if ( !plot()->shouldHaveFullGraphics() )
+	if (!plot()->shouldHaveFullGraphics())
 	{
 		iChosenNumGenerics = 0;
 		return;
 	}
+	std::vector<BuildingTypes> kVisible;
+	const int iShowFlags = GC.getDefineINT("SHOW_BUILDINGS_LEVEL");
 
-	iNumBuildings = GC.getNumBuildingInfos();
-	for(int i = 0; i < iNumBuildings; i++)
+	for (int i = GC.getNumBuildingInfos()-1; i > -1; i--)
 	{
-		eCurType = (BuildingTypes) i;
-		if(getNumBuilding(eCurType) > 0)
+		const BuildingTypes eCurType = static_cast<BuildingTypes>(i);
+		if (getNumBuilding(eCurType) > 0)
 		{
-			bool	bValid = false;
-			CvBuildingInfo& kBuilding = GC.getBuildingInfo(eCurType);
+			const CvBuildingInfo& kBuilding = GC.getBuildingInfo(eCurType);
 
 			if (kBuilding.getNotShowInCity()) continue;
 
-			bool	bIsWonder = isLimitedWonderClass((BuildingClassTypes)kBuilding.getBuildingClassType());
-			bool	bIsDefense = (kBuilding.getDefenseModifier() > 0);
+			const bool bIsWonder = isLimitedWonderClass((BuildingClassTypes)kBuilding.getBuildingClassType());
+			const bool bIsDefense = (kBuilding.getDefenseModifier() > 0);
 
+			bool bValid = false;
 
-			if ( (iShowFlags & SHOW_BUILDINGS_WONDERS) != 0 )
+			if ((iShowFlags & SHOW_BUILDINGS_WONDERS) != 0)
 			{
 				//	Wonders
 				bValid |= bIsWonder;
 			}
-			if ( (iShowFlags & SHOW_BUILDINGS_DEFENSES) != 0 )
+			if ((iShowFlags & SHOW_BUILDINGS_DEFENSES) != 0)
 			{
 				//	Wonders
 				bValid |= bIsDefense;
 			}
-			if ( (iShowFlags & SHOW_BUILDINGS_OTHER) != 0 )
+			if ((iShowFlags & SHOW_BUILDINGS_OTHER) != 0)
 			{
 				//	Wonders
 				bValid |= (!bIsWonder && !bIsDefense);
 			}
 
-			if ( bValid )
+			if (bValid)
 			{
 				kVisible.push_back(eCurType);
 			}
@@ -22816,37 +22812,25 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& 
 	// how big is this city, in terms of buildings?
 	// general rule: no more than fPercentUnique percent of a city can be uniques
 	int iTotalVisibleBuildings;
-	if(stricmp(GC.getDefineSTRING("GAME_CITY_SIZE_METHOD"), "METHOD_EXPONENTIAL") == 0) 
+	if (stricmp(GC.getDefineSTRING("GAME_CITY_SIZE_METHOD"), "METHOD_EXPONENTIAL") == 0) 
 	{
-		int iCityScaleMod =  ((int)(pow((float)getPopulation(), GC.getDefineFLOAT("GAME_CITY_SIZE_EXP_MODIFIER")))) * 2;
-		iTotalVisibleBuildings = (10 + iCityScaleMod);
+		const int iCityScaleMod = ((int)(pow((float)getPopulation(), GC.getDefineFLOAT("GAME_CITY_SIZE_EXP_MODIFIER")))) * 2;
+		iTotalVisibleBuildings = 10 + iCityScaleMod;
 	} 
 	else 
 	{
-		float fLo = GC.getDefineFLOAT("GAME_CITY_SIZE_LINMAP_AT_0");
-		float fHi = GC.getDefineFLOAT("GAME_CITY_SIZE_LINMAP_AT_50");
-		float fCurSize = (float)getPopulation();
-		iTotalVisibleBuildings = int(((fHi - fLo) / 50.0f) * fCurSize + fLo);
-	}
-	float fMaxUniquePercent = GC.getDefineFLOAT("GAME_CITY_SIZE_MAX_PERCENT_UNIQUE");
-	int iMaxNumUniques = (int)(fMaxUniquePercent * iTotalVisibleBuildings);
+		const float fLo = GC.getDefineFLOAT("GAME_CITY_SIZE_LINMAP_AT_0");
+		const float fHi = GC.getDefineFLOAT("GAME_CITY_SIZE_LINMAP_AT_50");
 
+		iTotalVisibleBuildings = int(getPopulation() * ((fHi - fLo) / 50.0f) + fLo);
+	}
+	const int iMaxNumUniques = (int)(GC.getDefineFLOAT("GAME_CITY_SIZE_MAX_PERCENT_UNIQUE") * iTotalVisibleBuildings);
 	// compute how many buildings are generics vs. unique Civ buildings?
-	int iNumGenerics;
-	int iNumUniques;
-	if((int)kVisible.size() > iMaxNumUniques)
-	{
-		iNumUniques = iMaxNumUniques;
-	}
-	else 
-	{
-		iNumUniques = kVisible.size();
-	}
-	iNumGenerics = iTotalVisibleBuildings - iNumUniques + getCitySizeBoost();
-	
-	// return
-	iChosenNumGenerics = iNumGenerics;
-	for(int i = 0; i < iNumUniques; i++)
+	const int iNumUniques = ((int)kVisible.size() > iMaxNumUniques) ? iMaxNumUniques : kVisible.size();
+
+	iChosenNumGenerics = iTotalVisibleBuildings - iNumUniques + getCitySizeBoost();
+
+	for (int i = 0; i < iNumUniques; i++)
 	{
 		kChosenVisible.push_back(kVisible[i]);
 	}
