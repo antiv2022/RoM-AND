@@ -801,71 +801,57 @@ void CvGame::updateSelectionListInternal(bool bSetCamera, bool bAllowViewportSwi
 void CvGame::updateTestEndTurn()
 {
 	PROFILE_FUNC();
-	
-	bool bAny;
 
-	bAny = ((gDLL->getInterfaceIFace()->getHeadSelectedUnit() != NULL) && !(GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_CYCLING)));
-
-	if (GET_PLAYER(getActivePlayer()).isTurnActive())
+	if (!GET_PLAYER(getActivePlayer()).isTurnActive())
 	{
-		if (gDLL->getInterfaceIFace()->isEndTurnMessage())
+		return;
+	}
+	const bool bAny = ((gDLL->getInterfaceIFace()->getHeadSelectedUnit() != NULL) && !(GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_CYCLING)));
+
+	if (!gDLL->getInterfaceIFace()->isEndTurnMessage())
+	{
+		if (!GET_PLAYER(getActivePlayer()).hasBusyUnit() && !GET_PLAYER(getActivePlayer()).hasReadyUnit(bAny))
 		{
-			if (GET_PLAYER(getActivePlayer()).hasReadyUnit(bAny))
+			if (!gDLL->getInterfaceIFace()->isForcePopup())
 			{
-				gDLL->getInterfaceIFace()->setEndTurnMessage(false);
+				gDLL->getInterfaceIFace()->setForcePopup(true);
 			}
-		}
-		else
-		{
-			if (!(GET_PLAYER(getActivePlayer()).hasBusyUnit()) && !(GET_PLAYER(getActivePlayer()).hasReadyUnit(bAny)))
+			else if (!GET_PLAYER(getActivePlayer()).hasAutoUnit())
 			{
-				if (!(gDLL->getInterfaceIFace()->isForcePopup()))
+				bool bDisplayEndTurn = GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_WAIT_END_TURN) || !gDLL->getInterfaceIFace()->isHasMovedUnit();
+
+				if (bDisplayEndTurn
+				&& GET_PLAYER(getActivePlayer()).isHuman()
+				&& !GET_PLAYER(getActivePlayer()).getTurnHadUIInteraction()
+				&& getBugOptionBOOL("MainInterface__AutoEndDecisionlessTurns", false))
 				{
-					gDLL->getInterfaceIFace()->setForcePopup(true);
+					//OutputDebugString("Auto-ending turn (no UI interaction detected)\n");
+					bDisplayEndTurn = false;
+				}
+
+				if (bDisplayEndTurn || isHotSeat() || isPbem())
+				{
+					gDLL->getInterfaceIFace()->setEndTurnMessage(true);
+				}
+				else if (gDLL->getInterfaceIFace()->getEndTurnCounter() > 0)
+				{
+					gDLL->getInterfaceIFace()->changeEndTurnCounter(-1);
 				}
 				else
 				{
-					if (GET_PLAYER(getActivePlayer()).hasAutoUnit())
-					{
-						if (!(gDLL->shiftKey()))
-						{
-							CvMessageControl::getInstance().sendAutoMoves();
-						}
-					}
-					else
-					{
-						bool	bDisplayEndTurn = GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_WAIT_END_TURN) || !(gDLL->getInterfaceIFace()->isHasMovedUnit());
-
-						if (GET_PLAYER(getActivePlayer()).isHuman() &&
-							!GET_PLAYER(getActivePlayer()).getTurnHadUIInteraction() &&
-							getBugOptionBOOL("MainInterface__AutoEndDecisionlessTurns", false))
-						{
-							//OutputDebugString("Auto-ending turn (no UI interaction detected)\n");
-							bDisplayEndTurn = false;
-						}
-
-						if (bDisplayEndTurn || isHotSeat() || isPbem())
-						{
-							gDLL->getInterfaceIFace()->setEndTurnMessage(true);
-
-							//stopProfilingDLL(true);
-						}
-						else
-						{
-							if (gDLL->getInterfaceIFace()->getEndTurnCounter() > 0)
-							{
-								gDLL->getInterfaceIFace()->changeEndTurnCounter(-1);
-							}
-							else
-							{
-								CvMessageControl::getInstance().sendTurnComplete();
-								gDLL->getInterfaceIFace()->setEndTurnCounter(3); // XXX
-							}
-						}
-					}
+					CvMessageControl::getInstance().sendTurnComplete();
+					gDLL->getInterfaceIFace()->setEndTurnCounter(3); // XXX
 				}
 			}
+			else if (!gDLL->shiftKey())
+			{
+				CvMessageControl::getInstance().sendAutoMoves();
+			}
 		}
+	}
+	else if (GET_PLAYER(getActivePlayer()).hasReadyUnit(bAny))
+	{
+		gDLL->getInterfaceIFace()->setEndTurnMessage(false);
 	}
 }
 
@@ -1936,27 +1922,16 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 		break;
 
 	case CONTROL_RETIRE:
-		if ((getGameState() == GAMESTATE_ON) || isGameMultiPlayer())
+		if ((getGameState() == GAMESTATE_ON || isGameMultiPlayer() || isHotSeat())
+		&& GET_PLAYER(getActivePlayer()).isAlive()
+		&& (!isPbem() && !isHotSeat() || !GET_PLAYER(getActivePlayer()).isEndTurn()))
 		{
-			if (GET_PLAYER(getActivePlayer()).isAlive())
-			{
-				if (isPbem() || isHotSeat())
-				{
-					if (!GET_PLAYER(getActivePlayer()).isEndTurn())
-					{
-						return true;
-					}
-				}
-				else
-				{
-					return true;
-				}
-			}
+			return true;
 		}
 		break;
 
 	case CONTROL_WORLD_BUILDER:
-		if (!(isGameMultiPlayer()) && GC.getInitCore().getAdminPassword().empty() && !gDLL->getInterfaceIFace()->isInAdvancedStart())
+		if (!isGameMultiPlayer() && !gDLL->getInterfaceIFace()->isInAdvancedStart())
 		{
 			return true;
 		}
@@ -2463,7 +2438,7 @@ void CvGame::doControl(ControlTypes eControl)
 	case CONTROL_WORLD_BUILDER:
 		if (GC.getInitCore().getAdminPassword().empty())
 		{
-			gDLL->getInterfaceIFace()->setWorldBuilder(!(gDLL->GetWorldBuilderMode()));
+			gDLL->getInterfaceIFace()->setWorldBuilder(!gDLL->GetWorldBuilderMode());
 		}
 		else
 		{

@@ -4105,7 +4105,7 @@ bool CvGame::isNetworkMultiPlayer() const
 
 bool CvGame::isGameMultiPlayer() const																 
 {
-	return (isNetworkMultiPlayer() || isPbem() || isHotSeat());
+	return GC.getInitCore().getMultiplayer() || isPbem();
 }
 
 
