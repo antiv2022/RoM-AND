@@ -200,6 +200,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		if (pPopupReturn->getButtonClicked() == 0)
 		{
 			CvMessageControl::getInstance().sendChangeWar((TeamTypes)info.getData1(), true);
+			CvPlot::invalidateBestDefenderCache();
 		}
 		if (((pPopupReturn->getButtonClicked() == 0) || info.getOption2()) && info.getFlags() == 0)
 		{

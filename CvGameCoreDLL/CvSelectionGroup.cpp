@@ -2306,10 +2306,6 @@ bool CvSelectionGroup::continueMission(int iSteps)
 {
 	PROFILE_FUNC();
 
-	CvUnit* pTargetUnit;
-	bool bDone;
-	bool bAction;
-	bool bFailed;
 	CLLNode<MissionData>* headQueueNode = headMissionQueueNode();
 
 	FAssert(!isBusy());
@@ -2329,9 +2325,10 @@ bool CvSelectionGroup::continueMission(int iSteps)
 		return false;
 	}
 
-	bDone = false;
-	bAction = false;
-	bFailed = false;
+	CvUnit* pTargetUnit;
+	bool bDone = false;
+	bool bAction = false;
+	bool bFailed = false;
 
 	if (headQueueNode->m_data.iPushTurn == GC.getGameINLINE().getGameTurn() || (headQueueNode->m_data.iFlags & MOVE_THROUGH_ENEMY))
 	{

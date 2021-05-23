@@ -21251,10 +21251,7 @@ void CvUnit::updateStackCombat(bool bQuick)
 		{
 			return;
 		}
-		else
-		{
-			bFinish = true;
-		}
+		bFinish = true;
 	}
 
 	CvPlot* pPlot = getAttackPlot();
@@ -21270,15 +21267,7 @@ void CvUnit::updateStackCombat(bool bQuick)
 		return;
 	}
 
-	CvUnit* pDefender = NULL;
-	if (bFinish)
-	{
-		pDefender = getCombatUnit();
-	}
-	else
-	{
-		pDefender = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-	}
+	CvUnit* pDefender = bFinish ? getCombatUnit() : pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
 
 	if (pDefender == NULL)
 	{

@@ -3761,12 +3761,14 @@ int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** pp
 	return std::max(0, iProduction);
 }
 
+void CvPlot::invalidateBestDefenderCache()
+{
+	g_bestDefenderCachePlot = NULL;
+}
+
 CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer, const CvUnit* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy, bool bTestCanMove) const
 {
-	CvUnit* pBestUnit;
-
 	PROFILE_FUNC();
-
 /************************************************************************************************/
 /* Afforess	                  Start		 06/15/10                                               */
 /*                                                                                              */
@@ -3779,48 +3781,35 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
+	CvUnit* pBestUnit = NULL;
+
 	if (!GC.getGameINLINE().isNetworkMultiPlayer())
 	{
 		//	Heavily cache this routine as during large stack fights the question is asked over and over, with the
 		//	same attacker cropping up repeatedly
 		EnterCriticalSection(&g_cBestDefenderCacheSection);
 
-		if ( g_bestDefenderCachePlot != this )
+		if (g_bestDefenderCachePlot != this)
 		{
 			g_bestDefenderCachePlot = this;
-
 			g_bestDefenderCache->clear();
 		}
 
-		CLLNode<IDInfo>* pUnitNode;
-		CvUnit* pLoopUnit;
 		int iBestValue = 0;
-	/************************************************************************************************/
-	/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-	/*                                                                                              */
-	/* Lead From Behind                                                                             */
-	/************************************************************************************************/
-	// From Lead From Behind by UncutDragon
-		int iBestUnitRank = -1;
-		pBestUnit = NULL;
 
-		pUnitNode = headUnitNode();
+		CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
 		while (pUnitNode != NULL)
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = nextUnitNode(pUnitNode);
 
-			if ( pLoopUnit->plot() == NULL )
-			{
-				//	It's not really here - it's in delayed death cycle
-				continue;
-			}
+			if (pLoopUnit->plot() == NULL) continue; // It's not really here - it's in delayed death cycle
 
-			CvChecksum	checksum;
+			CvChecksum checksum;
 			int iValue = 0;
 
-			if ( pAttacker != NULL )
+			if (pAttacker != NULL)
 			{
 				checksum.add(pAttacker->getID());
 			}
@@ -3833,115 +3822,74 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 			checksum.add((int)eOwner);
 
 			std::map<int,unitDefenderInfo>::const_iterator itr = g_bestDefenderCache->find(checksum.get());
-			if ( itr != g_bestDefenderCache->end() && itr->second.iHealth == pLoopUnit->currHitPoints() )
+
+			if (itr != g_bestDefenderCache->end() && itr->second.iHealth == pLoopUnit->currHitPoints())
 			{
 				iValue = itr->second.iValue;
 			}
-			else if ( pLoopUnit->AI_getPredictedHitPoints() != 0 )
+			else if (pLoopUnit->AI_getPredictedHitPoints() != 0)
 			{
-				if ((eOwner == NO_PLAYER) || (pLoopUnit->getOwnerINLINE() == eOwner))
+				if ((eOwner == NO_PLAYER || pLoopUnit->getOwnerINLINE() == eOwner)
+				&& (eAttackingPlayer == NO_PLAYER || !pLoopUnit->isInvisible(GET_PLAYER(eAttackingPlayer).getTeam(), false))
+				&& (!bTestAtWar || eAttackingPlayer == NO_PLAYER || pLoopUnit->isEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || NULL != pAttacker && pAttacker->isEnemy(GET_PLAYER(pLoopUnit->getOwnerINLINE()).getTeam(), this))
+				&& (!bTestPotentialEnemy || eAttackingPlayer == NO_PLAYER || pLoopUnit->isPotentialEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || NULL != pAttacker && pAttacker->isPotentialEnemy(GET_PLAYER(pLoopUnit->getOwnerINLINE()).getTeam(), this))
+				&& (!bTestCanMove || pLoopUnit->canMove() && !(pLoopUnit->isCargo()))
+				&& (pAttacker == NULL || pAttacker->getDomainType() != DOMAIN_AIR || pLoopUnit->getDamage() < pAttacker->airCombatLimit()))
 				{
-					if ((eAttackingPlayer == NO_PLAYER) || !(pLoopUnit->isInvisible(GET_PLAYER(eAttackingPlayer).getTeam(), false)))
-					{
-						if (!bTestAtWar || eAttackingPlayer == NO_PLAYER || pLoopUnit->isEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || (NULL != pAttacker && pAttacker->isEnemy(GET_PLAYER(pLoopUnit->getOwnerINLINE()).getTeam(), this)))
-						{
-							if (!bTestPotentialEnemy || (eAttackingPlayer == NO_PLAYER) ||  pLoopUnit->isPotentialEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || (NULL != pAttacker && pAttacker->isPotentialEnemy(GET_PLAYER(pLoopUnit->getOwnerINLINE()).getTeam(), this)))
-							{
-								if (!bTestCanMove || (pLoopUnit->canMove() && !(pLoopUnit->isCargo())))
-								{
-									if ((pAttacker == NULL) || (pAttacker->getDomainType() != DOMAIN_AIR) || (pLoopUnit->getDamage() < pAttacker->airCombatLimit()))
-									{
-	#if 0
-										// UncutDragon
-		/* original code
-										if (pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker))
-		*/								// modified (added extra parameter)
-										if (pLoopUnit->AI_getPredictedHitPoints() != 0 && pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker, &iBestUnitRank))
-										// /UncutDragon
-										{
-											pBestUnit = pLoopUnit;
-										}
-	#else
-										iValue = pLoopUnit->defenderValue(pAttacker);
+					iValue = pLoopUnit->defenderValue(pAttacker);
 
-										if ( pBestUnit == NULL )
-										{
-											pBestUnit = pLoopUnit;
-										}
-	#endif
-									}
-								}
-							}
-						}
+					if (pBestUnit == NULL)
+					{
+						pBestUnit = pLoopUnit;
+						iBestValue = iValue;
 					}
 				}
-
 				unitDefenderInfo info;
-
 				info.iHealth = pLoopUnit->currHitPoints();
 				info.iValue = iValue;
-
-
 				{
 					MEMORY_TRACK_EXEMPT();
-
 					(*g_bestDefenderCache)[checksum.get()] = info;
 				}
 			}
 
-			if ( iValue > iBestValue )
+			if (iValue > iBestValue)
 			{
 				pBestUnit = pLoopUnit;
 				iBestValue = iValue;
 			}
 		}
-	/************************************************************************************************/
-	/* BETTER_BTS_AI_MOD                       END                                                  */
-	/************************************************************************************************/
 		LeaveCriticalSection(&g_cBestDefenderCacheSection);
 	}
 	else
 	{
-		CLLNode<IDInfo>* pUnitNode;
-		CvUnit* pLoopUnit;
-		int iBestUnitRank = -1;		
-		pBestUnit = NULL;
-		
-		pUnitNode = headUnitNode();
+		int iBestUnitRank = -1;
+
+		CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
 		while (pUnitNode != NULL)
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = nextUnitNode(pUnitNode);
 
-			if ((eOwner == NO_PLAYER) || (pLoopUnit->getOwnerINLINE() == eOwner))
+			if ((eOwner == NO_PLAYER || pLoopUnit->getOwnerINLINE() == eOwner)
+			&& (eAttackingPlayer == NO_PLAYER || !pLoopUnit->isInvisible(GET_PLAYER(eAttackingPlayer).getTeam(), false))
+			&& (!bTestAtWar || eAttackingPlayer == NO_PLAYER || pLoopUnit->isEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || NULL != pAttacker && pAttacker->isEnemy(GET_PLAYER(pLoopUnit->getOwnerINLINE()).getTeam(), this))
+			&& (!bTestPotentialEnemy || eAttackingPlayer == NO_PLAYER ||  pLoopUnit->isPotentialEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || NULL != pAttacker && pAttacker->isPotentialEnemy(GET_PLAYER(pLoopUnit->getOwnerINLINE()).getTeam(), this))
+			&& (!bTestCanMove || pLoopUnit->canMove() && !pLoopUnit->isCargo())
+			&& (pAttacker == NULL || pAttacker->getDomainType() != DOMAIN_AIR || pLoopUnit->getDamage() < pAttacker->airCombatLimit()))
 			{
-				if ((eAttackingPlayer == NO_PLAYER) || !(pLoopUnit->isInvisible(GET_PLAYER(eAttackingPlayer).getTeam(), false)))
+				// UncutDragon
+/* original code
+				if (pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker))
+*/								// modified (added extra parameter)
+				if (pLoopUnit->AI_getPredictedHitPoints() != 0 && pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker, &iBestUnitRank))
+				// /UncutDragon
 				{
-					if (!bTestAtWar || eAttackingPlayer == NO_PLAYER || pLoopUnit->isEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || (NULL != pAttacker && pAttacker->isEnemy(GET_PLAYER(pLoopUnit->getOwnerINLINE()).getTeam(), this)))
-					{
-						if (!bTestPotentialEnemy || (eAttackingPlayer == NO_PLAYER) ||  pLoopUnit->isPotentialEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || (NULL != pAttacker && pAttacker->isPotentialEnemy(GET_PLAYER(pLoopUnit->getOwnerINLINE()).getTeam(), this)))
-						{
-							if (!bTestCanMove || (pLoopUnit->canMove() && !(pLoopUnit->isCargo())))
-							{
-								if ((pAttacker == NULL) || (pAttacker->getDomainType() != DOMAIN_AIR) || (pLoopUnit->getDamage() < pAttacker->airCombatLimit()))
-								{
-									// UncutDragon
-	/* original code
-									if (pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker))
-	*/								// modified (added extra parameter)
-									if (pLoopUnit->AI_getPredictedHitPoints() != 0 && pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker, &iBestUnitRank))
-									// /UncutDragon
-									{
-										pBestUnit = pLoopUnit;
-									}
-								}
-							}
-						}
-					}
+					pBestUnit = pLoopUnit;
 				}
 			}
-		}	
+		}
 	}
 	return pBestUnit;
 }
