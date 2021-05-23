@@ -12983,9 +12983,9 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	BuildingClassTypes eBuildingClass = (BuildingClassTypes)kBuilding.getBuildingClassType();
 	BuildingTypes eDefaultBuilding = (BuildingTypes)GC.getBuildingClassInfo(eBuildingClass).getDefaultBuildingIndex();
 
-	if (NO_BUILDING != eDefaultBuilding && eDefaultBuilding != eBuilding)
+	if (eDefaultBuilding != eBuilding)
 	{
-		for (iI  = 0; iI < GC.getNumCivilizationInfos(); ++iI)
+		for (iI = 0; iI < GC.getNumCivilizationInfos(); ++iI)
 		{
 			BuildingTypes eUniqueBuilding = (BuildingTypes)GC.getCivilizationInfo((CivilizationTypes)iI).getCivilizationBuildings((int)eBuildingClass);
 			if (eUniqueBuilding == eBuilding)
@@ -12994,9 +12994,11 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 				szBuffer.append(gDLL->getText("TXT_KEY_UNIQUE_BUILDING", GC.getCivilizationInfo((CivilizationTypes)iI).getTextKeyWide()));
 			}
 		}
-
-		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_REPLACES_UNIT", GC.getBuildingInfo(eDefaultBuilding).getTextKeyWide()));
+		if (NO_BUILDING != eDefaultBuilding)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_REPLACES_UNIT", GC.getBuildingInfo(eDefaultBuilding).getTextKeyWide()));
+		}
 	}
 
 	if (bCivilopediaText)
