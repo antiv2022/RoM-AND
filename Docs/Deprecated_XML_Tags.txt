@@ -1,0 +1,14 @@
+For information on new XML tags see "New XML Features.txt".
+
+Tags:
+iDCMBombRange, replaced with iVolleyRange.
+iDCMBombAccuracy, replaced with iVolleyAccuracy.
+iMaxAreaTotalDensity, replaced with iMinAreaPlotsPerPlayerUnit.
+iMaxAreaUnitDensity, replaced with iMinAreaPlotsPerUnitType.
+FreeBuilding, replaced with the ExtraFreeBuildings XML list.
+
+Globals:
+ESTIMATED_EXTRA_WAR_COSTS_PER_ERA, replaced with ESTIMATED_EXTRA_WAR_EXPENSE_PERCENT in "Inthegrave_GlobalDefines.xml"
+
+Files:
+Rise of Mankind Config.ini, replaced with TechConquest.ini in the "Assets" folder.
