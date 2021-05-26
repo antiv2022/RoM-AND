@@ -2039,9 +2039,6 @@ protected:
 	void CheckProxy(const char* fnName) const;
 
 public:
-// WATIGGI adapted by 45deg
-	void msg(const char* s, ...) const;
-// end WATIGGI adapted by 45deg
 	// singleton accessor
 	DllExport inline static CvGlobals& getInstance();
 

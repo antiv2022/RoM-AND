@@ -8156,34 +8156,14 @@ bool CvUnit::canPillage(const CvPlot* pPlot) const
 /* UNOFFICIAL_PATCH                        END                                                  */
 /************************************************************************************************/
 
-
-	if (pPlot->isCity() && isMilitaryLandUnit())
+	if (pPlot->isCity())
 	{
-		// WATIGGI adapted by 45deg
-		CvCity* pCity;
-		pCity = pPlot->getPlotCity();
-
-		if (!pCity->isInConqueredMode())
-		{		
-			return false;
-		}
-		
-		if (GC.getGameINLINE().isOption(GAMEOPTION_NO_CITY_RAZING) && pCity->getPopulation() == 1)
-		{
-			return false;
-		}
-
-		if ((pCity->getPopulation() <= 0) || ((pCity->getPopulation() == 1) && (!(pCity->isOccupation()))))
-		{
-			return false;
-		}	
-		return true;
-		// end WATIGGI adapted by 45deg
+		return false;
 	}
 
 	if (pPlot->getImprovementType() == NO_IMPROVEMENT)
 	{
-		if (!(pPlot->isRoute()))
+		if (!pPlot->isRoute())
 		{
 			return false;
 		}
@@ -8215,12 +8195,6 @@ bool CvUnit::canPillage(const CvPlot* pPlot) const
 
 bool CvUnit::pillage()
 {
-	CvWString szBuffer;
-	int iPillageGold;
-	long lPillageGold;
-	ImprovementTypes eTempImprovement = NO_IMPROVEMENT;
-	RouteTypes eTempRoute = NO_ROUTE;
-
 	CvPlot* pPlot = plot();
 
 	if (!canPillage(pPlot))
@@ -8228,12 +8202,12 @@ bool CvUnit::pillage()
 		return false;
 	}
 
-	if ((pPlot->isOwned()) && (!pPlot->isCity()))	// adapted by 45deg for WATIGGI's code
+	if (pPlot->isOwned())
 	{
 		// we should not be calling this without declaring war first, so do not declare war here
 		if (!isEnemy(pPlot->getTeam(), pPlot))
 		{
-			if ((pPlot->getImprovementType() == NO_IMPROVEMENT) || (pPlot->getOwnerINLINE() != getOwnerINLINE()))
+			if (pPlot->getImprovementType() == NO_IMPROVEMENT || pPlot->getOwnerINLINE() != getOwnerINLINE())
 			{
 				return false;
 			}
@@ -8262,12 +8236,8 @@ bool CvUnit::pillage()
 
 	if (pPlot->isWater())
 	{
-		// UncutDragon
-/* original code
-		CvUnit* pInterceptor = bestSeaPillageInterceptor(this, GC.getDefineINT("COMBAT_DIE_SIDES") / 2);
-*/		// modified
 		CvUnit* pInterceptor = bestSeaPillageInterceptor(this, GC.getCOMBAT_DIE_SIDES() / 2);
-		// /UncutDragon
+
 		if (NULL != pInterceptor)
 		{
 			setMadeAttack(false);
@@ -8280,122 +8250,10 @@ bool CvUnit::pillage()
 			return false;
 		}
 	}
-	if (pPlot->isCity())
-	{
-		// WATIGGI adapted by 45deg
-		CvGame& kGame = GC.getGameINLINE();
-		CvPlayer& kPlayer = GET_PLAYER(getOwnerINLINE());
+	ImprovementTypes eTempImprovement = NO_IMPROVEMENT;
+	RouteTypes eTempRoute = NO_ROUTE;
 
-		CvCity* pCity;
-		pCity = pPlot->getPlotCity();
-
-		int iPillageGold;
-		int iPillageResearch;
-		int iResistance;
-
-		bool bAllowResearch = false;	// don't allow research bonus
-		bool bAllowGold = false;		// don't allow gold bonus
-		bool bAllowSpecialist = true;	// allow specialist bonus
-
-		// calculate resistance adjusting for population each pillage
-		iResistance = pCity->getResistance() + pCity->getPopulation();
-		//GC.msg("+%d for having %d population", pCity->getPopulation(), pCity->getPopulation());
-
-		iResistance = std::min(pCity->getResistance(), 85);
-		//GC.msg("iResistance is %d", iResistance);
-		/*if (pCity->getPopulation() == 1)
-		{
-			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_RAZECITY);
-			pInfo->setData1(pCity->getID());
-			pInfo->setData2(kPlayer.getID());
-			pInfo->setData3(iPillageGold);
-			gDLL->getInterfaceIFace()->addPopup(pInfo, kPlayer.getID());
-		}*/	
-		if (kGame.getSorenRandNum(100, "Resistance Probability") > iResistance)
-		{
-			pCity->changePopulation(-1);
-
-			// play screaming people sound some of the time
-			if (kGame.getSorenRandNum(100, "Do I Play Sound") < 30)
-				gDLL->getInterfaceIFace()->playGeneralSound("AS2D_CITYCAPTURE");
-			else
-				gDLL->getInterfaceIFace()->playGeneralSound("AS2D_PILLAGE");
-			// NOTE: if bAllowGold is true, must resolve the double pillage sounds with shrines
-		}
-
-		// suspend or alter the occupation timer
-		pCity->changeSuspendOccupationTimer(1);
-
-		// do gold
-		iPillageGold = 0;
-
-		//GC.msg("gold city prob is %d", pCity->getGoldPillageProb());
-		if (bAllowGold && kGame.getSorenRandNum(100, "Gold Pillage Probability") < pCity->getGoldPillageProb())
-		{
-			iPillageGold = kGame.getSorenRandNum(pCity->getGoldPillageAmount(), "Gold Pillage Amount");
-		}
-
-		if (iPillageGold > 0)
-		{
-			kPlayer.changeGold(iPillageGold);
-			szBuffer = gDLL->getText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_CITY", iPillageGold, pCity->getNameKey());
-			gDLL->getInterfaceIFace()->addMessage(getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-		}
-
-		// do research
-		iPillageResearch = 0;
-
-		//GC.msg("research city prob is %d", pCity->getResearchPillageProb());
-		if (bAllowResearch && kGame.getSorenRandNum(100, "Research Pillage Probability") < pCity->getResearchPillageProb())
-		{
-			iPillageResearch = kGame.getSorenRandNum(pCity->getResearchPillageAmount(), "Research Pillage Amount");
-		}
-
-		if (iPillageResearch > 0)
-		{
-			TechTypes eTech;
-			eTech = kPlayer.getCurrentResearch();
-
-			GET_TEAM(getTeam()).changeResearchProgress(eTech, iPillageResearch, kPlayer.getID());
-			
-			szBuffer = gDLL->getText("TXT_KEY_MISC_FOUND_RESEARCH_IN_CITY", iPillageResearch, pCity->getNameKey());
-			//gDLL->getInterfaceIFace()->addMessage(getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-			AddDLLMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-			
-		}
-
-		// raze city complete if appropriate
-		if (pCity->getPopulation() < 1)
-		{
-			// see if it is going to generate a free specialist first
-			if (bAllowSpecialist && kGame.getSorenRandNum(100, "Specialist Relocation Probability") < pCity->getSpecialistRelocationProb())
-			{
-				CvCity* pRelocationCity;
-				int iRelocationIndex;
-
-				// find random city
-				do
-				{
-					iRelocationIndex = GC.getGameINLINE().getSorenRandNum(kPlayer.getNumCities(), "Choose Random City");
-					pRelocationCity = kPlayer.getCity(iRelocationIndex);
-				} while (pRelocationCity->isInConqueredMode());
-
-				// create a specialist there
-				if (pRelocationCity != NULL)
-				{		
-					pRelocationCity->changeFreeSpecialist(1);
-
-				szBuffer = gDLL->getText("TXT_KEY_MISC_SPECIALIST_RELOCATION", pRelocationCity->getNameKey());
-				//gDLL->getInterfaceIFace()->addMessage(getOwnerINLINE(), true, GC.getDefineINT("EVENT_MESSAGE_TIME"), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_YELLOW"), pRelocationCity->getX(), pRelocationCity->getY());				
-				AddDLLMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, GC.getUnitInfo(getUnitType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_YELLOW"), pRelocationCity->getX(), pRelocationCity->getY());
-				}
-			}
-
-			pCity->doTask(TASK_RAZE);
-		}
-		// end WATIGGI adapted by 45deg code
-	}
-	else if (pPlot->getImprovementType() != NO_IMPROVEMENT)
+	if (pPlot->getImprovementType() != NO_IMPROVEMENT)
 	{
 		eTempImprovement = pPlot->getImprovementType();
 
@@ -8404,7 +8262,7 @@ bool CvUnit::pillage()
 			PYTHON_ACCESS_LOCK_SCOPE
 
 			// Use python to determine pillage amounts...
-			lPillageGold = 0;
+			long lPillageGold = 0;
 
 			CyPlot* pyPlot = new CyPlot(pPlot);
 			CyUnit* pyUnit = new CyUnit(this);
@@ -8418,7 +8276,7 @@ bool CvUnit::pillage()
 			delete pyPlot;	// python fxn must not hold on to this pointer
 			delete pyUnit;	// python fxn must not hold on to this pointer
 
-			iPillageGold = (int)lPillageGold;
+			int iPillageGold = (int)lPillageGold;
 
 			if (iPillageGold > 0)
 			{
@@ -8445,7 +8303,7 @@ bool CvUnit::pillage()
 /************************************************************************************************/
 				GET_PLAYER(getOwnerINLINE()).changeGold(iPillageGold);
 
-				szBuffer = gDLL->getText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP", iPillageGold, GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
+				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP", iPillageGold, GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
 /************************************************************************************************/
 /* INFLUENCE_DRIVEN_WAR                   04/16/09                                johnysmith    */
 /*                                                                                              */
@@ -8513,9 +8371,7 @@ bool CvUnit::pillage()
 			GET_PLAYER(pPlot->getOwnerINLINE()).addPlotDangerSource(pPlot, 100);
 
 			MEMORY_TRACK_EXEMPT();
-
-			szBuffer = gDLL->getText("TXT_KEY_MISC_IMP_DESTROYED", GC.getRouteInfo(eTempRoute).getTextKeyWide(), getNameKey(), getVisualCivAdjective(pPlot->getTeam()));
-			AddDLLMessage(pPlot->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+			AddDLLMessage(pPlot->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_IMP_DESTROYED", GC.getRouteInfo(eTempRoute).getTextKeyWide(), getNameKey(), getVisualCivAdjective(pPlot->getTeam())), "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
 		}
 /************************************************************************************************/
 /* Afforess	                     END                                                            */

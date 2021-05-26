@@ -35,7 +35,6 @@ private:
 	bool launchChangeReligionPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchChooseElectionPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchDiploVotePopup(CvPopup* pPopup, CvPopupInfo &info);
-	bool launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchDisbandCityPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info);
 /************************************************************************************************/

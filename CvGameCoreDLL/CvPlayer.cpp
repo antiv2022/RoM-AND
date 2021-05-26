@@ -2999,8 +2999,6 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	int aiCulture[MAX_PLAYERS];
 	BuildingTypes eBuilding;
 	bool bRecapture;
-	bool bRaze;
-	bool bGift;
 	int iRange;
 	int iCaptureGold;
 	int iGameTurnFounded;
@@ -3460,30 +3458,21 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		if (pOldCity->isHolyCity())
 		{
 			iResistance += 10;
-			//GC.msg("+10 for holy city!");
 		}
 
 		if (pOldCity->getNumWorldWonders() > 0)
 		{
 			iResistance += 5;
-			//GC.msg("+5 for having wonders");
 		}
 
 		// world wonders
 		iResistance += (pOldCity->getNumWorldWonders() * 5);
-		//GC.msg("+%d for having %d world wonders", (pOldCity->getNumWorldWonders()*5), pOldCity->getNumWorldWonders());
 
 		// national wonders
 		iResistance += (pOldCity->getNumNationalWonders() * 5);
-		//GC.msg("+%d for having %d national wonders", (pOldCity->getNumNationalWonders()*5), pOldCity->getNumNationalWonders());
 
 		// cultural level
 		iResistance += ((pOldCity->getCultureLevel() - 1) * 5);
-		//GC.msg("+%d for culture level of %d", ((pOldCity->getCultureLevel()-1)*5), pOldCity->getCultureLevel());
-
-		// (population is recalculated with each pillage)
-
-		//GC.msg("iResistance is %d", iResistance);
 	}
 	// end WATIGGI adapted by 45deg
 	pOldCity->kill(false, false);
@@ -3715,29 +3704,14 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			// WATIGGI adapted by 45deg
 			pNewCity->setInConqueredMode(true);
 
-			// set gold pillage values
-			pNewCity->setGoldPillageProb(0);
-			pNewCity->setGoldPillageAmount(10);
-
-			// set research pillage values
-			pNewCity->setResearchPillageProb(0);
-			pNewCity->setResearchPillageAmount(0);
-
 			// set specialist values
 			pNewCity->setSpecialistRelocationProb(iSpecialistProb);
 
 			// set resistance values
 			pNewCity->setResistance(iResistance);
 			// end WATIGGI adapted by 45deg
-/************************************************************************************************/
-/* Afforess	                  Start		 07/14/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/*
-			pNewCity->changeOccupationTimer(((GC.getDefineINT("BASE_OCCUPATION_TURNS") + ((pNewCity->getPopulation() * GC.getDefineINT("OCCUPATION_TURNS_POPULATION_PERCENT")) / 100)) * (100 - iTeamCulturePercent)) / 100);
-*/
-			int iOccupationTime = GC.getDefineINT("BASE_OCCUPATION_TURNS");\
+
+			int iOccupationTime = GC.getDefineINT("BASE_OCCUPATION_TURNS");
 			//ls612: Remove the old define and replace it with something that scales with Gamespeeds
 			iOccupationTime += pNewCity->getPopulation() * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getOccupationTimePopulationPercent() / 100;
 			iOccupationTime *= (100 - iTeamCulturePercent) / 100;
@@ -3746,26 +3720,14 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			iOccupationTime /= 100;
 
 			pNewCity->changeOccupationTimer(iOccupationTime);
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-
 		}
-
 		GC.getMapINLINE().verifyUnitValidPlot();
 	}
-/************************************************************************************************/
-/* Afforess	                  Start		 02/15/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+
 	if (iOccupationRange > 0)
 	{
 		pNewCity->setOccupationCultureLevel((CultureLevelTypes)iOccupationRange);
 	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 
 	pNewCity->checkBuildings(true, true, true, true, true, false);
 
@@ -3785,27 +3747,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		}
 	}
 
-	bool bConquestCanRaze = false;
-	if (bConquest)
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity(pNewCity);
-		CyArgsList argsList;
-		argsList.add(eNewOwner);	// Player ID
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canRazeCity", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer
-
-		if (lResult == 1)
-		{
-			bConquestCanRaze = true;
-		}
-	}
-	//	Don't bother with plot group caklculations if they are immediately to b superseded by
-	//	an auto raze
-	if ( bUpdatePlotGroups && (!bConquestCanRaze || !pNewCity->isAutoRaze()) )
+	// Don't bother with plot group caklculations if they are immediately to be superseded by an auto raze
+	if (bUpdatePlotGroups && !pNewCity->isAutoRaze())
 	{
 		PROFILE("CvPlayer::acquireCity.UpdatePlotGroups");
 
@@ -3851,80 +3794,22 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	SAFE_DELETE_ARRAY(paiBuildingOriginalOwner);
 	SAFE_DELETE_ARRAY(paiBuildingOriginalTime);
 
-	if ( bConquestCanRaze )
+	//auto raze based on game rules
+	if (pNewCity->isAutoRaze())
 	{
-		//auto raze based on game rules
-		if (pNewCity->isAutoRaze())
+		if (iCaptureGold > 0)
 		{
-			if (iCaptureGold > 0)
-			{
-				MEMORY_TRACK_EXEMPT();
-
-				szBuffer = gDLL->getText("TXT_KEY_MISC_PILLAGED_CITY", iCaptureGold, pNewCity->getNameKey());
-				AddDLLMessage(eNewOwner, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CITYRAZE", MESSAGE_TYPE_MAJOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pNewCity->getX_INLINE(), pNewCity->getY_INLINE(), true, true);
-			}
-
-			pNewCity->doTask(TASK_RAZE);
+			MEMORY_TRACK_EXEMPT();
+			AddDLLMessage(
+				eNewOwner, true, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText("TXT_KEY_MISC_PILLAGED_CITY", iCaptureGold, pNewCity->getNameKey()),
+				"AS2D_CITYRAZE", MESSAGE_TYPE_MAJOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
+				(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pNewCity->getX_INLINE(), pNewCity->getY_INLINE(), true, true
+			);
 		}
-		else if (!isHuman())
-		{
-			AI_conquerCity(pNewCity); // could delete the pointer...
-		}
-		else
-		{
-			//popup raze option
-			eHighestCulturePlayer = pNewCity->getLiberationPlayer(true);
-			// WATIGGI adapted by 45deg
-
-			//bRaze = canRaze(pNewCity);
-			bRaze = false;	// overrides the test
-			// end WATIGGI adapted by 45deg
-			bGift = ((eHighestCulturePlayer != NO_PLAYER)
-					&& (eHighestCulturePlayer != eNewOwner)
-					&& ((getTeam() == GET_PLAYER(eHighestCulturePlayer).getTeam())
-						|| GET_TEAM(getTeam()).isOpenBorders(GET_PLAYER(eHighestCulturePlayer).getTeam())
-						|| GET_TEAM(GET_PLAYER(eHighestCulturePlayer).getTeam()).isVassal(getTeam())));
-
-			if (bRaze || bGift)
-			{
-				CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_RAZECITY);
-				pInfo->setData1(pNewCity->getID());
-				pInfo->setData2(eHighestCulturePlayer);
-				pInfo->setData3(iCaptureGold);
-				gDLL->getInterfaceIFace()->addPopup(pInfo, eNewOwner);
-			}
-			else
-			{
-				pNewCity->chooseProduction();
-				CvEventReporter::getInstance().cityAcquiredAndKept(eNewOwner, pNewCity);
-			}
-		}
+		pNewCity->doTask(TASK_RAZE);
 	}
-/************************************************************************************************/
-/* REVOLUTION_MOD                         06/27/10                                jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/* original code
-	else if (!bTrade)
-*/
-	// Silences double ask for accepting new city from Revolution mod
-	else if (!bTrade && (GC.getGameINLINE().isOption(GAMEOPTION_NO_REVOLUTION)) )
-/************************************************************************************************/
-/* REVOLUTION_MOD                          END                                                  */
-/************************************************************************************************/
-	{
-		if (isHuman())
-		{
-			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DISBANDCITY);
-			pInfo->setData1(pNewCity->getID());
-			gDLL->getInterfaceIFace()->addPopup(pInfo, eNewOwner);
-		}
-		else
-		{
-			CvEventReporter::getInstance().cityAcquiredAndKept(eNewOwner, pNewCity);
-		}
-	}
+	else AI_conquerCity(pNewCity); // could delete the pointer...
 
 	// Forcing events that deal with the old city not to expire just because we conquered that city
 	for (CvEventMap::iterator it = m_mapEventsOccured.begin(); it != m_mapEventsOccured.end(); ++it)
@@ -9036,43 +8921,30 @@ bool CvPlayer::canRaze(CvCity* pCity) const
 
 void CvPlayer::raze(CvCity* pCity, int iData1, int iData2)
 {
-	wchar szBuffer[1024];
-	PlayerTypes eHighestCulturePlayer;
-	int iI, iJ;
-	bool bRelocateSpecialist;
-
 	if (!canRaze(pCity))
 	{
 		return;
 	}
+	wchar szBuffer[1024];
 
 	FAssert(pCity->getOwnerINLINE() == getID());
 
-	eHighestCulturePlayer = pCity->findHighestCulture();
+	const PlayerTypes eHighestCulturePlayer = pCity->findHighestCulture();
 
-	if (eHighestCulturePlayer != NO_PLAYER)
+	if (eHighestCulturePlayer != NO_PLAYER && GET_PLAYER(eHighestCulturePlayer).getTeam() != getTeam())
 	{
-		if (GET_PLAYER(eHighestCulturePlayer).getTeam() != getTeam())
-		{
-			GET_PLAYER(eHighestCulturePlayer).AI_changeMemoryCount(getID(), MEMORY_RAZED_CITY, 1);
-		}
+		GET_PLAYER(eHighestCulturePlayer).AI_changeMemoryCount(getID(), MEMORY_RAZED_CITY, 1);
 	}
 
-	for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
 	{
 		if (pCity->isHolyCity((ReligionTypes)iI))
 		{
-			for (iJ = 0; iJ < MAX_PLAYERS; iJ++)
+			for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
 			{
-				if (GET_PLAYER((PlayerTypes)iJ).isAlive())
+				if (GET_PLAYER((PlayerTypes)iJ).isAlive() && iJ != getID() && GET_PLAYER((PlayerTypes)iJ).getStateReligion() == (ReligionTypes)iI)
 				{
-					if (iJ != getID())
-					{
-						if (GET_PLAYER((PlayerTypes)iJ).getStateReligion() == ((ReligionTypes)iI))
-						{
-							GET_PLAYER((PlayerTypes)iJ).AI_changeMemoryCount(getID(), MEMORY_RAZED_HOLY_CITY, 1);
-						}
-					}
+					GET_PLAYER((PlayerTypes)iJ).AI_changeMemoryCount(getID(), MEMORY_RAZED_HOLY_CITY, 1);
 				}
 			}
 		}
@@ -9087,18 +8959,7 @@ void CvPlayer::raze(CvCity* pCity, int iData1, int iData2)
 
 	// WATIGGI adapted by 45deg
 	// give a free specialist if city has wonders - even if city is invalid
-	bRelocateSpecialist = false;
-
-	if (pCity->getNumWorldWonders() > 0)
-		bRelocateSpecialist = true;
-
-	if (pCity->isHolyCity())
-		bRelocateSpecialist = true;
-
-	if (pCity->isBarbarian())
-		bRelocateSpecialist = false;
-
-	if (bRelocateSpecialist)
+	if (!pCity->isBarbarian() && (pCity->getNumWorldWonders() > 0 || pCity->isHolyCity()))
 	{
 		// relocate specialist
 		CvCity* pRelocationCity;
@@ -9123,7 +8984,7 @@ void CvPlayer::raze(CvCity* pCity, int iData1, int iData2)
 	}
 	// end WATIGGI adapted by 45deg
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -9143,67 +9004,10 @@ void CvPlayer::raze(CvCity* pCity, int iData1, int iData2)
 	swprintf(szBuffer, gDLL->getText("TXT_KEY_MISC_CITY_RAZED_BY", pCity->getNameKey(), getCivilizationDescriptionKey()).GetCString());
 	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer, pCity->getX_INLINE(), pCity->getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 
-	CvPlot* pPlot = pCity->plot();
-//	int iRazeAndFortifyCost = iData2 == 1 ? getRazeAndFortifyCost(pCity) : -1;	//45deg: removed RazeAndFortify
-
 	// Report this event
 	CvEventReporter::getInstance().cityRazed(pCity, getID());
 
 	disband(pCity);
-
-	//Afforess: raze & fortify 	//45deg: removed and replaced by new razing system (watiggi's mod)
-/*	if (iData2 == 1 && iData1 > -1 && iData1 < MAX_PLAYERS)
-	{
-		int iFort = GC.getInfoTypeForString("IMPROVEMENT_FORT");
-		if (iFort != -1)
-		{
-			changeGold(-iRazeAndFortifyCost);
-
-			pPlot->setImprovementType((ImprovementTypes)iFort);
-			pPlot->setClaimingOwner((PlayerTypes)iData1);
-			pPlot->setOwner((PlayerTypes)iData1, false, false);
-
-			for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-			{
-				CvPlot* pAdjacentPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (DirectionTypes)iI);
-				if (pAdjacentPlot != NULL)
-				{
-					if (pAdjacentPlot->getOwnerINLINE() == NO_PLAYER || pAdjacentPlot->getOwnerINLINE() == eHighestCulturePlayer)
-					{
-						bool bCanClaimTerritory = true;
-						CLLNode<IDInfo>* pUnitNode;
-						CvUnit* pLoopUnit;
-						pUnitNode = pAdjacentPlot->headUnitNode();
-
-						while (pUnitNode != NULL)
-						{
-							pLoopUnit = ::getUnit(pUnitNode->m_data);
-							pUnitNode = pAdjacentPlot->nextUnitNode(pUnitNode);
-
-							if (pLoopUnit->getOwnerINLINE() == eHighestCulturePlayer)
-							{
-								bCanClaimTerritory = false;
-								break;
-							}
-						}
-
-						if (bCanClaimTerritory)
-						{
-							pAdjacentPlot->setClaimingOwner((PlayerTypes)iData1);
-							pAdjacentPlot->setOwner((PlayerTypes)iData1, false, false);
-						}
-					}
-				}
-			}
-			if (eHighestCulturePlayer != NO_PLAYER)
-			{
-				if (GET_PLAYER(eHighestCulturePlayer).getTeam() != getTeam())
-				{
-					GET_PLAYER(eHighestCulturePlayer).AI_changeMemoryCount(getID(), MEMORY_EVENT_BAD_TO_US, 2);
-				}
-			}
-		}
-	}*/
 }
 
 

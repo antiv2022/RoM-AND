@@ -236,12 +236,7 @@ bool CvUnitAI::AI_update()
 			}
 		}
 	}
-	// WATIGGI adapted by 45deg
-	if (AI_razeCity())
-	{
-		return false;
-	}
-	// end WATIGGI adapted by 45deg
+
 	if (AI_afterAttack())
 	{
 		return false;
@@ -30577,39 +30572,6 @@ void CvUnitAI::write(FDataStreamBase* pStream)
 
 }
 
-// WATIGGI adapted by 45deg
-// Returns true if AI wants to raze this city
-bool CvUnitAI::AI_razeCity()
-{
-	CvCity* pCity;
-	CvPlot* pPlot;
-
-	pPlot = plot();
-	pCity = pPlot->getPlotCity();
-
-	if (pCity == NULL)
-	{
-		return false;
-	}
-
-	if (pCity->getOwnerINLINE() == getOwnerINLINE())
-	{
-		if (pCity->isInConqueredMode())
-		{
-			if (pCity->AI_isInRazeCityMode())
-			{
-				// pillage the city tile
-				//GC.msg("I am going to pillage this tile now");
-				getGroup()->pushMission(MISSION_PILLAGE, -1, -1, 0, false, false, MISSIONAI_PILLAGE, plot());
-
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-// end WATIGGI adapted by 45deg
 
 // Private Functions...
 

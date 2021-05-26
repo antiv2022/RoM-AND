@@ -1546,21 +1546,10 @@ public:
 
 	void setResistance(int iResistance);
 	int getResistance();
-	void setGoldPillageProb(int iGoldPillageProb);
-	int getGoldPillageProb();
-	void setGoldPillageAmount(int iGoldPillageAmount);
-	int getGoldPillageAmount();
-	void setResearchPillageProb(int iResearchPillageProb);
-	int getResearchPillageProb();
-	void setResearchPillageAmount(int iResearchPillageAmount);
-	int getResearchPillageAmount();
 	void setSpecialistRelocationProb(int iSpecialistProb);
 	int getSpecialistRelocationProb();
-
-	virtual void AI_setInRazeCityMode(bool bInRazeCityMode) = 0;
-	virtual bool AI_isInRazeCityMode() = 0;
 	// end WATIGGI adapted by 45deg
-	
+
 	virtual void AI_init() = 0;
 	virtual void AI_reset() = 0;
 	virtual void AI_doTurn() = 0;
@@ -2094,11 +2083,7 @@ protected:
 	bool m_bInConqueredMode;
 	int m_iSuspendOccupationTimer;
 
-	int m_cc_iResistance; 		
-	int m_cc_iGoldPillageProb;
-	int m_cc_iGoldPillageAmount;
-	int m_cc_iResearchPillageProb;
-	int m_cc_iResearchPillageAmount;	
+	int m_cc_iResistance;
 	int m_cc_iSpecialistProb;
 	// end WATIGGI adapted by 45deg
 	

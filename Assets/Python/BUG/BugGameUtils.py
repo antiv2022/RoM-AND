@@ -171,7 +171,6 @@ class Dispatcher:
 		self._setDefault("showTechChooserButton", True)
 		self._setDefault("getFirstRecommendedTech", TechTypes.NO_TECH)
 		self._setDefault("getSecondRecommendedTech", TechTypes.NO_TECH)
-		self._setDefault("canRazeCity", True)
 		self._setDefault("canDeclareWar", True)
 		self._setDefault("skipProductionPopup", False)
 		self._setDefault("showExamineCityButton", True)

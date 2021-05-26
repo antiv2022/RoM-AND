@@ -314,47 +314,6 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		}
 		break;
 
-	case BUTTONPOPUP_RAZECITY:
-		if (pPopupReturn->getButtonClicked() == 1)
-		{
-			CvMessageControl::getInstance().sendDoTask(info.getData1(), TASK_RAZE, -1, -1, false, false, false, false);
-		}
-		else if (pPopupReturn->getButtonClicked() == 2)
-		{
-			CvCity* pCity = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCity(info.getData1());
-			if (NULL != pCity)
-			{
-				CvMessageControl::getInstance().sendDoTask(info.getData1(), TASK_KEEP, GC.getGameINLINE().getActivePlayer(), -1, false, false, false, false);
-			}
-
-			CvMessageControl::getInstance().sendDoTask(info.getData1(), TASK_GIFT, info.getData2(), -1, false, false, false, false);
-		}
-		else if (pPopupReturn->getButtonClicked() == 3)
-		{
-			CvCity* pCity = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCity(info.getData1());
-			if (NULL != pCity)
-			{
-				gDLL->getInterfaceIFace()->selectCity(pCity, false);
-			}
-
-			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_RAZECITY, info.getData1(), info.getData2(), info.getData3());
-			gDLL->getInterfaceIFace()->addPopup(pInfo, GC.getGameINLINE().getActivePlayer(), false, true);
-		}
-		else if (pPopupReturn->getButtonClicked() == 4)
-		{
-			CvMessageControl::getInstance().sendDoTask(info.getData1(), TASK_RAZE, GC.getGameINLINE().getActivePlayer(), 1, false, false, false, false);
-		}
-		else if (pPopupReturn->getButtonClicked() == 0)
-		{
-			CvCity* pCity = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCity(info.getData1());
-			if (NULL != pCity)
-			{
-				pCity->chooseProduction();
-				CvMessageControl::getInstance().sendDoTask(info.getData1(), TASK_KEEP, GC.getGameINLINE().getActivePlayer(), -1, false, false, false, false);
-			}
-		}
-		break;
-
 	case BUTTONPOPUP_DISBANDCITY:
 		if (pPopupReturn->getButtonClicked() == 1)
 		{
@@ -935,7 +894,6 @@ void CvDLLButtonPopup::OnFocus(CvPopup* pPopup, CvPopupInfo &info)
 		}
 		break;
 
-	case BUTTONPOPUP_RAZECITY:
 	case BUTTONPOPUP_DISBANDCITY:
 		{
 			PlayerTypes ePlayer = GC.getGameINLINE().getActivePlayer();
@@ -1015,9 +973,6 @@ bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 		break;
 	case BUTTONPOPUP_DIPLOVOTE:
 		bLaunched = launchDiploVotePopup(pPopup, info);
-		break;
-	case BUTTONPOPUP_RAZECITY:
-		bLaunched = launchRazeCityPopup(pPopup, info);
 		break;
 	case BUTTONPOPUP_DISBANDCITY:
 		bLaunched = launchDisbandCityPopup(pPopup, info);
@@ -1875,69 +1830,6 @@ bool CvDLLButtonPopup::launchDiploVotePopup(CvPopup* pPopup, CvPopupInfo &info)
 	return (true);
 }
 
-
-bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
-{
-	CvPlayer& player = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
-
-	CvCity* pNewCity = player.getCity(info.getData1());
-	if (NULL == pNewCity)
-	{
-		FAssert(false);
-		return (false);
-	}
-
-	if (0 != GC.getDefineINT("PLAYER_ALWAYS_RAZES_CITIES"))
-	{
-		player.raze(pNewCity);
-		return false;
-	}
-
-	PlayerTypes eHighestCulturePlayer = (PlayerTypes)info.getData2();
-
-	int iCaptureGold = info.getData3();
-	bool bRaze = player.canRaze(pNewCity);
-	bool bGift = ((eHighestCulturePlayer != NO_PLAYER) 
-		&& (eHighestCulturePlayer != player.getID()) 
-		&& ((player.getTeam() == GET_PLAYER(eHighestCulturePlayer).getTeam()) || GET_TEAM(player.getTeam()).isOpenBorders(GET_PLAYER(eHighestCulturePlayer).getTeam()) || GET_TEAM(GET_PLAYER(eHighestCulturePlayer).getTeam()).isVassal(player.getTeam())));
-
-	// WATIGGI adapted by 45deg
-	bRaze = false;
-	// end WATIGGI adapted by 45deg
-	
-	CvWString szBuffer;
-	if (iCaptureGold > 0)
-	{
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_GOLD_CITY_CAPTURE", iCaptureGold, pNewCity->getNameKey());
-	}
-	else
-	{
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_CITY_CAPTURE_KEEP", pNewCity->getNameKey());
-	}
-	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, szBuffer);
-	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_KEEP_CAPTURED_CITY").c_str(), NULL, 0, WIDGET_GENERAL);
-
-	if (bRaze)
-	{
-		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_RAZE_CAPTURED_CITY").c_str(), NULL, 1, WIDGET_GENERAL);
-		
-		int iRazeAndFortifyCost = player.getRazeAndFortifyCost(pNewCity);
-		if (iRazeAndFortifyCost > 0 && player.getGold() > iRazeAndFortifyCost)
-		{
-			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_RAZE_AND_FORTIFY_CAPTURED_CITY", iRazeAndFortifyCost).c_str(), NULL, 4, WIDGET_GENERAL);
-		}
-	}
-	if (bGift)
-	{
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_RETURN_ALLIED_CITY", GET_PLAYER(eHighestCulturePlayer).getCivilizationDescriptionKey());
-		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, NULL, 2, WIDGET_GENERAL, 2, eHighestCulturePlayer);
-	}
-	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_CITY_WARNING_ANSWER3").c_str(), NULL, 3, WIDGET_GENERAL, -1, -1);
-	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
-	gDLL->getInterfaceIFace()->playGeneralSound("AS2D_CITYCAPTURE");
-
-	return (true);
-}
 
 bool CvDLLButtonPopup::launchDisbandCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 {

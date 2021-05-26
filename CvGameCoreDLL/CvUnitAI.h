@@ -407,9 +407,6 @@ protected:
 	int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold);
 
 	int AI_stackOfDoomExtra();
-	// WATIGGI adapted by 45deg 
-	bool AI_razeCity();
-	// end WATIGGI adapted by 45deg	
 
 	bool AI_stackAttackCity(int iRange, int iPowerThreshold, bool bFollow = true);
 	bool AI_xUPTAttackCity(int iRange, int iPowerThreshold, bool bFollow = true); // xUPT function to siege

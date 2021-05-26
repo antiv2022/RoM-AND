@@ -235,9 +235,6 @@ void CvCityAI::AI_reset()
 #endif
 
 	m_iCityThreat = -1;
-	// WATIGGI adapted by 45deg
-	m_ai_bInRazeCityMode = false;
-	// end WATIGGI adapted by 45deg	
 }
 
 //	KOSHLING - initialisation called on every city prior to performing unit mission allocation logic
@@ -14923,9 +14920,7 @@ void CvCityAI::read(FDataStreamBase* pStream)
 	WRAPPER_READ(wrapper, "CvCityAI", &m_iWorkersHave);
 	WRAPPER_READ(wrapper, "CvCityAI", &m_iTempBuildPriority);
 	WRAPPER_READ(wrapper, "CvCityAI", &m_iBuildPriority);
-	// WATIGGI adapted by 45deg
-	WRAPPER_READ(wrapper, "CvCityAI", &m_ai_bInRazeCityMode);
-	// end WATIGGI adapted by 45deg
+
 	WRAPPER_READ_OBJECT_END(wrapper);
 }
 
@@ -14978,23 +14973,10 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	WRAPPER_WRITE(wrapper, "CvCityAI", m_iWorkersHave);
 	WRAPPER_WRITE(wrapper, "CvCityAI", m_iTempBuildPriority);
 	WRAPPER_WRITE(wrapper, "CvCityAI", m_iBuildPriority);
-	// WATIGGI adapted by 45deg
-	WRAPPER_WRITE(wrapper, "CvCityAI", m_ai_bInRazeCityMode);
-	// end WATIGGI adapted by 45deg
+
 	WRAPPER_WRITE_OBJECT_END(wrapper);
 }
 
-
-// WATIGGI adapted by 45deg
-void CvCityAI::AI_setInRazeCityMode(bool bInRazeCityMode)
-{
-	m_ai_bInRazeCityMode = bInRazeCityMode;
-}
-bool CvCityAI::AI_isInRazeCityMode()
-{
-	return m_ai_bInRazeCityMode;
-}
-// end WATIGGI adapted by 45deg
 
 /************************************************************************************************/
 /* RevDCM                  Start		 5/2/09                                                 */

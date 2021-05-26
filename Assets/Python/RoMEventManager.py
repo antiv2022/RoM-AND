@@ -30,8 +30,7 @@ class RoMEventManager:
 		g_eventMgr = eventManager
 		self.eventManager = eventManager
 
-		# RoM start Next War tracks cities that have been razed
-		self.iArcologyCityID = -1
+		self.bArcology = False
 
 		self.iPROJECT_EDEN = -1
 		self.iBUILDING_NANITE_DEFUSER = -1
@@ -59,15 +58,13 @@ class RoMEventManager:
 		# NANITE DEFUSER - destroyes all nukes from all players
 		if iBuildingType == self.iBUILDING_NANITE_DEFUSER:
 			import PlayerUtil
-			pPlayer = gc.getPlayer(pCity.plot().getOwner())
 			iX = pCity.getX()
 			iY = pCity.getY()
 			for player in PlayerUtil.players(alive=True):
-				pPID = player.getID()
 				for unit in PlayerUtil.playerUnits(player):
 					if (unit.nukeRange() > -1 or unit.getUnitAIType() == UnitAITypes.UNITAI_ICBM and not unit.isNone()):
 						unit.kill( 0, -1 )
-				CyInterface().addMessage(pPID,False,15,localText.getText("TXT_KEY_NANITE_DEFUSER_PYTHON",()),'',0,'Art/Interface/Buttons/Buildings/Ascension_Gate.dds',ColorTypes(44), iX, iY, True,True)
+				CyInterface().addMessage(player.getID(),False,15,localText.getText("TXT_KEY_NANITE_DEFUSER_PYTHON",()),'',0,'Art/Interface/Buttons/Buildings/Ascension_Gate.dds',ColorTypes(44), iX, iY, True,True)
 
 
 	def onProjectBuilt(self, argsList):
@@ -76,8 +73,6 @@ class RoMEventManager:
 		# Eden project
 		if iProjectType == self.iPROJECT_EDEN:
 			pPlayer = gc.getPlayer(pCity.plot().getOwner())
-			pPID = pPlayer.getID()
-			pTID = pPlayer.getTeam()
 			iX = pCity.getX()
 			iY = pCity.getY()
 			tt_desert = gc.getInfoTypeForString( 'TERRAIN_DESERT' )
@@ -85,46 +80,40 @@ class RoMEventManager:
 			tt_grass = gc.getInfoTypeForString( 'TERRAIN_GRASS' )
 			tt_tundra = gc.getInfoTypeForString( 'TERRAIN_TUNDRA' )
 			tt_snow = gc.getInfoTypeForString( 'TERRAIN_SNOW' )
-			tt_ocean = gc.getInfoTypeForString( 'TERRAIN_OCEAN' )
 			tt_marsh = gc.getInfoTypeForString( 'TERRAIN_MARSH' )
-			tt_coast = gc.getInfoTypeForString( "TERRAIN_COAST" )
+			iForest = gc.getInfoTypeForString("FEATURE_FOREST")
 
 			for iXLoop in range(iX - 50, iX + 50, 1):
 				for iYLoop in range(iY - 50, iY + 50, 1):
 					pPlot = CyMap().plot(iXLoop, iYLoop)
-					#if ( pPlot.isPlayerCityRadius(pPID)==True ):
-					if ( pPlot.getTeam()==pTID ):
-						if ( pPlot.getTerrainType()==tt_grass ):
-							if ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_FARM' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_DOME_FARM' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_WINDMILL' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_MINE' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_SHAFT_MINE' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_MODERN_MINE' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_QUARRY' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_WORKSHOP' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_3FACTORY' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_5FACTORY' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_PLANTATION' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_WINERY' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_COTTAGE' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_HAMLET' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_VILLAGE' )) and ( pPlot.getImprovementType()!=gc.getInfoTypeForString( 'IMPROVEMENT_TOWN' )):
-								if ( pPlot.getFeatureType()!=gc.getInfoTypeForString( 'FEATURE_JUNGLE' )):
-									pPlot.setFeatureType(gc.getInfoTypeForString( "FEATURE_FOREST" ), 1)
-						elif ( pPlot.getTerrainType()==tt_plain ):
-							pPlot.setTerrainType(tt_grass, 1, 1)
-						elif ( pPlot.getTerrainType()==tt_marsh ):
-							pPlot.setTerrainType(tt_grass, 1, 1)
-						elif ( pPlot.getTerrainType()==tt_tundra ):
-							pPlot.setTerrainType(tt_plain, 1, 1)
-						elif ( pPlot.getTerrainType()==tt_snow ):
-							pPlot.setTerrainType(tt_tundra, 1, 1)
-						elif ( pPlot.getTerrainType()==tt_ocean ):
-							pPlot.setTerrainType(tt_coast, 1, 1)
-						elif ( pPlot.getTerrainType()==tt_desert ):
-							pPlot.setTerrainType(tt_plain, 1, 1)
+					if pPlot.getTerrainType()==tt_grass and pPlot.getFeatureType() == -1:
+						iImp = pPlot.getImprovementType()
+						if iImp == -1 or iImp not in (gc.getInfoTypeForString('IMPROVEMENT_FARM'), gc.getInfoTypeForString('IMPROVEMENT_DOME_FARM'), gc.getInfoTypeForString('IMPROVEMENT_WINDMILL'), gc.getInfoTypeForString('IMPROVEMENT_MINE'), gc.getInfoTypeForString('IMPROVEMENT_SHAFT_MINE'), gc.getInfoTypeForString('IMPROVEMENT_MODERN_MINE' ), gc.getInfoTypeForString('IMPROVEMENT_QUARRY'), gc.getInfoTypeForString('IMPROVEMENT_WORKSHOP'), gc.getInfoTypeForString('IMPROVEMENT_3FACTORY'), gc.getInfoTypeForString('IMPROVEMENT_5FACTORY'), gc.getInfoTypeForString('IMPROVEMENT_PLANTATION'), gc.getInfoTypeForString('IMPROVEMENT_WINERY'), gc.getInfoTypeForString('IMPROVEMENT_COTTAGE'), gc.getInfoTypeForString('IMPROVEMENT_HAMLET'), gc.getInfoTypeForString('IMPROVEMENT_VILLAGE'), gc.getInfoTypeForString('IMPROVEMENT_TOWN')):
+							pPlot.setFeatureType(iForest, 1)
+					elif pPlot.getTerrainType() == tt_plain:
+						pPlot.setTerrainType(tt_grass, 1, 1)
+					elif pPlot.getTerrainType() == tt_marsh:
+						pPlot.setTerrainType(tt_grass, 1, 1)
+					elif pPlot.getTerrainType() == tt_tundra:
+						pPlot.setTerrainType(tt_plain, 1, 1)
+					elif pPlot.getTerrainType() == tt_snow:
+						pPlot.setTerrainType(tt_tundra, 1, 1)
+					elif pPlot.getTerrainType() == tt_desert:
+						pPlot.setTerrainType(tt_plain, 1, 1)
 
-			CyInterface().addMessage(pPID,False,15,localText.getText("TXT_KEY_EDEN_PYTHON",()),'',0,'Art/Interface/Buttons/Buildings/Eden.dds',ColorTypes(44), iX, iY, True,True)
+			CyInterface().addMessage(pPlayer.getID(),False,15,localText.getText("TXT_KEY_EDEN_PYTHON",()),'',0,'Art/Interface/Buttons/Buildings/Eden.dds',ColorTypes(44), iX, iY, True,True)
 
 
 	def onCityRazed(self, argsList):
-		city, iPlayer = argsList
-		self.iArcologyCityID = -1
+		city = argsList[0]
 		if city.getNumRealBuilding(gc.getInfoTypeForString("BUILDING_ARCOLOGY")) or city.getNumRealBuilding(gc.getInfoTypeForString("BUILDING_ARCOLOGY_SHIELDING")) or city.getNumRealBuilding(gc.getInfoTypeForString("BUILDING_ADVANCED_SHIELDING")):
-			self.iArcologyCityID = city.getID()
-
+			self.bArcology = True
+		else: self.bArcology = False
 
 	def onCityLost(self, argsList):
-		city = argsList[0]
-		if city.getID() == self.iArcologyCityID:
-			city.plot().setImprovementType(gc.getInfoTypeForString("IMPROVEMENT_CITY_RUINS_ARCOLOGY"))
+		if self.bArcology:
+			argsList[0].plot().setImprovementType(gc.getInfoTypeForString("IMPROVEMENT_CITY_RUINS_ARCOLOGY"))
+			self.bArcology = False
 
 	def onGameUpdate(self, argsList):
 		genericArgs = argsList[0][0]

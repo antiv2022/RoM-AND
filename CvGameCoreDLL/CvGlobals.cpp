@@ -6146,27 +6146,7 @@ unsigned int cvInternalGlobals::getAssetCheckSum()
 	}
 	return iSum;
 }
-// WATIGGI adapted by 45deg
 
-void CvGlobals::msg(const char* s, ...) const
-{
-	va_list args;
-	char cBuffer[1024];
-	CvWString szBuffer;
-	PlayerTypes iActivePlayer;
-
-	// convert message
-	va_start(args, s);
-	vsprintf(cBuffer, s, args);
-
-	// display message
-	iActivePlayer = GC.getGameINLINE().getActivePlayer();
-
-	szBuffer = cBuffer;
-	//AddDLLMessage(iActivePlayer, true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText(szBuffer), "AS2D_PILLAGE", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
-}
-
-// end WATIGGI adapted by 45deg
 
 //	KOSHLING -  granular callback control
 #ifdef GRANULAR_CALLBACK_CONTROL

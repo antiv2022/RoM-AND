@@ -13482,11 +13482,9 @@ bool CvCity::isOccupation() const
 
 void CvCity::setOccupationTimer(int iNewValue)
 {
-	bool bOldOccupation;
-
 	if (getOccupationTimer() != iNewValue)
 	{
-		bOldOccupation = isOccupation();
+		const bool bOldOccupation = isOccupation();
 
 		m_iOccupationTimer = iNewValue;
 		FAssert(getOccupationTimer() >= 0);
@@ -13499,7 +13497,7 @@ void CvCity::setOccupationTimer(int iNewValue)
 			{
 				setInConqueredMode(false);
 			}
-			// end WATIGGI adapted by 45deg		
+			// end WATIGGI adapted by 45deg
 			updateCorporation();
 			setMaintenanceDirty(true);
 			updateTradeRoutes();
@@ -13514,7 +13512,7 @@ void CvCity::setOccupationTimer(int iNewValue)
 }
 
 
-void CvCity::changeOccupationTimer(int iChange)												
+void CvCity::changeOccupationTimer(int iChange)
 {
 	setOccupationTimer(getOccupationTimer() + iChange);
 }
@@ -22213,10 +22211,12 @@ void CvCity::read(FDataStreamBase* pStream)
 	WRAPPER_READ(wrapper, "CvCity", &m_iSuspendOccupationTimer);
 
 	WRAPPER_READ(wrapper, "CvCity", &m_cc_iResistance);
-	WRAPPER_READ(wrapper, "CvCity", &m_cc_iGoldPillageProb);
-	WRAPPER_READ(wrapper, "CvCity", &m_cc_iGoldPillageAmount);
-	WRAPPER_READ(wrapper, "CvCity", &m_cc_iResearchPillageProb);
-	WRAPPER_READ(wrapper, "CvCity", &m_cc_iResearchPillageAmount);	
+	// Toffer - SAVEBREAK REMOVE
+	WRAPPER_SKIP_ELEMENT(wrapper, "CvCity", m_cc_iGoldPillageProb, SAVE_VALUE_ANY);
+	WRAPPER_SKIP_ELEMENT(wrapper, "CvCity", m_cc_iGoldPillageAmount, SAVE_VALUE_ANY);
+	WRAPPER_SKIP_ELEMENT(wrapper, "CvCity", m_cc_iResearchPillageProb, SAVE_VALUE_ANY);
+	WRAPPER_SKIP_ELEMENT(wrapper, "CvCity", m_cc_iResearchPillageAmount, SAVE_VALUE_ANY);
+	// ! SAVEBREAK
 	WRAPPER_READ(wrapper, "CvCity", &m_cc_iSpecialistProb);
 	// end WATIGGI adapted by 45deg
 	
@@ -22659,10 +22659,6 @@ void CvCity::write(FDataStreamBase* pStream)
 	WRAPPER_WRITE(wrapper, "CvCity", m_iSuspendOccupationTimer);
 
 	WRAPPER_WRITE(wrapper, "CvCity", m_cc_iResistance);
-	WRAPPER_WRITE(wrapper, "CvCity", m_cc_iGoldPillageProb);
-	WRAPPER_WRITE(wrapper, "CvCity", m_cc_iGoldPillageAmount);
-	WRAPPER_WRITE(wrapper, "CvCity", m_cc_iResearchPillageProb);
-	WRAPPER_WRITE(wrapper, "CvCity", m_cc_iResearchPillageAmount);	
 	WRAPPER_WRITE(wrapper, "CvCity", m_cc_iSpecialistProb);
 	// end WATIGGI adapted by 45deg
 	
@@ -22992,14 +22988,7 @@ void CvCity::setInConqueredMode(bool bInConqueredMode)
 
 bool CvCity::isInConqueredMode()
 {
-	if (this != NULL)
-	{
-		return m_bInConqueredMode;
-	}
-	else
-	{
-		return false;
-	}
+	return this != NULL ? m_bInConqueredMode : false;
 }
 void CvCity::setSuspendOccupationTimer(int iSuspendOccupationTimer)
 {
@@ -23022,45 +23011,6 @@ int CvCity::getResistance()
 void CvCity::setResistance(int iResistance)
 {
 	m_cc_iResistance = iResistance;
-}
-
-void CvCity::setGoldPillageProb(int iGoldPillageProb)
-{
-	m_cc_iGoldPillageProb = iGoldPillageProb;
-}
-int CvCity::getGoldPillageProb()
-{
-	return m_cc_iGoldPillageProb;
-}
-
-void CvCity::setGoldPillageAmount(int iGoldPillageAmount)
-{
-	m_cc_iGoldPillageAmount = iGoldPillageAmount;
-}
-
-int CvCity::getGoldPillageAmount()
-{
-	return m_cc_iGoldPillageAmount;
-}
-
-void CvCity::setResearchPillageProb(int iResearchPillageProb)
-{
-	m_cc_iResearchPillageProb = iResearchPillageProb;
-}
-
-int CvCity::getResearchPillageProb()
-{
-	return m_cc_iResearchPillageProb;
-}
-
-void CvCity::setResearchPillageAmount(int iResearchPillageAmount)
-{
-	m_cc_iResearchPillageAmount = iResearchPillageAmount;
-}
-
-int CvCity::getResearchPillageAmount()
-{
-	return m_cc_iResearchPillageAmount;
 }
 
 void CvCity::setSpecialistRelocationProb(int iSpecialistProb)

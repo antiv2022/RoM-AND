@@ -2176,35 +2176,29 @@ void CvPlayerAI::AI_makeProductionDirty()
 void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 {
 	bool bRaze = false;
-	int iRazeValue;
-	int iI;
 
 	// f1rpo: (It's not really a probability)
 	int const iPersonalityVal = GC.getLeaderHeadInfo(getPersonalityType()).getRazeCityProb();
-	if (canRaze(pCity)
-		&& iPersonalityVal > 0) // f1rpo (at Inthegrave's request)
+	if (canRaze(pCity) && iPersonalityVal > 0) // f1rpo (iPersonalityVal at Inthegrave's request)
 	{
-	    iRazeValue = 0;
-		int iCloseness = pCity->AI_playerCloseness(getID());
-
 		// Reasons to always raze
-		if( GC.getGameINLINE().culturalVictoryValid() && pCity->getCulture(pCity->getPreviousOwner()) > pCity->getCultureThreshold(GC.getGameINLINE().culturalVictoryCultureLevel())/2 )
+		if (GC.getGameINLINE().culturalVictoryValid() && pCity->getCulture(pCity->getPreviousOwner()) > pCity->getCultureThreshold(GC.getGameINLINE().culturalVictoryCultureLevel()) / 2)
 		{
 			CvCity* pLoopCity;
 			int iLoop = 0;
 			int iHighCultureCount = 1;
 
-			if( GET_TEAM(getTeam()).AI_getEnemyPowerPercent(false) > 75 )
+			if (GET_TEAM(getTeam()).AI_getEnemyPowerPercent(false) > 75)
 			{
-				for( pLoopCity = GET_PLAYER(pCity->getPreviousOwner()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(pCity->getPreviousOwner()).nextCity(&iLoop) )
+				for (pLoopCity = GET_PLAYER(pCity->getPreviousOwner()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(pCity->getPreviousOwner()).nextCity(&iLoop))
 				{
-					if( pLoopCity->getCulture(pCity->getPreviousOwner()) > pLoopCity->getCultureThreshold(GC.getGameINLINE().culturalVictoryCultureLevel())/2 )
+					if (pLoopCity->getCulture(pCity->getPreviousOwner()) > pLoopCity->getCultureThreshold(GC.getGameINLINE().culturalVictoryCultureLevel()) / 2)
 					{
 						iHighCultureCount++;
-						if( iHighCultureCount >= GC.getGameINLINE().culturalVictoryNumCultureCities() )
+						if (iHighCultureCount >= GC.getGameINLINE().culturalVictoryNumCultureCities())
 						{
 							//Raze city enemy needs for cultural victory unless we greatly over power them
-							logBBAI( "  Razing enemy cultural victory city" );
+							logBBAI("  Razing enemy cultural victory city");
 							bRaze = true;
 						}
 					}
@@ -2212,8 +2206,11 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 			}
 		}
 
-		if( !bRaze )
+		if (!bRaze)
 		{
+			int iCloseness = pCity->AI_playerCloseness(getID());
+			int iRazeValue = 0;
+
 			// Reasons to not raze
 			if( (getNumCities() <= 1) || (getNumCities() < 5 && iCloseness > 0) )
 			{
@@ -2230,17 +2227,14 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 					logBBAI("    Player %d (%S) decides not to raze %S because they're going for domination", getID(), getCivilizationDescription(0), pCity->getName().GetCString() );
 				}
 			}
-			else if( isBarbarian() )
+			else if (isBarbarian())
 			{
-				if ( !(pCity->isHolyCity()) && !(pCity->hasActiveWorldWonder()))
+				if (!pCity->isHolyCity() && !pCity->hasActiveWorldWonder() && pCity->getPreviousOwner() != BARBARIAN_PLAYER && pCity->getOriginalOwner() != BARBARIAN_PLAYER)
 				{
-					if( (pCity->getPreviousOwner() != BARBARIAN_PLAYER) && (pCity->getOriginalOwner() != BARBARIAN_PLAYER) )
-					{
-						iRazeValue += iPersonalityVal;
-						iRazeValue -= iCloseness;
-					}
+					iRazeValue += iPersonalityVal;
+					iRazeValue -= iCloseness;
 				}
-			}	
+			}
 			else
 			{
 				bool bFinancialTrouble = AI_isFinancialTrouble();
@@ -2329,7 +2323,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 					// Scale down distance/maintenance effects for organized
 					if( iRazeValue > 0 )
 					{
-						for (iI = 0; iI < GC.getNumTraitInfos(); iI++)
+						for (int iI = 0; iI < GC.getNumTraitInfos(); iI++)
 						{
 							if (hasTrait((TraitTypes)iI))
 							{
@@ -2392,7 +2386,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 				}
 
 
-				for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
+				for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
 				{
 					if (pCity->isHolyCity((ReligionTypes)iI))
 					{
@@ -2420,7 +2414,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 				iRazeValue -= pCity->calculateTeamCulturePercent(getTeam());
 
 				CvPlot* pLoopPlot = NULL;
-				for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
+				for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 				{
 					pLoopPlot = plotCity(pCity->getX_INLINE(), pCity->getY_INLINE(), iI);
 
@@ -2500,57 +2494,12 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 
 	if (bRaze)
 	{
-		// WATIGGI adapted by 45deg AI RAZES CITY
-		//GC.msg("wanting to raze city");
-
-		// order AI to raze city to the ground
-		pCity->AI_setInRazeCityMode(true);
-		// end WATIGGI adapted by 45deg
-	}	
-	if( pCity->isInConqueredMode() )
-	{
-		//Fuyu fix
-		logBBAI("    Player %d (%S) decides to to raze city %S!!!", getID(), getCivilizationDescription(0), pCity->getName().GetCString() );
-		
-		int iRazeAndFortifyCost = getRazeAndFortifyCost(pCity);
-		bool RazeAndFortify = false;
-		if (iRazeAndFortifyCost > 0 && iRazeAndFortifyCost < getGold())
-		{
-			if (!AI_isFinancialTrouble())
-			{
-				int iBaseOdds = 50;
-				iBaseOdds *= getGold();
-				iBaseOdds /= iRazeAndFortifyCost;
-				if (GC.getGameINLINE().getSorenRandNum(100, "AI Raze And Fortify City") < iBaseOdds)
-				{
-					RazeAndFortify = true;
-				}
-			}
-		}
-/*			//45deg: removed and replaced by Watiggi's raze mod
-		if (RazeAndFortify)
-		{
-			pCity->doTask(TASK_RAZE, getID(), 1);
-		}
-		else
-		{
-			pCity->doTask(TASK_RAZE);
-//		}*/
+		logBBAI("	Player %d (%S) decides to to raze city %S!!!", getID(), getCivilizationDescription(0), pCity->getName().GetCString());
+		pCity->doTask(TASK_RAZE);
 	}
 	else
 	{
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       06/14/09                       Maniac & jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/* original bts code
-		CvEventReporter::getInstance().cityAcquiredAndKept(GC.getGameINLINE().getActivePlayer(), pCity);
-*/
 		CvEventReporter::getInstance().cityAcquiredAndKept(getID(), pCity);
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
 	}
 }
 /************************************************************************************************/

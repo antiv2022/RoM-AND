@@ -246,15 +246,10 @@ public:
 /* 	Worker Counting 											END 			*/
 /********************************************************************************/
 	BuildingTypes AI_bestAdvancedStartBuilding(int iPass);
-	
+
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
-	
-	// WATIGGI adapted by 45deg
-	void AI_setInRazeCityMode(bool bInRazeCityMode);
-	bool AI_isInRazeCityMode();
-	// end WATIGGI adapted by 45deg
-	
+
 	//Afforess - MP Resync
 	void resync(bool bWrite, ByteBuffer* pBuffer);
 
@@ -323,13 +318,9 @@ protected:
 
 	bool* m_pbEmphasize;
 	bool* m_pbEmphasizeSpecialist;
-	
-	// WATIGGI adapted by 45deg
-	bool m_ai_bInRazeCityMode;
-	// end WATIGGI adapted by 45deg
-	
+
 	int* m_aiSpecialYieldMultiplier;
-	
+
 	int m_iCachePlayerClosenessTurn;
 	int m_iCachePlayerClosenessDistance;
 	int* m_aiPlayerCloseness;
