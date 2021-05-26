@@ -34,7 +34,6 @@ class RoMEventManager:
 		# RoM start Next War tracks cities that have been razed
 		self.iArcologyCityID = -1
 
-		self.iBUILDING_DJENNE = -1
 		self.iTECH_KNOWLEDGE_MANAGEMENT = -1
 		self.iTECH_APPLIED_ECONOMICS = -1
 		self.iPROJECT_EDEN = -1
@@ -49,7 +48,6 @@ class RoMEventManager:
 				pCity.setNumRealBuilding(iUniqueBuilding, 1)
 
 	def onLoadGame(self, argsList):
-		self.iBUILDING_DJENNE = gc.getInfoTypeForString("BUILDING_DJENNE")
 		self.iBUILDING_ICE_HOTEL = gc.getInfoTypeForString("BUILDING_ICE_HOTEL")
 		self.iTECH_KNOWLEDGE_MANAGEMENT = gc.getInfoTypeForString("TECH_KNOWLEDGE_MANAGEMENT")
 		self.iTECH_APPLIED_ECONOMICS = gc.getInfoTypeForString("TECH_APPLIED_ECONOMICS")
@@ -59,7 +57,6 @@ class RoMEventManager:
 	def onGameStart(self, argsList):
 		'Called at the start of the game'
 		# def onBuildingBuilt / Additional tests variable
-		self.iBUILDING_DJENNE = gc.getInfoTypeForString("BUILDING_DJENNE")
 		self.iBUILDING_ICE_HOTEL = gc.getInfoTypeForString("BUILDING_ICE_HOTEL")
 		self.iTECH_KNOWLEDGE_MANAGEMENT = gc.getInfoTypeForString("TECH_KNOWLEDGE_MANAGEMENT")
 		self.iTECH_APPLIED_ECONOMICS = gc.getInfoTypeForString("TECH_APPLIED_ECONOMICS")
@@ -70,25 +67,6 @@ class RoMEventManager:
 		'Building Completed'
 		pCity, iBuildingType = argsList
 		game = gc.getGame()
-
-		# Djenne
-		if (iBuildingType == self.iBUILDING_DJENNE):
-			pPlayer = gc.getPlayer(pCity.plot().getOwner())
-			pPID = pPlayer.getID()
-			pTID = pPlayer.getTeam()
-			iX = pCity.getX()
-			iY = pCity.getY()
-			tt_desert = gc.getInfoTypeForString( 'TERRAIN_DESERT' )
-
-			for iXLoop in range(iX - 2, iX + 3, 1):
-				for iYLoop in range(iY - 2, iY + 3, 1):
-					pPlot = CyMap().plot(iXLoop, iYLoop)
-					if ( pPlot.isPlayerCityRadius(pPID)==True ):
-						if ( pPlot.getTeam()==pTID ):
-							if ( pPlot.getTerrainType()==tt_desert ):
-								CyGame().setPlotExtraYield(iXLoop, iYLoop, YieldTypes.YIELD_COMMERCE, 2)
-
-			CyInterface().addMessage(pPID,False,15,localText.getText("TXT_KEY_DJENNE_PYTHON",()),'',0,',Art/Interface/Buttons/Empty.dds,Art/Interface/Buttons/Atlases/and_wonders_atlas.dds,6,2',ColorTypes(44), iX, iY, True,True)
 
 		# SnowCastle of Kemi
 		if (iBuildingType == self.iBUILDING_ICE_HOTEL):
