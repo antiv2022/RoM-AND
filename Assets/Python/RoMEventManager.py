@@ -48,7 +48,6 @@ class RoMEventManager:
 				pCity.setNumRealBuilding(iUniqueBuilding, 1)
 
 	def onLoadGame(self, argsList):
-		self.iBUILDING_ICE_HOTEL = gc.getInfoTypeForString("BUILDING_ICE_HOTEL")
 		self.iTECH_KNOWLEDGE_MANAGEMENT = gc.getInfoTypeForString("TECH_KNOWLEDGE_MANAGEMENT")
 		self.iTECH_APPLIED_ECONOMICS = gc.getInfoTypeForString("TECH_APPLIED_ECONOMICS")
 		self.iPROJECT_EDEN = gc.getInfoTypeForString("PROJECT_EDEN")
@@ -57,7 +56,6 @@ class RoMEventManager:
 	def onGameStart(self, argsList):
 		'Called at the start of the game'
 		# def onBuildingBuilt / Additional tests variable
-		self.iBUILDING_ICE_HOTEL = gc.getInfoTypeForString("BUILDING_ICE_HOTEL")
 		self.iTECH_KNOWLEDGE_MANAGEMENT = gc.getInfoTypeForString("TECH_KNOWLEDGE_MANAGEMENT")
 		self.iTECH_APPLIED_ECONOMICS = gc.getInfoTypeForString("TECH_APPLIED_ECONOMICS")
 		self.iPROJECT_EDEN = gc.getInfoTypeForString('PROJECT_EDEN')
@@ -66,28 +64,6 @@ class RoMEventManager:
 	def onBuildingBuilt(self, argsList):
 		'Building Completed'
 		pCity, iBuildingType = argsList
-		game = gc.getGame()
-
-		# SnowCastle of Kemi
-		if (iBuildingType == self.iBUILDING_ICE_HOTEL):
-			pPlayer = gc.getPlayer(pCity.plot().getOwner())
-			pPID = pPlayer.getID()
-			pTID = pPlayer.getTeam()
-			iX = pCity.getX()
-			iY = pCity.getY()
-			tt_tundra = gc.getInfoTypeForString( 'TERRAIN_TUNDRA' )
-			tt_ice = gc.getInfoTypeForString( 'TERRAIN_SNOW' )
-
-			for iXLoop in range(iX - 2, iX + 3, 1):
-				for iYLoop in range(iY - 2, iY + 3, 1):
-					pPlot = CyMap().plot(iXLoop, iYLoop)
-					if ( pPlot.isPlayerCityRadius(pPID)==True ):
-						if ( pPlot.getTeam()==pTID ):
-							if ( pPlot.getTerrainType()==tt_tundra or pPlot.getTerrainType()==tt_ice ):
-								CyGame().setPlotExtraYield(iXLoop, iYLoop, YieldTypes.YIELD_COMMERCE, 2)
-
-			CyInterface().addMessage(pPID,False,15,localText.getText("TXT_KEY_ICE_HOTEL_PYTHON",()),'',0,',Art/Interface/Buttons/Empty.dds,Art/Interface/Buttons/Atlases/Afforess_Atlas.dds,4,7',ColorTypes(44), iX, iY, True,True)
-
 
 		# NANITE DEFUSER - destroyes all nukes from all players
 		if iBuildingType == self.iBUILDING_NANITE_DEFUSER:
