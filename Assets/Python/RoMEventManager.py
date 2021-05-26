@@ -19,7 +19,6 @@ class RoMEventManager:
 		eventManager.addEventHandler("GameStart", self.onGameStart)
 		eventManager.addEventHandler("buildingBuilt", self.onBuildingBuilt)
 		eventManager.addEventHandler("projectBuilt", self.onProjectBuilt)
-		eventManager.addEventHandler("unitBuilt", self.onUnitBuilt)
 		eventManager.addEventHandler("cityRazed", self.onCityRazed)
 		eventManager.addEventHandler("cityLost", self.onCityLost)
 		eventManager.addEventHandler("gameUpdate", self.onGameUpdate)
@@ -34,8 +33,6 @@ class RoMEventManager:
 		# RoM start Next War tracks cities that have been razed
 		self.iArcologyCityID = -1
 
-		self.iTECH_KNOWLEDGE_MANAGEMENT = -1
-		self.iTECH_APPLIED_ECONOMICS = -1
 		self.iPROJECT_EDEN = -1
 		self.iBUILDING_NANITE_DEFUSER = -1
 
@@ -48,16 +45,10 @@ class RoMEventManager:
 				pCity.setNumRealBuilding(iUniqueBuilding, 1)
 
 	def onLoadGame(self, argsList):
-		self.iTECH_KNOWLEDGE_MANAGEMENT = gc.getInfoTypeForString("TECH_KNOWLEDGE_MANAGEMENT")
-		self.iTECH_APPLIED_ECONOMICS = gc.getInfoTypeForString("TECH_APPLIED_ECONOMICS")
 		self.iPROJECT_EDEN = gc.getInfoTypeForString("PROJECT_EDEN")
 		self.iBUILDING_NANITE_DEFUSER = gc.getInfoTypeForString("BUILDING_NANITE_DEFUSER")
 
 	def onGameStart(self, argsList):
-		'Called at the start of the game'
-		# def onBuildingBuilt / Additional tests variable
-		self.iTECH_KNOWLEDGE_MANAGEMENT = gc.getInfoTypeForString("TECH_KNOWLEDGE_MANAGEMENT")
-		self.iTECH_APPLIED_ECONOMICS = gc.getInfoTypeForString("TECH_APPLIED_ECONOMICS")
 		self.iPROJECT_EDEN = gc.getInfoTypeForString('PROJECT_EDEN')
 		self.iBUILDING_NANITE_DEFUSER = gc.getInfoTypeForString("BUILDING_NANITE_DEFUSER")
 
@@ -80,9 +71,7 @@ class RoMEventManager:
 
 
 	def onProjectBuilt(self, argsList):
-		'Project Completed'
 		pCity, iProjectType = argsList
-		game = gc.getGame()
 
 		# Eden project
 		if iProjectType == self.iPROJECT_EDEN:
@@ -124,41 +113,19 @@ class RoMEventManager:
 
 			CyInterface().addMessage(pPID,False,15,localText.getText("TXT_KEY_EDEN_PYTHON",()),'',0,'Art/Interface/Buttons/Buildings/Eden.dds',ColorTypes(44), iX, iY, True,True)
 
-	def onUnitBuilt(self, argsList):
-		'Unit Completed'
-		city = argsList[0]
-		unit = argsList[1]
-
-		# if player has Technocracy civic active, give free promotion to unit
-		player = gc.getPlayer(city.getOwner())
-		if gc.getTeam(player.getTeam()).isHasTech(self.iTECH_KNOWLEDGE_MANAGEMENT):
-			iTechnocracyParentCivicOption = gc.getInfoTypeForString("CIVICOPTION_POWER")
-			iTechnocracy = gc.getInfoTypeForString("CIVIC_TECHNOCRACY")
-
-			if -1 not in (iTechnocracyParentCivicOption, iTechnocracy) and player.getCivics(iTechnocracyParentCivicOption) == iTechnocracy and gc.getTeam(player.getTeam()).isHasTech(gc.getInfoTypeForString("TECH_SMART_DUST")):
-				iSensors = gc.getInfoTypeForString("PROMOTION_SENSORS")
-				if iSensors > -1 and unit.isPromotionValid(iSensors):
-					unit.setHasPromotion(iSensors, True)
-
 
 	def onCityRazed(self, argsList):
-		'City Razed'
 		city, iPlayer = argsList
-
 		self.iArcologyCityID = -1
-
 		if city.getNumRealBuilding(gc.getInfoTypeForString("BUILDING_ARCOLOGY")) or city.getNumRealBuilding(gc.getInfoTypeForString("BUILDING_ARCOLOGY_SHIELDING")) or city.getNumRealBuilding(gc.getInfoTypeForString("BUILDING_ADVANCED_SHIELDING")):
 			self.iArcologyCityID = city.getID()
 
 
 	def onCityLost(self, argsList):
-		'City Lost'
 		city = argsList[0]
-
 		if city.getID() == self.iArcologyCityID:
 			city.plot().setImprovementType(gc.getInfoTypeForString("IMPROVEMENT_CITY_RUINS_ARCOLOGY"))
 
 	def onGameUpdate(self, argsList):
-		'sample generic event, called on each game turn slice'
-		genericArgs = argsList[0][0]	# tuple of tuple of my args
+		genericArgs = argsList[0][0]
 		OOSLogger.doGameUpdate()
