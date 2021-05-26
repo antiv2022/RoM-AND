@@ -2,20 +2,11 @@
 # by Zappara
 
 from CvPythonExtensions import *
-import CvUtil
-import PyHelpers
-import BugUtil
 import OOSLogger
-import PlayerUtil
 #import autolog
-
-# BUG - Mac Support - start
-BugUtil.fixSets(globals())
-# BUG - Mac Support - end
 
 gc = CyGlobalContext()
 localText = CyTranslator()
-PyPlayer = PyHelpers.PyPlayer
 
 SD_MOD_ID = "RiseOfMankind"
 
@@ -24,13 +15,11 @@ g_eventMgr = None
 
 class RoMEventManager:
 	def __init__(self, eventManager):
-		eventManager.addEventHandler("ModNetMessage", self.onModNetMessage)
 		eventManager.addEventHandler("OnLoad", self.onLoadGame)
 		eventManager.addEventHandler("GameStart", self.onGameStart)
 		eventManager.addEventHandler("buildingBuilt", self.onBuildingBuilt)
 		eventManager.addEventHandler("projectBuilt", self.onProjectBuilt)
 		eventManager.addEventHandler("unitBuilt", self.onUnitBuilt)
-		eventManager.addEventHandler("cityBuilt", self.onCityBuilt)
 		eventManager.addEventHandler("cityRazed", self.onCityRazed)
 		eventManager.addEventHandler("cityLost", self.onCityLost)
 		eventManager.addEventHandler("gameUpdate", self.onGameUpdate)
@@ -46,78 +35,11 @@ class RoMEventManager:
 		self.iArcologyCityID = -1
 
 		self.iBUILDING_DJENNE = -1
-		self.iBUILDING_WORLD_BANK = -1
 		self.iTECH_KNOWLEDGE_MANAGEMENT = -1
 		self.iTECH_APPLIED_ECONOMICS = -1
-		self.m_iNetMessage_Colonist = 410
-		self.m_iNetMessage_Pioneer = 411
 		self.iPROJECT_EDEN = -1
 		self.iBUILDING_NANITE_DEFUSER = -1
 
-		BugUtil.debug("Initializing RoMEventManager")
-
-	def onModNetMessage(self, argsList):
-		'Called whenever CyMessageControl().sendModNetMessage() is called - this is all for you modders!'
-
-		iData1, iData2, iData3, iData4, iData5 = argsList
-
-		# Rise of Mankind start
-		iMessageID = iData1
-
-		BugUtil.debug("on Mod Net Message: %d", iData1)
-
-# Rise of Mankind 2.71
-		# NetModMessage 410
-		# SettlersEventManager.py / Colonist
-		# Add additional buildings and change city size
-		if ( iMessageID == self.m_iNetMessage_Colonist ):
-			iPlotX = iData2
-			iPlotY = iData3
-			iOwner = iData4
-			iUnitID = iData5
-
-			pPlot = CyMap( ).plot( iPlotX, iPlotY )
-			pCity = pPlot.getPlotCity( )
-			pPlayer = gc.getPlayer( iOwner )
-
-			pCity.setPopulation(3)
-			self.addCityBuildings(pCity, "BUILDINGCLASS_BARRACKS")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_GRANARY")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_FORGE")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_MARKET")
-			if pCity.plot().isCoastalLand():
-				self.addCityBuildings(pCity, "BUILDINGCLASS_HARBOR")
-				self.addCityBuildings(pCity, "BUILDINGCLASS_LIGHTHOUSE")
-				self.addCityBuildings(pCity, "BUILDINGCLASS_FISHERMAN_HUT")
-
-		# NetModMessage 411
-		# SettlersEventManager.py / Pioneer
-		# Add additional buildings and change city size
-		if ( iMessageID == self.m_iNetMessage_Pioneer ):
-			iPlotX = iData2
-			iPlotY = iData3
-			iOwner = iData4
-			iUnitID = iData5
-
-			pPlot = CyMap( ).plot( iPlotX, iPlotY )
-			pCity = pPlot.getPlotCity( )
-			pPlayer = gc.getPlayer( iOwner )
-
-			pCity.setPopulation(4)
-			self.addCityBuildings(pCity, "BUILDINGCLASS_GARRISON")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_GRANARY")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_FORGE")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_COURTHOUSE")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_MARKET")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_STABLE")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_GROCER")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_DOCTOR")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_BANK")
-			self.addCityBuildings(pCity, "BUILDINGCLASS_LIBRARY")
-			if pCity.plot().isCoastalLand():
-				self.addCityBuildings(pCity, "BUILDINGCLASS_PORT")
-				self.addCityBuildings(pCity, "BUILDINGCLASS_LIGHTHOUSE")
-				self.addCityBuildings(pCity, "BUILDINGCLASS_FISHERMAN_HUT")
 
 	def addCityBuildings(self, pCity, szBuilding):
 		iBuilding = gc.getInfoTypeForString(szBuilding)
@@ -129,7 +51,6 @@ class RoMEventManager:
 	def onLoadGame(self, argsList):
 		self.iBUILDING_DJENNE = gc.getInfoTypeForString("BUILDING_DJENNE")
 		self.iBUILDING_ICE_HOTEL = gc.getInfoTypeForString("BUILDING_ICE_HOTEL")
-		self.iBUILDING_WORLD_BANK = gc.getInfoTypeForString("BUILDING_WORLD_BANK")
 		self.iTECH_KNOWLEDGE_MANAGEMENT = gc.getInfoTypeForString("TECH_KNOWLEDGE_MANAGEMENT")
 		self.iTECH_APPLIED_ECONOMICS = gc.getInfoTypeForString("TECH_APPLIED_ECONOMICS")
 		self.iPROJECT_EDEN = gc.getInfoTypeForString("PROJECT_EDEN")
@@ -140,7 +61,6 @@ class RoMEventManager:
 		# def onBuildingBuilt / Additional tests variable
 		self.iBUILDING_DJENNE = gc.getInfoTypeForString("BUILDING_DJENNE")
 		self.iBUILDING_ICE_HOTEL = gc.getInfoTypeForString("BUILDING_ICE_HOTEL")
-		self.iBUILDING_WORLD_BANK = gc.getInfoTypeForString("BUILDING_WORLD_BANK")
 		self.iTECH_KNOWLEDGE_MANAGEMENT = gc.getInfoTypeForString("TECH_KNOWLEDGE_MANAGEMENT")
 		self.iTECH_APPLIED_ECONOMICS = gc.getInfoTypeForString("TECH_APPLIED_ECONOMICS")
 		self.iPROJECT_EDEN = gc.getInfoTypeForString('PROJECT_EDEN')
@@ -191,17 +111,9 @@ class RoMEventManager:
 			CyInterface().addMessage(pPID,False,15,localText.getText("TXT_KEY_ICE_HOTEL_PYTHON",()),'',0,',Art/Interface/Buttons/Empty.dds,Art/Interface/Buttons/Atlases/Afforess_Atlas.dds,4,7',ColorTypes(44), iX, iY, True,True)
 
 
-
-		# world bank national wonder commented out by Vokarya; too much gold
-		#if iBuildingType == self.iBUILDING_WORLD_BANK:
-
-			#pPlayer = gc.getPlayer(pCity.plot().getOwner())
-			#pPID = pPlayer.getID()
-			#iGold = pPlayer.getGold( )
-			#pPlayer.changeGold( iGold//2 )
-
 		# NANITE DEFUSER - destroyes all nukes from all players
-		if (iBuildingType == self.iBUILDING_NANITE_DEFUSER):
+		if iBuildingType == self.iBUILDING_NANITE_DEFUSER:
+			import PlayerUtil
 			pPlayer = gc.getPlayer(pCity.plot().getOwner())
 			iX = pCity.getX()
 			iY = pCity.getY()
@@ -262,51 +174,17 @@ class RoMEventManager:
 		'Unit Completed'
 		city = argsList[0]
 		unit = argsList[1]
-		player = PyPlayer(city.getOwner())
 
 		# if player has Technocracy civic active, give free promotion to unit
-		iPlayer = gc.getPlayer(city.getOwner())
-		if gc.getTeam(iPlayer.getTeam()).isHasTech(self.iTECH_KNOWLEDGE_MANAGEMENT):
-			iTechnocracyParentCivicOption = CvUtil.findInfoTypeNum(gc.getCivicOptionInfo,gc.getNumCivicOptionInfos(),"CIVICOPTION_POWER")
-			iTechnocracy = CvUtil.findInfoTypeNum(gc.getCivicInfo,gc.getNumCivicInfos(),"CIVIC_TECHNOCRACY")
+		player = gc.getPlayer(city.getOwner())
+		if gc.getTeam(player.getTeam()).isHasTech(self.iTECH_KNOWLEDGE_MANAGEMENT):
+			iTechnocracyParentCivicOption = gc.getInfoTypeForString("CIVICOPTION_POWER")
+			iTechnocracy = gc.getInfoTypeForString("CIVIC_TECHNOCRACY")
 
-			if ( (iTechnocracyParentCivicOption != -1) and (iTechnocracy != -1) ):
-				iCivic = iPlayer.getCivics(iTechnocracyParentCivicOption)
-
-				if (iCivic == iTechnocracy):
-					if ( gc.getTeam(iPlayer.getTeam()).isHasTech(gc.getInfoTypeForString("TECH_SMART_DUST")) == True ):
-						iSensors =  CvUtil.findInfoTypeNum(gc.getPromotionInfo, gc.getNumPromotionInfos(),'PROMOTION_SENSORS')
-						if (unit.isPromotionValid(iSensors)):
-							unit.setHasPromotion(iSensors, True)
-
-
-
-	def onCityBuilt(self, argsList):
-		'City Built'
-		city = argsList[0]
-		iUnitID = argsList[1]
-
-		BugUtil.info("City built by unit %d", iUnitID)
-
-		if iUnitID > -1:
-			pUnit = gc.getPlayer(city.getOwner()).getUnit(iUnitID)
-			if pUnit:
-				if pUnit.getUnitClassType() == gc.getInfoTypeForString("UNITCLASS_COLONIST"):
-					pPlot = CyMap( ).plot( pUnit.getX( ), pUnit.getY( ) )
-					iMessageID = 410
-					BugUtil.info("RoM - Colonist messageID: %d", iMessageID)
-					iPlotX = pPlot.getX()
-					iPlotY = pPlot.getY()
-					iOwner = pUnit.getOwner()
-					CyMessageControl( ).sendModNetMessage( iMessageID, iPlotX, iPlotY, iOwner, iUnitID )
-				elif pUnit.getUnitClassType() == gc.getInfoTypeForString("UNITCLASS_PIONEER"):
-					pPlot = CyMap( ).plot( pUnit.getX( ), pUnit.getY( ) )
-					iMessageID = 411
-					BugUtil.info("RoM - Pioneer messageID: %d", iMessageID)
-					iPlotX = pPlot.getX()
-					iPlotY = pPlot.getY()
-					iOwner = pUnit.getOwner()
-					CyMessageControl( ).sendModNetMessage( iMessageID, iPlotX, iPlotY, iOwner, iUnitID )
+			if -1 not in (iTechnocracyParentCivicOption, iTechnocracy) and player.getCivics(iTechnocracyParentCivicOption) == iTechnocracy and gc.getTeam(player.getTeam()).isHasTech(gc.getInfoTypeForString("TECH_SMART_DUST")):
+				iSensors = gc.getInfoTypeForString("PROMOTION_SENSORS")
+				if iSensors > -1 and unit.isPromotionValid(iSensors):
+					unit.setHasPromotion(iSensors, True)
 
 
 	def onCityRazed(self, argsList):
@@ -322,7 +200,6 @@ class RoMEventManager:
 	def onCityLost(self, argsList):
 		'City Lost'
 		city = argsList[0]
-		player = PyPlayer(city.getOwner())
 
 		if city.getID() == self.iArcologyCityID:
 			city.plot().setImprovementType(gc.getInfoTypeForString("IMPROVEMENT_CITY_RUINS_ARCOLOGY"))
