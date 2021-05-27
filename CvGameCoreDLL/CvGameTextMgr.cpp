@@ -11677,11 +11677,6 @@ void CvGameTextMgr::setBasicUnitHelpWithCity(CvWStringBuffer &szBuffer, UnitType
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_VOLLEY_ROUNDS", kUnit.getVolleyRounds()));
 	}
-	if (kUnit.getVolleyAccuracy() > 0)
-	{
-		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_VOLLEY_ACCURACY", kUnit.getVolleyAccuracy()));
-	}
 
 
 	if (kUnit.getBombardRate() > 0)
