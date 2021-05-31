@@ -1680,22 +1680,6 @@ bool CvTeam::canDeclareWar(TeamTypes eTeam) const
 		return false;
 	}
 
-	if(GC.getUSE_CAN_DECLARE_WAR_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(getID());	// Team ID
-		argsList.add(eTeam);	// pass in city class
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canDeclareWar", argsList.makeFunctionArgs(), &lResult);
-
-		if (lResult == 0)
-		{
-			return false;
-		}
-	}
-
 	return true;
 }
 
@@ -1743,22 +1727,6 @@ bool CvTeam::canEventuallyDeclareWar(TeamTypes eTeam) const
 	if (GC.getGameINLINE().isOption(GAMEOPTION_ALWAYS_PEACE))
 	{
 		return false;
-	}
-
-	if(GC.getUSE_CAN_DECLARE_WAR_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(getID());	// Team ID
-		argsList.add(eTeam);	// pass in city class
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canDeclareWar", argsList.makeFunctionArgs(), &lResult);
-
-		if (lResult == 0)
-		{
-			return false;
-		}
 	}
 
 	return true;
@@ -6983,116 +6951,102 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 /* OC_LIMITED_RELIGIONS                                                                         */
 /************************************************************************************************/
 
-				if(GC.getGameINLINE().countKnownTechNumTeams(eIndex) == 1)
+				if (GC.getGameINLINE().countKnownTechNumTeams(eIndex) == 1)
 				{
-					PYTHON_ACCESS_LOCK_SCOPE
-
-					CyArgsList argsList;
-					argsList.add(getID());
-					argsList.add(ePlayer);
-					argsList.add(eIndex);
-					argsList.add(bFirst);
-					long lResult=0;
-					PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doHolyCityTech", argsList.makeFunctionArgs(), &lResult);
-					if (lResult != 1)
+					if (!GC.getGameINLINE().isOption(GAMEOPTION_LIMITED_RELIGIONS)
+					&& GC.getGameINLINE().isTechCanFoundReligion(eIndex))
 					{
-						if(!GC.getGameINLINE().isOption(GAMEOPTION_LIMITED_RELIGIONS))
+						for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
 						{
-								if(GC.getGameINLINE().isTechCanFoundReligion(eIndex))
+							iBestValue = MAX_INT;
+							eBestPlayer = NO_PLAYER;
+							eReligion = NO_RELIGION;
+							eSlotReligion = ReligionTypes(iI);
+
+							if( (GC.getReligionInfo(eSlotReligion).getTechPrereq() == eIndex)
+							&& (!GC.getGameINLINE().isReligionSlotTaken(eSlotReligion))) 
+							{
+								for (iJ = 0; iJ < MAX_PLAYERS; iJ++)
 								{
-									for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
+									CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iJ);
+									if( kPlayer.isAlive() && (kPlayer.getTeam() == getID()) )
 									{
-										iBestValue = MAX_INT;
-										eBestPlayer = NO_PLAYER;
-										eReligion = NO_RELIGION;
-										eSlotReligion = ReligionTypes(iI);
-
-										if( (GC.getReligionInfo(eSlotReligion).getTechPrereq() == eIndex)
-										&& (!GC.getGameINLINE().isReligionSlotTaken(eSlotReligion))) 
+										if (kPlayer.canFoundReligion())
 										{
-											for (iJ = 0; iJ < MAX_PLAYERS; iJ++)
+											iValue = 10;
+											iValue += GC.getGameINLINE().getSorenRandNum(10, "3 Found Religion (Player)");
+
+											for (iK = 0; iK < GC.getNumReligionInfos(); iK++)
 											{
-												CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iJ);
-												if( kPlayer.isAlive() && (kPlayer.getTeam() == getID()) )
-												{
-													if (kPlayer.canFoundReligion())
-													{
-														iValue = 10;
-														iValue += GC.getGameINLINE().getSorenRandNum(10, "3 Found Religion (Player)");
-
-														for (iK = 0; iK < GC.getNumReligionInfos(); iK++)
-														{
-															iValue += (kPlayer.getHasReligionCount((ReligionTypes)iK) * 10);
-														}
-
-														if( kPlayer.getCurrentResearch() != eIndex)
-														{
-															iValue *= 10;
-														}
-
-														if (iValue < iBestValue)
-														{
-															iBestValue = iValue;
-															eBestPlayer = ((PlayerTypes)iJ);
-															eReligion = ReligionTypes(iI);
-														}
-													}	
-												}
+												iValue += (kPlayer.getHasReligionCount((ReligionTypes)iK) * 10);
 											}
-										}
 
-										if (eBestPlayer != NO_PLAYER)
-										{
-											//	KOSHLING - the following line commented out because it's wrogn as 
-											//	far s I can see:
-											//		1) This is done inside cvPlayer::foundReligion()
-											//		2) The above asserts it has not already been done (and that assertion failed)
-											//		3) The code below can actualyl choozse a DIFFERENT religion anyway if
-											//		   the right game options are on!
-											//GC.getGameINLINE().setReligionSlotTaken((ReligionTypes)iI, true);
-/************************************************************************************************/
-/* LIMITED_RELIGIONS               END                                                          */
-/************************************************************************************************/
-
-											if (GC.getGameINLINE().isOption(GAMEOPTION_PICK_RELIGION))
+											if( kPlayer.getCurrentResearch() != eIndex)
 											{
-												if (GET_PLAYER(eBestPlayer).isHuman())
-												{
-													GET_PLAYER(eBestPlayer).m_bChoosingReligion = true;
-													CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_FOUND_RELIGION, iI);
-													if (NULL != pInfo)
-													{
-														gDLL->getInterfaceIFace()->addPopup(pInfo, eBestPlayer);
-													}
-												} 
-												else
-												{
-													eReligion = GET_PLAYER(eBestPlayer).AI_chooseReligion();
-													if (NO_RELIGION != eReligion)
-													{
-														if(GC.getGameINLINE().isTechCanFoundReligion(eIndex))
-														{
-															GET_PLAYER(eBestPlayer).foundReligion(eReligion, eSlotReligion, true);
-															bReligionFounded = true;
-														}
-													}
-												}
-											} 
-											else if (NO_RELIGION != eReligion)
-											{
-												if(GC.getGameINLINE().isTechCanFoundReligion(eIndex) )
-												{
-													GET_PLAYER(eBestPlayer).foundReligion(eReligion, eSlotReligion, true);
-													bReligionFounded = true;
-												}
+												iValue *= 10;
 											}
-											bFirstBonus = true;
-/************************************************************************************************/
-/* LIMITED_RELIGIONS               END                                                          */
-/************************************************************************************************/
-										}
+
+											if (iValue < iBestValue)
+											{
+												iBestValue = iValue;
+												eBestPlayer = ((PlayerTypes)iJ);
+												eReligion = ReligionTypes(iI);
+											}
+										}	
 									}
 								}
+							}
+
+							if (eBestPlayer != NO_PLAYER)
+							{
+								//	KOSHLING - the following line commented out because it's wrogn as 
+								//	far s I can see:
+								//		1) This is done inside cvPlayer::foundReligion()
+								//		2) The above asserts it has not already been done (and that assertion failed)
+								//		3) The code below can actualyl choozse a DIFFERENT religion anyway if
+								//		   the right game options are on!
+								//GC.getGameINLINE().setReligionSlotTaken((ReligionTypes)iI, true);
+/************************************************************************************************/
+/* LIMITED_RELIGIONS               END                                                          */
+/************************************************************************************************/
+
+								if (GC.getGameINLINE().isOption(GAMEOPTION_PICK_RELIGION))
+								{
+									if (GET_PLAYER(eBestPlayer).isHuman())
+									{
+										GET_PLAYER(eBestPlayer).m_bChoosingReligion = true;
+										CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_FOUND_RELIGION, iI);
+										if (NULL != pInfo)
+										{
+											gDLL->getInterfaceIFace()->addPopup(pInfo, eBestPlayer);
+										}
+									} 
+									else
+									{
+										eReligion = GET_PLAYER(eBestPlayer).AI_chooseReligion();
+										if (NO_RELIGION != eReligion)
+										{
+											if(GC.getGameINLINE().isTechCanFoundReligion(eIndex))
+											{
+												GET_PLAYER(eBestPlayer).foundReligion(eReligion, eSlotReligion, true);
+												bReligionFounded = true;
+											}
+										}
+									}
+								} 
+								else if (NO_RELIGION != eReligion)
+								{
+									if(GC.getGameINLINE().isTechCanFoundReligion(eIndex) )
+									{
+										GET_PLAYER(eBestPlayer).foundReligion(eReligion, eSlotReligion, true);
+										bReligionFounded = true;
+									}
+								}
+								bFirstBonus = true;
+/************************************************************************************************/
+/* LIMITED_RELIGIONS               END                                                          */
+/************************************************************************************************/
+							}
 						}
 					}
 					if(GC.getGameINLINE().countKnownTechNumTeams(eIndex) == 1)
@@ -7135,102 +7089,90 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 								{
 									GET_PLAYER(eBestPlayer).foundCorporation((CorporationTypes)iI);
 									bFirstBonus = true;
-								}												
+								}
 							}
 						}
 					}
 				}
 			}
-			if(GC.getGameINLINE().isTechCanFoundReligion(eIndex) && GC.getGameINLINE().isOption(GAMEOPTION_LIMITED_RELIGIONS))			
+			if (GC.getGameINLINE().isTechCanFoundReligion(eIndex) && GC.getGameINLINE().isOption(GAMEOPTION_LIMITED_RELIGIONS))			
 			{
-				PYTHON_ACCESS_LOCK_SCOPE
-
-				CyArgsList argsList;
-				argsList.add(getID());
-				argsList.add(ePlayer);
-				argsList.add(eIndex);
-				argsList.add(bFirst);
-				long lResult=0;
-				PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doHolyCityTech", argsList.makeFunctionArgs(), &lResult);
-				if (lResult != 1)
+				for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
 				{
-					for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
+					iBestValue = MAX_INT;
+					eBestPlayer = NO_PLAYER;
+					eReligion = NO_RELIGION;
+					eSlotReligion = ReligionTypes(iI);
+					if ((GC.getReligionInfo(eSlotReligion).getTechPrereq() == eIndex) && !GC.getGameINLINE().isReligionSlotTaken(eSlotReligion))
 					{
-						iBestValue = MAX_INT;
-						eBestPlayer = NO_PLAYER;
-						eReligion = NO_RELIGION;
-						eSlotReligion = ReligionTypes(iI);
-						if ((GC.getReligionInfo(eSlotReligion).getTechPrereq() == eIndex) && !GC.getGameINLINE().isReligionSlotTaken(eSlotReligion))
+						for (iJ = 0; iJ < MAX_PLAYERS; iJ++)
 						{
-							for (iJ = 0; iJ < MAX_PLAYERS; iJ++)
+							CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iJ);
+							if( kPlayer.isAlive() && (kPlayer.getTeam() == getID()) )
 							{
-								CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iJ);
-								if( kPlayer.isAlive() && (kPlayer.getTeam() == getID()) )
+								if(kPlayer.canFoundReligion())
 								{
-									if(kPlayer.canFoundReligion())
+									iValue = 10;
+									iValue += GC.getGameINLINE().getSorenRandNum(10, "4 Found Religion (Player)");
+									for (iK = 0; iK < GC.getNumReligionInfos(); iK++)
 									{
-										iValue = 10;
-										iValue += GC.getGameINLINE().getSorenRandNum(10, "4 Found Religion (Player)");
-										for (iK = 0; iK < GC.getNumReligionInfos(); iK++)
+										iValue += (kPlayer.getHasReligionCount((ReligionTypes)iK) * 10);
+									}
+										if (kPlayer.getCurrentResearch() != eIndex)
 										{
-											iValue += (kPlayer.getHasReligionCount((ReligionTypes)iK) * 10);
+											iValue *= 10;
 										}
-											if (kPlayer.getCurrentResearch() != eIndex)
-											{
-												iValue *= 10;
-											}
-	
-											if (iValue < iBestValue)
-											{
-												iBestValue = iValue;
-												eBestPlayer = ((PlayerTypes)iJ);
-												eReligion = ReligionTypes(iI);
-											}
-									
-								
 
-										if (eBestPlayer != NO_PLAYER)
+										if (iValue < iBestValue)
 										{
-									
-											if (GC.getGameINLINE().isOption(GAMEOPTION_PICK_RELIGION))
+											iBestValue = iValue;
+											eBestPlayer = ((PlayerTypes)iJ);
+											eReligion = ReligionTypes(iI);
+										}
+								
+							
+
+									if (eBestPlayer != NO_PLAYER)
+									{
+								
+										if (GC.getGameINLINE().isOption(GAMEOPTION_PICK_RELIGION))
+										{
+											if(GET_PLAYER(eBestPlayer).isHuman())
 											{
-												if(GET_PLAYER(eBestPlayer).isHuman())
-												{
 /************************************************************************************************/
 /* Afforess	                  Start		 06/17/10                                               */
 /*                                                                                              */
 /*                                                                                              */
 /************************************************************************************************/
-													GET_PLAYER(eBestPlayer).m_bChoosingReligion = true;
+												GET_PLAYER(eBestPlayer).m_bChoosingReligion = true;
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
-													CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_FOUND_RELIGION, iI);
-													if (NULL != pInfo)
-													{
-														gDLL->getInterfaceIFace()->addPopup(pInfo, eBestPlayer);
-													}
-												}
-												else
+												CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_FOUND_RELIGION, iI);
+												if (NULL != pInfo)
 												{
-													ReligionTypes eReligion = GET_PLAYER(eBestPlayer).AI_chooseReligion();
-													if (NO_RELIGION != eReligion)
+													gDLL->getInterfaceIFace()->addPopup(pInfo, eBestPlayer);
+												}
+											}
+											else
+											{
+												ReligionTypes eReligion = GET_PLAYER(eBestPlayer).AI_chooseReligion();
+												if (NO_RELIGION != eReligion)
+												{
+													if(GC.getGameINLINE().isTechCanFoundReligion(eIndex))
 													{
-														if(GC.getGameINLINE().isTechCanFoundReligion(eIndex))
-														{
-															GET_PLAYER(eBestPlayer).foundReligion(eReligion, eSlotReligion, true);
-															bReligionFounded = true;
-														}
+														GET_PLAYER(eBestPlayer).foundReligion(eReligion, eSlotReligion, true);
+														bReligionFounded = true;
 													}
 												}
 											}
-											else if (NO_RELIGION != eReligion)
+										}
+										else if (NO_RELIGION != eReligion)
+										{
+											if(GC.getGameINLINE().isTechCanFoundReligion(eIndex))
 											{
-												if(GC.getGameINLINE().isTechCanFoundReligion(eIndex))
-												{
-													GET_PLAYER(eBestPlayer).foundReligion(eReligion, eSlotReligion, true);
-													bReligionFounded = true;
-												}
+												GET_PLAYER(eBestPlayer).foundReligion(eReligion, eSlotReligion, true);
+												bReligionFounded = true;
 											}
 										}
 									}

@@ -3235,9 +3235,7 @@ bool CvPlot::hasCachedCanBuildEntry(int iX, int iY, BuildTypes eBuild, PlayerTyp
 			entry->iLastUseCount = ++g_canBuildCache.currentUseCounter;
 			canBuildCacheHits++;
 #ifdef VERIFY_CAN_BUILD_CACHE_RESULTS
-			long lRealValue = canBuildFromPythonInternal(eBuild, ePlayer);
-			
-			if ( lRealValue != entry->lResult )
+			if ( -1 != entry->lResult )
 			{
 				OutputDebugString(CvString::format("Cache entry %08lx verification failed, turn is %d\n", entry, GC.getGameINLINE().getGameTurn()).c_str());
 				FAssertMsg(false, "Can build value cache verification failure");
@@ -3264,59 +3262,21 @@ long CvPlot::canBuildFromPython(BuildTypes eBuild, PlayerTypes ePlayer) const
 	PYTHON_ACCESS_LOCK_SCOPE
 
 #ifdef CAN_BUILD_VALUE_CACHING
-#ifdef _DEBUG
-//	Uncomment this to perform functional verification
-//#define VERIFY_CAN_BUILD_CACHE_RESULTS
-#endif
-
-	struct canBuildCacheEntry* entry;
 
 	//	If this player does not own, and cannot build a unit that can perform this build
 	//	no need to check with the Python.
-	if ( !GET_PLAYER(ePlayer).canHaveBuilder(eBuild) )
+	if (!GET_PLAYER(ePlayer).canHaveBuilder(eBuild))
 	{
 		return 0L;
 	}
+	struct canBuildCacheEntry* entry;
 
-	if ( hasCachedCanBuildEntry(getX_INLINE(), getY_INLINE(), eBuild, ePlayer, entry) )
+	if (hasCachedCanBuildEntry(getX_INLINE(), getY_INLINE(), eBuild, ePlayer, entry))
 	{
 		return entry->lResult;
 	}
-	else
-	{
-		int lResult = canBuildFromPythonInternal(eBuild, ePlayer);
-
-		FAssertMsg(entry != NULL, "No can build cache entry found to replace");
-		if ( entry != NULL )
-		{
-			entry->iPlotX = getX_INLINE();
-			entry->iPlotY = getY_INLINE();
-			entry->eBuild = eBuild;
-			entry->ePlayer = ePlayer;
-			entry->lResult = lResult;
-			entry->iLastUseCount = ++g_canBuildCache.currentUseCounter;
-		}
-
-		return lResult;
-	}
-#else
-	return canBuildFromPythonInternal(eBuild, ePlayer);
 #endif
-}
-
-long CvPlot::canBuildFromPythonInternal(BuildTypes eBuild, PlayerTypes ePlayer) const
-{
-	PROFILE_FUNC();
-
-	CyArgsList argsList;
-	argsList.add(getX_INLINE());
-	argsList.add(getY_INLINE());
-	argsList.add((int)eBuild);
-	argsList.add((int)ePlayer);
-	long lResult=0;
-	PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canBuild", argsList.makeFunctionArgs(), &lResult);
-
-	return lResult;
+	return -1;
 }
 
 bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible, bool bIncludePythonOverrides) const
@@ -3335,20 +3295,6 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible,
 
 	//	Tech requirements are not checked here - they are checked in CvPlayer::canBuild() which will also be called
 	//	when necessary (which is why the enabling tech is not checked here)
-
-	if(bIncludePythonOverrides && GC.getUSE_CAN_BUILD_CALLBACK(eBuild))
-	{
-		long lResult = canBuildFromPython(eBuild, ePlayer);
-
-		if (lResult >= 1)
-		{
-			return true;
-		}
-		else if (lResult == 0)
-		{
-			return false;
-		}
-	}
 
 	bValid = false;
 
@@ -9425,33 +9371,13 @@ int CvPlot::getFoundValue(PlayerTypes eIndex)
 	//	only a short (extra policing is present on the set)
 	if (m_aiFoundValue[eIndex] == INVALID_FOUND_VALUE)
 	{
-		long lResult=-1;
-		if(GC.getUSE_GET_CITY_FOUND_VALUE_CALLBACK())
-		{
-			PYTHON_ACCESS_LOCK_SCOPE
+		setFoundValue(eIndex,GET_PLAYER(eIndex).AI_foundValue(getX_INLINE(), getY_INLINE(), -1, true));
 
-			CyArgsList argsList;
-			argsList.add((int)eIndex);
-			argsList.add(getX());
-			argsList.add(getY());
-			PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "getCityFoundValue", argsList.makeFunctionArgs(), &lResult);
-		}
-
-		if (lResult == -1)
-		{
-			setFoundValue(eIndex,GET_PLAYER(eIndex).AI_foundValue(getX_INLINE(), getY_INLINE(), -1, true));
-		}
-		else
-		{
-			setFoundValue(eIndex,lResult);
-		}
-
-		if ( area()->hasBestFoundValue(eIndex) && (int) m_aiFoundValue[eIndex] > area()->getBestFoundValue(eIndex))
+		if (area()->hasBestFoundValue(eIndex) && (int) m_aiFoundValue[eIndex] > area()->getBestFoundValue(eIndex))
 		{
 			area()->setBestFoundValue(eIndex, m_aiFoundValue[eIndex]);
 		}
 	}
-
 	return m_aiFoundValue[eIndex];
 }
 
@@ -15844,32 +15770,10 @@ bool CvPlot::canFound(PlayerTypes ePlayer, bool bIgnorePeaks) const
 		}
 	}
 
-	if (isWater())
-	{
-		if (GC.getUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK())
-		{
-			PYTHON_ACCESS_LOCK_SCOPE
-
-			bValid = false;
-
-			CyArgsList argsList2;
-			argsList2.add(m_iX);
-			argsList2.add(m_iY);
-			long lResult = 0;
-			PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canFoundCitiesOnWater", argsList2.makeFunctionArgs(), &lResult);
-
-			if (lResult == 1)
-			{
-				bValid = true;
-			}
-		}
-	}
-
 	if (!bValid)
 	{
 		return false;
 	}
-
 	return true;
 }
 

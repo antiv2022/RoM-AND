@@ -1099,24 +1099,6 @@ void CvCityAI::AI_chooseProduction()
 	// Only clear the dirty bit if we actually do a check, multiple items might be queued
 	AI_setChooseProductionDirty(false);
 
-	// Python callback
-	if (GC.getUSE_AI_CHOOSE_PRODUCTION_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-			// allow python to handle it
-			CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult = 0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "AI_chooseProduction", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-
 	/* Check the situation of the civ and the city before making tests */
 	// Bypass if anarchy
 	if (kPlayer.isAnarchy())
@@ -1133,21 +1115,18 @@ void CvCityAI::AI_chooseProduction()
 			AI_buildGovernorChooseProduction();
 			return;
 		}
-		else
+		for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
 		{
-			for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+			if (AI_isEmphasizeCommerce((CommerceTypes)iI))
 			{
-				if (AI_isEmphasizeCommerce((CommerceTypes)iI))
-				{
-					bInhibitUnits = true;
-				}
+				bInhibitUnits = true;
 			}
-			for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
+		}
+		for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
+		{
+			if (AI_isEmphasizeYield((YieldTypes)iI))
 			{
-				if (AI_isEmphasizeYield((YieldTypes)iI))
-				{
-					bInhibitUnits = true;
-				}
+				bInhibitUnits = true;
 			}
 		}
 	}

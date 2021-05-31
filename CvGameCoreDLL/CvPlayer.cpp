@@ -8890,31 +8890,6 @@ bool CvPlayer::canRaze(CvCity* pCity) const
 /* REVOLUTIONDCM_MOD                         END                                 Glider1        */
 /************************************************************************************************/
 	}
-
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_RAZE_CITY_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity(pCity);
-		CyArgsList argsList;
-		argsList.add(getID());	// Player ID
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canRazeCity", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer
-		if (lResult == 0)
-		{
-			return (false);
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	return true;
 }
 
@@ -9349,24 +9324,6 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 
 void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
 {
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyPlot kGoodyPlot(pPlot);
-		CyUnit kGoodyUnit(pUnit);
-		CyArgsList argsList;
-		argsList.add(getID());		// pass in this players ID
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(&kGoodyPlot));
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(&kGoodyUnit));
-
-		long result=0;
-		bool ok = PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doGoody", argsList.makeFunctionArgs(), &result);
-		if (ok && result)
-		{
-			return;
-		}
-	}
-
 	FAssertMsg(pPlot->isGoody(), "pPlot->isGoody is expected to be true");
 
 	pPlot->removeGoody();
@@ -9397,51 +9354,13 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
 
 bool CvPlayer::canFound(int iX, int iY, bool bTestVisible) const
 {
-	CvPlot* pPlot;
-	CvPlot* pLoopPlot;
-	//bool bValid;
-	int iRange;
-	int iDX, iDY;
-
-	pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-
-	long lResult=0;
-	if(GC.getUSE_CANNOT_FOUND_CITY_CALLBACK())
+	if (GC.getGameINLINE().isFinalInitialized() && GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman() && getNumCities() > 0)
 	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add((int)getID());
-		argsList.add(iX);
-		argsList.add(iY);
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotFoundCity", argsList.makeFunctionArgs(), &lResult);
-
-		if (lResult == 1)
-		{
-			return false;
-		}
+		return false;
 	}
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 
-	if (GC.getGameINLINE().isFinalInitialized())
-	{
-		if (GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
-		{
-			if (getNumCities() > 0)
-			{
-				return false;
-			}
-		}
-	}
-
-/************************************************************************************************/
-/* Afforess	Mountains Start		 09/18/09                                           		 */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if (pPlot->isImpassable(getTeam())) //added getTeam()
-/************************************************************************************************/
-/* Afforess	Mountains End       END        		                                             */
-/************************************************************************************************/
+	if (pPlot->isImpassable(getTeam()))
 	{
 		return false;
 	}
@@ -9452,35 +9371,28 @@ bool CvPlayer::canFound(int iX, int iY, bool bTestVisible) const
 		return false;
 	}
 
-	if (!isBarbarian() && !bTestVisible && getCityLimit() > 0 && getCityOverLimitUnhappy() == 0)
+	if (!isBarbarian() && !bTestVisible && getCityLimit() > 0 && getCityOverLimitUnhappy() == 0 && getNumCities() >= getCityLimit())
 	{
-		if (getNumCities() >= getCityLimit())
-		{
-			return false;
-		}
+		return false;
 	}
 
 	if (!bTestVisible)
 	{
-		iRange = GC.getMIN_CITY_RANGE();
+		const int iRange = GC.getMIN_CITY_RANGE();
 
-		for (iDX = -(iRange); iDX <= iRange; iDX++)
+		for (int iDX = -(iRange); iDX <= iRange; iDX++)
 		{
-			for (iDY = -(iRange); iDY <= iRange; iDY++)
+			for (int iDY = -(iRange); iDY <= iRange; iDY++)
 			{
-				pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+				const CvPlot* pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
 
-				if (pLoopPlot != NULL)
+				if (pLoopPlot != NULL && pLoopPlot->isCity())
 				{
-					if (pLoopPlot->isCity())
-					{
-						return false;
-					}
+					return false;
 				}
 			}
 		}
 	}
-
 	return true;
 }
 
@@ -10534,23 +10446,6 @@ int CvPlayer::getProductionNeeded(UnitTypes eUnit) const
 
 	iProductionNeeded += getUnitExtraCost(eUnitClass);
 
-	// Python cost modifier
-	if(GC.getUSE_GET_UNIT_COST_MOD_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(getID());	// Player ID
-		argsList.add((int)eUnit);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "getUnitCostMod", argsList.makeFunctionArgs(), &lResult);
-
-		if (lResult > 1)
-		{
-			iProductionNeeded *= lResult;
-			iProductionNeeded /= 100;
-		}
-	}
 	if (isBarbarian() && (GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS)))
 	{
 		iProductionNeeded /=3;
@@ -11640,53 +11535,7 @@ int CvPlayer::calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost) const
 
 int CvPlayer::calculatePreInflatedCosts() const
 {
-/************************************************************************************************/
-/* Afforess	                  Start		 04/29/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	long lResult = 0;
-	if (GC.getUSE_EXTRA_PLAYER_COSTS_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(getID());
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "getExtraCost", argsList.makeFunctionArgs(), &lResult);
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-
-/************************************************************************************************/
-/* Afforess	                  Start		 06/19/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	int iCosts = 0;
-	//ls612: All of the following functions (except for Corporate Tax) are modified by a new Gamespeed Gold tag.
-	//This is done in order for the displayed numbers in the Financial Advisor to be correct.
-	iCosts += calculateUnitCost();
-	iCosts += calculateUnitSupply();
-	iCosts += getTotalMaintenance();
-	iCosts += getCivicUpkeep();
-	//ls612: Old Code
-	//iCosts += (int)lResult;
-	iCosts -= getCorporateTaxIncome();
-
-	//ls612: New Code for Gamespeed Gold modifiers
-	lResult *= (GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getGoldModifier());
-
-	if (lResult != 0)
-	{
-		lResult /= 100;
-	}
-
-	iCosts += (int)lResult;
-	return iCosts;
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
+	return calculateUnitCost() + calculateUnitSupply() + getTotalMaintenance() + getCivicUpkeep() - getCorporateTaxIncome();
 }
 
 //	Called once per turn to update the current cost-to-turn-1-cost ratio
@@ -11824,9 +11673,7 @@ int CvPlayer::calculateInflationRate() const
 	{
 		return 0;
 	}
-	int iRatePercent = (m_accruedCostRatioTimes10000 == -1 ? 0 : (m_accruedCostRatioTimes10000-10000)/100);
-
-	return iRatePercent;
+	return (m_accruedCostRatioTimes10000 == -1 ? 0 : (m_accruedCostRatioTimes10000-10000)/100);
 }
 
 
@@ -12089,27 +11936,7 @@ int CvPlayer::calculateTotalCommerce() const
 
 bool CvPlayer::isResearch() const
 {
-	if(GC.getUSE_IS_PLAYER_RESEARCH_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		long lResult;
-		argsList.add(getID());
-		lResult = 1;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "isPlayerResearch", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 0)
-		{
-			return false;
-		}
-	}
-
-	if (!isFoundedFirstCity())
-	{
-		return false;
-	}
-
-	return true;
+	return isFoundedFirstCity();
 }
 
 
@@ -12124,32 +11951,10 @@ bool CvPlayer::canEverResearch(TechTypes eTech) const
 	{
 		return false;
 	}
-/************************************************************************************************/
-/* Afforess	                  Start		 04/01/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+
 	if (!GC.getGameINLINE().canEverResearch(eTech))
 	{
 		return false;
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-	if(GC.getUSE_CANNOT_RESEARCH_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(getID());
-		argsList.add(eTech);
-		argsList.add(false);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotResearch", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-		{
-			return false;
-		}
 	}
 
 	return true;
@@ -12158,26 +11963,6 @@ bool CvPlayer::canEverResearch(TechTypes eTech) const
 
 bool CvPlayer::canResearch(TechTypes eTech, bool bTrade) const
 {
-	bool bFoundPossible;
-	bool bFoundValid;
-	int iI;
-
-	if(GC.getUSE_CAN_RESEARCH_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(getID());
-		argsList.add(eTech);
-		argsList.add(bTrade);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canResearch", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-		{
-			return true;
-		}
-	}
-
 	if (!isResearch() && getAdvancedStartPoints() < 0)
 	{
 		return false;
@@ -12188,10 +11973,10 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade) const
 		return false;
 	}
 
-	bFoundPossible = false;
-	bFoundValid = false;
+	bool bFoundPossible = false;
+	bool bFoundValid = false;
 
-	for (iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(); iI++)
+	for (int iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(); iI++)
 	{
 		TechTypes ePrereq = (TechTypes)GC.getTechInfo(eTech).getPrereqOrTechs(iI);
 		if (ePrereq != NO_TECH)
@@ -12214,7 +11999,7 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade) const
 		return false;
 	}
 
-	for (iI = 0; iI < GC.getNUM_AND_TECH_PREREQS(); iI++)
+	for (int iI = 0; iI < GC.getNUM_AND_TECH_PREREQS(); iI++)
 	{
 		TechTypes ePrereq = (TechTypes)GC.getTechInfo(eTech).getPrereqAndTechs(iI);
 		if (ePrereq != NO_TECH)
@@ -12286,21 +12071,17 @@ bool CvPlayer::isCurrentResearchRepeat() const
 
 bool CvPlayer::isNoResearchAvailable() const
 {
-	int iI;
-
 	if (getCurrentResearch() != NO_TECH)
 	{
 		return false;
 	}
-
-	for (iI = 0; iI < GC.getNumTechInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
 	{
 		if (canResearch((TechTypes)iI))
 		{
 			return false;
 		}
 	}
-
 	return true;
 }
 
@@ -12413,50 +12194,19 @@ bool CvPlayer::canDoCivics(CivicTypes eCivic) const
 {
 	PROFILE_FUNC();
 
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       02/16/10                                jdog5000      */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
-	// Circumvents second crash bug in simultaneous turns MP games
-	if( eCivic == NO_CIVIC )
+	if (eCivic == NO_CIVIC)
 	{
 		return true;
 	}
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
 
 	if (GC.getGameINLINE().isForceCivicOption((CivicOptionTypes)(GC.getCivicInfo(eCivic).getCivicOptionType())))
 	{
 		return GC.getGameINLINE().isForceCivic(eCivic);
 	}
-/************************************************************************************************/
-/* Afforess	                  Start		 5/28/11                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if (!isBarbarian() && GC.getCivicInfo(eCivic).getCityLimit(getID()) > 0 && GC.getCivicInfo(eCivic).getCityOverLimitUnhappy() == 0) {
-		if (GC.getCivicInfo(eCivic).getCityLimit(getID()) < getNumCities()) {
-			return false;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                  End		 5/28/11                                                */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_DO_CIVIC_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
 
-		CyArgsList argsList;
-		argsList.add(getID());
-		argsList.add(eCivic);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canDoCivic", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-		{
-			return true;
-		}
+	if (!isBarbarian() && GC.getCivicInfo(eCivic).getCityLimit(getID()) > 0 && GC.getCivicInfo(eCivic).getCityOverLimitUnhappy() == 0 && GC.getCivicInfo(eCivic).getCityLimit(getID()) < getNumCities())
+	{
+		return false;
 	}
 
 	if (!isHasCivicOption((CivicOptionTypes)(GC.getCivicInfo(eCivic).getCivicOptionType())) && !(GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getCivicInfo(eCivic).getTechPrereq()))))
@@ -12466,29 +12216,11 @@ bool CvPlayer::canDoCivics(CivicTypes eCivic) const
 
 	for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
 	{
-		if (isCivic((CivicTypes)iI))
-		{
-			if (GC.getCivicInfo((CivicTypes)iI).isForbiddenCivic(eCivic))
-			{
-				return false;
-			}
-		}
-	}
-	if(GC.getUSE_CANNOT_DO_CIVIC_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList2; // XXX
-		argsList2.add(getID());
-		argsList2.add(eCivic);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotDoCivic", argsList2.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
+		if (isCivic((CivicTypes)iI) && GC.getCivicInfo((CivicTypes)iI).isForbiddenCivic(eCivic))
 		{
 			return false;
 		}
 	}
-
 	return true;
 }
 
@@ -20571,43 +20303,8 @@ void CvPlayer::doGold()
 {
 	PROFILE_FUNC()
 
-	bool bStrike;
-	int iGoldChange;
-	int iDisbandUnit;
-	int iI;
-
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_DO_GOLD_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(getID());
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doGold", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-	iGoldChange = calculateGoldRate();
-
-	//	KOSHLING - this assert appears to be out of date.  It gets hit and then handled by the strike
-	//	code immediately below which doesn't really have any other purpose
-	//FAssert(isHuman() || isBarbarian() || ((getGold() + iGoldChange) >= 0) || isAnarchy());
-
-	changeGold(iGoldChange);
-
+	changeGold(calculateGoldRate());
 	changeGold(getInterest());
-
-	bStrike = false;
 
 	if (getGold() < 0)
 	{
@@ -20615,34 +20312,26 @@ void CvPlayer::doGold()
 
 		if (!isBarbarian() && (getNumCities() > 0))
 		{
-			bStrike = true;
-		}
-	}
+			setStrike(true);
+			changeStrikeTurns(1);
 
-	if (bStrike)
-	{
-		setStrike(true);
-		changeStrikeTurns(1);
-
-		if (getStrikeTurns() > 1)
-		{
-			iDisbandUnit = (getStrikeTurns() / 2); // XXX mod?
-
-			for (iI = 0; iI < iDisbandUnit; iI++)
+			if (getStrikeTurns() > 1)
 			{
-				disbandUnit(true);
+				const int iDisbandUnit = getStrikeTurns() / 2;
 
-				if (calculateGoldRate() >= 0)
+				for (int iI = 0; iI < iDisbandUnit; iI++)
 				{
-					break;
+					disbandUnit(true);
+
+					if (calculateGoldRate() >= 0)
+					{
+						break;
+					}
 				}
 			}
 		}
 	}
-	else
-	{
-		setStrike(false);
-	}
+	else setStrike(false);
 }
 
 
@@ -20650,39 +20339,15 @@ void CvPlayer::doResearch()
 {
 	PROFILE_FUNC()
 
-	bool bForceResearchChoice;
-	int iOverflowResearch;
-
 	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
 	{
 		m_aiPathLengthCache[iI] = -1;
 		m_aiCostPathLengthCache[iI] = -1;
 	}
 
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_DO_RESEARCH_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(getID());
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doResearch", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	if (isResearch())
 	{
-		bForceResearchChoice = false;
+		bool bForceResearchChoice = false;
 
 		if (getCurrentResearch() == NO_TECH)
 		{
@@ -20702,12 +20367,12 @@ void CvPlayer::doResearch()
 		TechTypes eCurrentTech = getCurrentResearch();
 		if (eCurrentTech == NO_TECH)
 		{
-			int iOverflow = (100 * calculateResearchRate()) / std::max(1, calculateResearchModifier(eCurrentTech));
+			const int iOverflow = (100 * calculateResearchRate()) / std::max(1, calculateResearchModifier(eCurrentTech));
 			changeOverflowResearch(iOverflow);
 		}
 		else
 		{
-			iOverflowResearch = (getOverflowResearch() * calculateResearchModifier(eCurrentTech)) / 100;
+			const int iOverflowResearch = (getOverflowResearch() * calculateResearchModifier(eCurrentTech)) / 100;
 			setOverflowResearch(0);
 			GET_TEAM(getTeam()).changeResearchProgress(eCurrentTech, (calculateResearchRate() + iOverflowResearch), getID());
 		}

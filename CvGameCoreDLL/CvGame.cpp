@@ -4140,32 +4140,15 @@ void CvGame::setModem(bool bModem)
 /************************************************************************************************/
 void CvGame::reviveActivePlayer()
 {
-	if (!(GET_PLAYER(getActivePlayer()).isAlive()))
+	if (!GET_PLAYER(getActivePlayer()).isAlive())
 	{
-		if(isForcedAIAutoPlay(getActivePlayer()))
+		if (isForcedAIAutoPlay(getActivePlayer()))
 		{
 			setForcedAIAutoPlay(getActivePlayer(), 0);
-		} else
-		{
-			setAIAutoPlay(getActivePlayer(), 0);
 		}
+		else setAIAutoPlay(getActivePlayer(), 0);
 
 		GC.getInitCore().setSlotStatus(getActivePlayer(), SS_TAKEN);
-		
-		// Let Python handle it
-		{
-			PYTHON_ACCESS_LOCK_SCOPE
-
-			long lResult=0;
-			CyArgsList argsList;
-			argsList.add(getActivePlayer());
-
-			PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doReviveActivePlayer", argsList.makeFunctionArgs(), &lResult);
-			if (lResult == 1)
-			{
-				return;
-			}
-		}
 
 		GET_PLAYER(getActivePlayer()).initUnit(((UnitTypes)0), 0, 0, NO_UNITAI, NO_DIRECTION, 0);
 	}
@@ -4173,32 +4156,15 @@ void CvGame::reviveActivePlayer()
 
 void CvGame::reviveActivePlayer(PlayerTypes iPlayer)
 {
-	if (!(GET_PLAYER(iPlayer).isAlive()))
+	if (!GET_PLAYER(iPlayer).isAlive())
 	{
-		if(isForcedAIAutoPlay(iPlayer))
+		if (isForcedAIAutoPlay(iPlayer))
 		{
 			setForcedAIAutoPlay(iPlayer, 0);
-		} else
-		{
-			setAIAutoPlay(iPlayer, 0);
 		}
+		else setAIAutoPlay(iPlayer, 0);
 
 		GC.getInitCore().setSlotStatus(iPlayer, SS_TAKEN);
-		
-		// Let Python handle it
-		{
-			PYTHON_ACCESS_LOCK_SCOPE
-
-			long lResult=0;
-			CyArgsList argsList;
-			argsList.add(iPlayer);
-
-			PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doReviveActivePlayer", argsList.makeFunctionArgs(), &lResult);
-			if (lResult == 1)
-			{
-				return;
-			}
-		}
 
 		GET_PLAYER(iPlayer).initUnit(((UnitTypes)0), 0, 0, NO_UNITAI, NO_DIRECTION, 0);
 	}
@@ -7909,20 +7875,6 @@ void CvGame::doGlobalWarming()
 
 void CvGame::doHolyCity()
 {
-	PlayerTypes eBestPlayer;
-	TeamTypes eBestTeam;
-	long lResult;
-	int iValue;
-	int iBestValue;
-	int iI, iJ, iK;
-
-	lResult = 0;
-	PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doHolyCity", NULL, &lResult);
-	if (lResult == 1)
-	{
-		return;
-	}
-
 /************************************************************************************************/
 /* RevDCM	                  Start		09/08/10                                                */
 /*                                                                                              */
@@ -7936,6 +7888,11 @@ void CvGame::doHolyCity()
 /************************************************************************************************/
 /* REVDCM                                  END                                                  */
 /************************************************************************************************/
+	PlayerTypes eBestPlayer;
+	TeamTypes eBestTeam;
+	int iValue;
+	int iBestValue;
+	int iI, iJ, iK;
 
 	int iRandOffset = getSorenRandNum(GC.getNumReligionInfos(), "Holy City religion offset");
 	for (int iLoop = 0; iLoop < GC.getNumReligionInfos(); ++iLoop)
@@ -8425,9 +8382,7 @@ void CvGame::createBarbarianCities()
 
 	CvPlot* pLoopPlot;
 	CvPlot* pBestPlot;
-	long lResult;
 	int iTargetCities;
-	int iValue;
 	int iBestValue;
 	int iI;
 
@@ -8437,13 +8392,6 @@ void CvGame::createBarbarianCities()
 	}
 
 	if (isOption(GAMEOPTION_NO_BARBARIANS))
-	{
-		return;
-	}
-
-	lResult = 0;
-	PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "createBarbarianCities", NULL, &lResult);
-	if (lResult == 1)
 	{
 		return;
 	}
@@ -8486,12 +8434,9 @@ void CvGame::createBarbarianCities()
 			return;
 		}
 	}
-	else
+	else if (getNumCivCities() < (countCivPlayersAlive() * 2))
 	{
-		if (getNumCivCities() < (countCivPlayersAlive() * 2))
-		{
-			return;
-		}
+		return;
 	}
 
 	if (getElapsedGameTurns() < (((GC.getHandicapInfo(getHandicapType()).getBarbarianCityCreationTurnsElapsed() * GC.getGameSpeedInfo(getGameSpeedType()).getBarbPercent()) / 100) / std::max(getStartEra() + 1, 1)))
@@ -8594,7 +8539,7 @@ void CvGame::createBarbarianCities()
 
 				if (pLoopPlot->area()->getCitiesPerPlayer(BARBARIAN_PLAYER) < iTargetCities)
 				{
-					iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE"));
+					int iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE"));
 				
 /************************************************************************************************/
 /* REVOLUTION_MOD                         02/01/09                                jdog5000      */
@@ -8669,8 +8614,6 @@ void CvGame::createBarbarianUnits()
 	UnitAITypes eBarbUnitAI;
 	UnitTypes eBestUnit;
 	UnitTypes eLoopUnit;
-	bool bAnimals;
-	long lResult;
 	int iNeededBarbs;
 	int iDivisor;
 	int iValue;
@@ -8689,19 +8632,7 @@ void CvGame::createBarbarianUnits()
 		iBarbsTurnsElapsed = 1;
 	}
 
-	lResult = 0;
-	PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "createBarbarianUnits", NULL, &lResult);
-	if (lResult == 1)
-	{
-		return;
-	}
-
-	bAnimals = false;
-		
-	if (GC.getEraInfo(getCurrentEra()).isNoBarbUnits())
-	{
-		bAnimals = true;
-	}
+	bool bAnimals = GC.getEraInfo(getCurrentEra()).isNoBarbUnits();
 
 #ifdef C2C_BUILD
 //TB animal mod begin
@@ -9734,33 +9665,6 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 //Sevo End VCM
 #endif
 	}
-
-	if (bValid)
-	{
-/************************************************************************************************/
-/* Afforess	                  Start		 12/26/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-		if(GC.getUSE_IS_VICTORY_CALLBACK())
-		{
-			PYTHON_ACCESS_LOCK_SCOPE
-
-			long lResult = 1;
-			CyArgsList argsList;
-			argsList.add(eVictory);
-			PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "isVictory", argsList.makeFunctionArgs(), &lResult);
-			if (0 == lResult)
-			{
-				bValid = false;
-			}
-		}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-
-	}
-
 	return bValid;
 }
 

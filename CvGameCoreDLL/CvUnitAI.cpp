@@ -180,33 +180,9 @@ bool CvUnitAI::AI_update()
 	getGroup()->setActivityType(ACTIVITY_AWAKE);
 
 	FAssertMsg(isGroupHead(), "isGroupHead is expected to be true"); // XXX is this a good idea???
-/************************************************************************************************/
-/* Afforess	                  Start		 02/20/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_AI_UPDATE_UNIT_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		// allow python to handle it
-		CyUnit* pyUnit = new CyUnit(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyUnit));	// pass in unit class
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "AI_unitUpdate", argsList.makeFunctionArgs(), &lResult);
-		delete pyUnit;	// python fxn must not hold on to this pointer
-		if (lResult == 1)
-		{
-			return false;
-		}
-	}
 
 	CvReachablePlotSet::ClearCache();
 
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	if (getDomainType() == DOMAIN_LAND)
 	{
 /************************************************************************************************/
@@ -222,17 +198,14 @@ bool CvUnitAI::AI_update()
 			getGroup()->pushMission(MISSION_SKIP);
 			return false;
 		}
-		else
-		{
-			pTransportUnit = getTransportUnit();
+		pTransportUnit = getTransportUnit();
 
-			if (pTransportUnit != NULL)
+		if (pTransportUnit != NULL)
+		{
+			if (pTransportUnit->getGroup()->hasMoved() || (pTransportUnit->getGroup()->headMissionQueueNode() != NULL))
 			{
-				if (pTransportUnit->getGroup()->hasMoved() || (pTransportUnit->getGroup()->headMissionQueueNode() != NULL))
-				{
-					getGroup()->pushMission(MISSION_SKIP);
-					return false;
-				}
+				getGroup()->pushMission(MISSION_SKIP);
+				return false;
 			}
 		}
 	}

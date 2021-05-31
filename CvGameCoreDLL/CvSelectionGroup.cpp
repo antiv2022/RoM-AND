@@ -5065,34 +5065,6 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 						}
 
 						bAttack = true;
-/************************************************************************************************/
-/* Afforess	                  Start		 04/29/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-						if (GC.getUSE_CAN_DO_COMBAT_CALLBACK())
-						{
-							PYTHON_ACCESS_LOCK_SCOPE
-
-							PROFILE("CvSelectionGroup::groupAttack.Python");
-
-							CySelectionGroup* pyGroup = new CySelectionGroup(this);
-							CyPlot* pyPlot = new CyPlot(pDestPlot);
-							CyArgsList argsList;
-							argsList.add(gDLL->getPythonIFace()->makePythonObject(pyGroup));	// pass in Selection Group class
-							argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));	// pass in Plot class
-							long lResult=0;
-							PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doCombat", argsList.makeFunctionArgs(), &lResult);
-							delete pyGroup;	// python fxn must not hold on to this pointer 
-							delete pyPlot;	// python fxn must not hold on to this pointer 
-							if (lResult == 1)
-							{
-								break;
-							} 
-						}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 
 						if (getNumUnits() > 1)
 						{
@@ -7632,53 +7604,15 @@ bool CvSelectionGroup::groupStackAttack(int iX, int iY, int iFlags, bool& bFaile
 							}
 						}
 						bAttack = true;
-/************************************************************************************************/
-/* Afforess	                  Start		 04/29/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-						if (GC.getUSE_CAN_DO_COMBAT_CALLBACK())
-						{
-							PYTHON_ACCESS_LOCK_SCOPE
-
-							CySelectionGroup* pyGroup = new CySelectionGroup(this);
-							CyPlot* pyPlot = new CyPlot(pDestPlot);
-							CyArgsList argsList;
-							argsList.add(gDLL->getPythonIFace()->makePythonObject(pyGroup));	// pass in Selection Group class
-							argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));	// pass in Plot class
-							long lResult=0;
-							PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doCombat", argsList.makeFunctionArgs(), &lResult);
-							delete pyGroup;	// python fxn must not hold on to this pointer 
-							delete pyPlot;	// python fxn must not hold on to this pointer 
-							if (lResult == 1)
-							{
-								break;
-							}
-						}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 
 						pBestAttackUnit->attack(pDestPlot, false);
 						if (bFailedAlreadyFighting || !bStack)
 						{
 							// if this is AI stack, follow through with the attack to the end
-/************************************************************************************************/
-/* Afforess	                  Start		 07/12/10                                               */
-/*                                                                                              */
-/* Allow Automated Units to Stack Attack                                                        */
-/************************************************************************************************/
-/*
-							if (!isHuman() && getNumUnits() > 1)
-*/
 							if ((!isHuman() || isAutomated()) && getNumUnits() > 1)
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 							{
 								AI_queueGroupAttack(iX, iY);
 							}
-							
 							break;
 						}
 					}

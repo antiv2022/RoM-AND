@@ -235,7 +235,6 @@ public:
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false, bool bIncludePythonOverrides = true) const;						// Exposed to Python												// Exposed to Python
 	static bool hasCachedCanBuildEntry(int iX, int iY, BuildTypes eBuild, PlayerTypes ePlayer, struct canBuildCacheEntry*& entry);
 	long canBuildFromPython(BuildTypes eBuild, PlayerTypes ePlayer) const;
-	long canBuildFromPythonInternal(BuildTypes eBuild, PlayerTypes ePlayer) const;
 
 	bool isImprovementDestructible() const;
 

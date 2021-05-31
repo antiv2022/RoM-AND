@@ -269,11 +269,6 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 		return false;
 	}
 
-	if (!ReadGlobalDefines("xml\\PythonCallbackDefines.xml", cache))
-	{
-		return false;
-	}
-
 	//	Parallel maps
 	if (!ReadGlobalDefines("xml\\ParallelMaps_GlobalDefines.xml", cache))
 	{
@@ -342,17 +337,6 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 				return false;
 			}
 		}
-
-		std::vector<CvString> aszModularFiles;
-		gDLL->enumerateFiles(aszModularFiles, "modules\\*_PythonCallbackDefines.xml");
-
-		for (std::vector<CvString>::iterator it = aszModularFiles.begin(); it != aszModularFiles.end(); ++it)
-		{
-			if (!ReadGlobalDefines(*it, cache))
-			{
-				return false;
-			}
-		}
 	}
 /************************************************************************************************/
 /* MODULAR_LOADING_CONTROL                 11/15/07                                MRGENIE      */
@@ -386,34 +370,6 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 			{
 				return false;
 			}
-
-#ifdef GRANULAR_CALLBACK_CONTROL
-			//	KOSHLING - granular control over Python callbacks - so far implements
-			//		CanTrain
-			//		CannotTrain
-			const char* entityList;
-			//	CanTrain
-			if ( GC.getDefinesVarSystem()->GetValue("USE_CAN_TRAIN_CALLBACK_GRANULAR", entityList) )
-			{
-				cvInternalGlobals::getInstance().m_pythonCallbackController.RegisterUnitCallback(CALLBACK_TYPE_CAN_TRAIN, entityList);
-
-				GC.getDefinesVarSystem()->RemValue("USE_CAN_TRAIN_CALLBACK_GRANULAR");
-			}
-			//	CannotTrain
-			if ( GC.getDefinesVarSystem()->GetValue("USE_CANNOT_TRAIN_CALLBACK_GRANULAR", entityList) )
-			{
-				cvInternalGlobals::getInstance().m_pythonCallbackController.RegisterUnitCallback(CALLBACK_TYPE_CANNOT_TRAIN, entityList);
-
-				GC.getDefinesVarSystem()->RemValue("USE_CANNOT_TRAIN_CALLBACK_GRANULAR");
-			}
-			//	CanBuild
-			if ( GC.getDefinesVarSystem()->GetValue("USE_CAN_BUILD_CALLBACK_GRANULAR", entityList) )
-			{
-				cvInternalGlobals::getInstance().m_pythonCallbackController.RegisterBuildCallback(CALLBACK_TYPE_CAN_BUILD, entityList);
-
-				GC.getDefinesVarSystem()->RemValue("USE_CAN_BUILD_CALLBACK_GRANULAR");
-			}
-#endif
 		}
 		aszFiles.clear();
 		aszModularFiles.clear();

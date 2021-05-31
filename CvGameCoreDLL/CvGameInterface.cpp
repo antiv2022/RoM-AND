@@ -36,7 +36,6 @@ void CvGame::updateColoredPlots()
 	CvPlot* pLoopPlot;
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pNextBestPlot = NULL;
-	long lResult;
 	int iMaxAirRange;
 	int iRange;
 	int iDX, iDY;
@@ -50,13 +49,6 @@ void CvGame::updateColoredPlots()
 	if (!gDLL->GetWorldBuilderMode() || gDLL->getInterfaceIFace()->isInAdvancedStart())
 	{
 		gDLL->getEngineIFace()->clearColoredPlots(PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
-	}
-
-	lResult = 0;
-	PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "updateColoredPlots", NULL, &lResult);
-	if (lResult == 1)
-	{
-		return;
 	}
 
 /************************************************************************************************/
@@ -1298,41 +1290,16 @@ bool CvGame::selectCity(CvCity* pSelectCity, bool bCtrl, bool bAlt, bool bShift)
 
 void CvGame::selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl) const
 {
-	CLLNode<IDInfo>* pSelectedUnitNode;
-	CvUnit* pHeadSelectedUnit;
-	CvUnit* pSelectedUnit;
-	TeamTypes eRivalTeam;
-
 	if (pPlot == NULL)
 	{
 		return;
 	}
-
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyPlot* pyPlot = new CyPlot(pPlot);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));	// pass in plot class
-		argsList.add(bAlt);
-		argsList.add(bShift);
-		argsList.add(bCtrl);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotSelectionListMove", argsList.makeFunctionArgs(), &lResult);
-		delete pyPlot;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-
-	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
 
 	if ((pHeadSelectedUnit == NULL) || (pHeadSelectedUnit->getOwnerINLINE() != getActivePlayer()))
 	{
 		return;
 	}
-
 	if (bAlt)
 	{
 		gDLL->getInterfaceIFace()->selectGroup(pHeadSelectedUnit, false, false, true);
@@ -1343,16 +1310,16 @@ void CvGame::selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl
 	}
 
 // BUG - Declare War - start
-	bool bAskToDeclareWar = getBugOptionBOOL("Actions__AskDeclareWarUnits", true, "BUG_ASK_DECLARE_WAR_UNITS");
+	const bool bAskToDeclareWar = getBugOptionBOOL("Actions__AskDeclareWarUnits", true, "BUG_ASK_DECLARE_WAR_UNITS");
 // BUG - Declare War - end
 
-	pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+	CLLNode<IDInfo>* pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 
 	while (pSelectedUnitNode != NULL)
 	{
-		pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+		CvUnit* pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
 
-		eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
+		const TeamTypes eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
 
 // BUG - Declare War - start
 		// only ask if option is off or moving into rival territory without open borders
@@ -1386,37 +1353,63 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 
 void CvGame::selectionListGameNetMessageInternal(int eMessage, int iData2, int iData3, int iData4, int iFlags, bool bAlt, bool bShift, bool bInViewportCoordinates) const
 {
-	CLLNode<IDInfo>* pSelectedUnitNode;
-	CvUnit* pHeadSelectedUnit;
-	CvUnit* pSelectedUnit;
+	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
 
+	if (pHeadSelectedUnit != NULL && pHeadSelectedUnit->getOwnerINLINE() == getActivePlayer())
 	{
-		PYTHON_ACCESS_LOCK_SCOPE
+		CLLNode<IDInfo>* pSelectedUnitNode;
+		CvUnit* pSelectedUnit;
 
-		CyArgsList argsList;
-		argsList.add(eMessage);	// pass in plot class
-		argsList.add(iData2);
-		argsList.add(iData3);
-		argsList.add(iData4);
-		argsList.add(iFlags);
-		argsList.add(bAlt);
-		argsList.add(bShift);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotSelectionListGameNetMessage", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
+		if (eMessage == GAMEMESSAGE_JOIN_GROUP)
 		{
-			return;
-		}
-	}
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 
-	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-
-	if (pHeadSelectedUnit != NULL)
-	{
-		if (pHeadSelectedUnit->getOwnerINLINE() == getActivePlayer())
-		{
-			if (eMessage == GAMEMESSAGE_JOIN_GROUP)
+			while (pSelectedUnitNode != NULL)
 			{
+				pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+				pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+
+				if (bShift)
+				{
+					CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(), FFreeList::INVALID_INDEX);
+				}
+				else
+				{
+					if (pSelectedUnit == pHeadSelectedUnit)
+					{
+						CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(), FFreeList::INVALID_INDEX);
+					}
+					CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(), pHeadSelectedUnit->getID());
+				}
+			}
+
+			if (bShift)
+			{
+				gDLL->getInterfaceIFace()->selectUnit(pHeadSelectedUnit, true);
+			}
+		}
+		else if (eMessage == GAMEMESSAGE_DO_COMMAND)
+		{
+// BUG - All Units Actions - start
+			if ((iData2 == COMMAND_DELETE) && bAlt)
+			{
+				CvPlayerAI& kPlayer = GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE());
+				int iLoop = 0;
+				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+				pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+				UnitTypes kType = pSelectedUnit->getUnitType();
+
+				for (CvUnit* pLoopUnit = kPlayer.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kPlayer.nextUnit(&iLoop))
+				{
+					if (pLoopUnit->getUnitType() == kType)
+					{
+						CvMessageControl::getInstance().sendDoCommand(pLoopUnit->getID(), ((CommandTypes)iData2), iData3, iData4, bAlt);
+					}
+				}
+			}
+			else
+			{
+				// unchanged
 				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 
 				while (pSelectedUnitNode != NULL)
@@ -1424,128 +1417,78 @@ void CvGame::selectionListGameNetMessageInternal(int eMessage, int iData2, int i
 					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 
-					if (bShift)
-					{
-						CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(), FFreeList::INVALID_INDEX);
-					}
-					else
-					{
-						if (pSelectedUnit == pHeadSelectedUnit)
-						{
-							CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(), FFreeList::INVALID_INDEX);
-						}
-
-						CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(), pHeadSelectedUnit->getID());
-					}
-				}
-
-				if (bShift)
-				{
-					gDLL->getInterfaceIFace()->selectUnit(pHeadSelectedUnit, true);
+					CvMessageControl::getInstance().sendDoCommand(pSelectedUnit->getID(), ((CommandTypes)iData2), iData3, iData4, bAlt);
 				}
 			}
-			else if (eMessage == GAMEMESSAGE_DO_COMMAND)
+// BUG - All Units Actions - end
+		}
+		else if ((eMessage == GAMEMESSAGE_PUSH_MISSION) || (eMessage == GAMEMESSAGE_AUTO_MISSION))
+		{
+			if (!(gDLL->getInterfaceIFace()->mirrorsSelectionGroup()))
+			{
+				selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
+			}
+
+			if (eMessage == GAMEMESSAGE_PUSH_MISSION)
 			{
 // BUG - All Units Actions - start
-				if ((iData2 == COMMAND_DELETE) && bAlt)
+				if (((iData2 == MISSION_FORTIFY) || (iData2 == MISSION_SLEEP)) && bAlt)
 				{
 					CvPlayerAI& kPlayer = GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE());
 					int iLoop = 0;
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-					UnitTypes kType = pSelectedUnit->getUnitType();
+					UnitTypes eUnit = pSelectedUnit->getUnitType();
 
-					for (CvUnit* pLoopUnit = kPlayer.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kPlayer.nextUnit(&iLoop))
+					for(CvSelectionGroup* pLoopSelectionGroup = kPlayer.firstSelectionGroup(&iLoop); pLoopSelectionGroup; pLoopSelectionGroup = kPlayer.nextSelectionGroup(&iLoop))
 					{
-						if (pLoopUnit->getUnitType() == kType)
-						{
-                            CvMessageControl::getInstance().sendDoCommand(pLoopUnit->getID(), ((CommandTypes)iData2), iData3, iData4, bAlt);
-						}
+						if (pLoopSelectionGroup->allMatch(eUnit))
+							CvMessageControl::getInstance().sendPushMission(pLoopSelectionGroup->getHeadUnit()->getID(), ((MissionTypes)iData2), iData3, iData4, iFlags, bShift);
 					}
 				}
 				else
 				{
+					//	For missions that take plot coordinates, convert to map coordinates
+					if ( bInViewportCoordinates )
+					{
+						switch(iData2)
+						{
+						case MISSION_MOVE_TO:
+						case MISSION_ROUTE_TO:
+						case MISSION_NUKE:
+						case MISSION_RECON:
+						case MISSION_PARADROP:
+						case MISSION_AIRLIFT:
+						case MISSION_AIRBOMB:
+						case MISSION_AIRBOMB1:
+						case MISSION_AIRBOMB2:
+						case MISSION_AIRBOMB3:
+						case MISSION_AIRBOMB4:
+						case MISSION_AIRBOMB5:
+						case MISSION_FENGAGE:
+						case MISSION_VOLLEY:
+						case MISSION_CLAIM_TERRITORY:
+						case MISSION_PRETARGET_NUKE:
+							iData3 = GC.getCurrentViewport()->getMapXFromViewportX(iData3);
+							iData4 = GC.getCurrentViewport()->getMapYFromViewportY(iData4);
+							break;
+						default:
+							break;
+						}
+					}
 					// unchanged
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-					while (pSelectedUnitNode != NULL)
-					{
-						pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-						pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-
-						CvMessageControl::getInstance().sendDoCommand(pSelectedUnit->getID(), ((CommandTypes)iData2), iData3, iData4, bAlt);
-					}
+					CvMessageControl::getInstance().sendPushMission(pHeadSelectedUnit->getID(), ((MissionTypes)iData2), iData3, iData4, iFlags, bShift);
 				}
 // BUG - All Units Actions - end
-			}
-			else if ((eMessage == GAMEMESSAGE_PUSH_MISSION) || (eMessage == GAMEMESSAGE_AUTO_MISSION))
-			{
-				if (!(gDLL->getInterfaceIFace()->mirrorsSelectionGroup()))
-				{
-					selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
-				}
-
-				if (eMessage == GAMEMESSAGE_PUSH_MISSION)
-				{
-// BUG - All Units Actions - start
-					if (((iData2 == MISSION_FORTIFY) || (iData2 == MISSION_SLEEP)) && bAlt)
-					{
-						CvPlayerAI& kPlayer = GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE());
-						int iLoop = 0;
-						pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-						pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-						UnitTypes eUnit = pSelectedUnit->getUnitType();
-
-						for(CvSelectionGroup* pLoopSelectionGroup = kPlayer.firstSelectionGroup(&iLoop); pLoopSelectionGroup; pLoopSelectionGroup = kPlayer.nextSelectionGroup(&iLoop))
-						{
-							if (pLoopSelectionGroup->allMatch(eUnit))
-                                CvMessageControl::getInstance().sendPushMission(pLoopSelectionGroup->getHeadUnit()->getID(), ((MissionTypes)iData2), iData3, iData4, iFlags, bShift);
-						}
-					}
-					else
-					{
-						//	For missions that take plot coordinates, convert to map coordinates
-						if ( bInViewportCoordinates )
-						{
-							switch(iData2)
-							{
-							case MISSION_MOVE_TO:
-							case MISSION_ROUTE_TO:
-							case MISSION_NUKE:
-							case MISSION_RECON:
-							case MISSION_PARADROP:
-							case MISSION_AIRLIFT:
-							case MISSION_AIRBOMB:
-							case MISSION_AIRBOMB1:
-							case MISSION_AIRBOMB2:
-							case MISSION_AIRBOMB3:
-							case MISSION_AIRBOMB4:
-							case MISSION_AIRBOMB5:
-							case MISSION_FENGAGE:
-							case MISSION_VOLLEY:
-							case MISSION_CLAIM_TERRITORY:
-							case MISSION_PRETARGET_NUKE:
-								iData3 = GC.getCurrentViewport()->getMapXFromViewportX(iData3);
-								iData4 = GC.getCurrentViewport()->getMapYFromViewportY(iData4);
-								break;
-							default:
-								break;
-							}
-						}
-						// unchanged
-						CvMessageControl::getInstance().sendPushMission(pHeadSelectedUnit->getID(), ((MissionTypes)iData2), iData3, iData4, iFlags, bShift);
-					}
-// BUG - All Units Actions - end
-				}
-				else
-				{
-					CvMessageControl::getInstance().sendAutoMission(pHeadSelectedUnit->getID());
-				}
 			}
 			else
 			{
-				FAssert(false);
+				CvMessageControl::getInstance().sendAutoMission(pHeadSelectedUnit->getID());
 			}
+		}
+		else
+		{
+			FAssert(false);
 		}
 	}
 }
@@ -1602,24 +1545,6 @@ bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool
 	CvUnit* pHeadSelectedUnit;
 	CvPlot* pMissionPlot;
 	bool bShift = gDLL->shiftKey();
-
-	if(GC.getUSE_CANNOT_HANDLE_ACTION_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyPlot* pyPlot = new CyPlot(pPlot);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));	// pass in plot class
-		argsList.add(iAction);
-		argsList.add(bTestVisible);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotHandleAction", argsList.makeFunctionArgs(), &lResult);
-		delete pyPlot;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return false;
-		}
-	}
 
 	if (GC.getActionInfo(iAction).getControlType() != NO_CONTROL)
 	{
@@ -1798,19 +1723,6 @@ void CvGame::handleAction(int iAction)
 
 bool CvGame::canDoControl(ControlTypes eControl) const
 {
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(eControl);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotDoControl", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-		{
-			return false;
-		}
-	}
-
 	switch (eControl)
 	{
 	case CONTROL_SELECTYUNITTYPE:
@@ -2896,21 +2808,6 @@ ColorTypes CvGame::getPlotHighlightColor(CvPlot* pPlot) const
 				if (!pPlot->isRevealed(getActiveTeam(), true))
 				{
 					eColor = NO_COLOR;
-				}
-				else
-				{
-					PYTHON_ACCESS_LOCK_SCOPE
-
-					CyPlot* pyPlot = new CyPlot(pPlot);
-					CyArgsList argsList;
-					argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));	// pass in plot class
-					long lResult = 0;
-					PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canPickPlot", argsList.makeFunctionArgs(), &lResult);
-					delete pyPlot;	// python fxn must not hold on to this pointer 
-					if (lResult == 0)
-					{
-						eColor = NO_COLOR;
-					}
 				}
 				break;
 			case INTERFACEMODE_SAVE_PLOT_NIFS:

@@ -339,75 +339,50 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 		}
 	}
 
-	long lResult=0;
-
+	// From Mongoose SDK
+	// Don't remove floodplains from tiles when founding city
+	if ((pPlot->getFeatureType() != NO_FEATURE) && (pPlot->getFeatureType() != (FeatureTypes)GC.getInfoTypeForString("FEATURE_FLOOD_PLAINS")))
 	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(iX);
-		argsList.add(iY);
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "citiesDestroyFeatures", argsList.makeFunctionArgs(), &lResult);
-	}
-
-	if (lResult == 1)
-	{
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       10/30/09                     Mongoose & jdog5000      */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
-/* original bts code
-		if (pPlot->getFeatureType() != NO_FEATURE)
-*/
-		// From Mongoose SDK
-		// Don't remove floodplains from tiles when founding city
-		if ((pPlot->getFeatureType() != NO_FEATURE) && (pPlot->getFeatureType() != (FeatureTypes)GC.getInfoTypeForString("FEATURE_FLOOD_PLAINS")))
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
-		{
 /************************************************************************************************/
 /* Afforess	                  Start		 02/09/10                                               */
 /*                                                                                              */
 /*  Extra Hammer from Settling on Forest, Extra Food from Settling on Jungle                    */
 /************************************************************************************************/
-			int iProduction;
-			BuildTypes eChopBuild = findChopBuild(pPlot->getFeatureType());
-			if (eChopBuild > -1 && eChopBuild < GC.getNumBuildInfos())
+		int iProduction;
+		BuildTypes eChopBuild = findChopBuild(pPlot->getFeatureType());
+		if (eChopBuild > -1 && eChopBuild < GC.getNumBuildInfos())
+		{
+			if (GC.getInfoTypeForString("FEATURE_FOREST", true) > 0)
 			{
-				if (GC.getInfoTypeForString("FEATURE_FOREST", true) > 0)
+				if ((pPlot->getFeatureType() == (FeatureTypes)GC.getInfoTypeForString("FEATURE_FOREST")) && (GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getBuildInfo(eChopBuild).getTechPrereq())))
 				{
-					if ((pPlot->getFeatureType() == (FeatureTypes)GC.getInfoTypeForString("FEATURE_FOREST")) && (GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getBuildInfo(eChopBuild).getTechPrereq())))
-					{
-						iProduction = GC.getBuildInfo(findChopBuild(pPlot->getFeatureType())).getFeatureProduction(pPlot->getFeatureType());
-						
-						iProduction *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getFeatureProductionPercent();
-						iProduction /= 100;
-						setExtraYieldTurns(iProduction);
-					}
-				}
-				if (GC.getInfoTypeForString("FEATURE_JUNGLE", true) > 0)
-				{
-					if ((pPlot->getFeatureType() == (FeatureTypes)GC.getInfoTypeForString("FEATURE_JUNGLE")) && (GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getBuildInfo(eChopBuild).getTechPrereq())))
-					{
-						iProduction = GC.getBuildInfo(findChopBuild(pPlot->getFeatureType())).getFeatureProduction(pPlot->getFeatureType());
-						
-						iProduction *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getFeatureProductionPercent();
-						iProduction /= 100;
-						setExtraYieldTurns(-iProduction);
-					}
+					iProduction = GC.getBuildInfo(findChopBuild(pPlot->getFeatureType())).getFeatureProduction(pPlot->getFeatureType());
+					
+					iProduction *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getFeatureProductionPercent();
+					iProduction /= 100;
+					setExtraYieldTurns(iProduction);
 				}
 			}
+			if (GC.getInfoTypeForString("FEATURE_JUNGLE", true) > 0)
+			{
+				if ((pPlot->getFeatureType() == (FeatureTypes)GC.getInfoTypeForString("FEATURE_JUNGLE")) && (GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getBuildInfo(eChopBuild).getTechPrereq())))
+				{
+					iProduction = GC.getBuildInfo(findChopBuild(pPlot->getFeatureType())).getFeatureProduction(pPlot->getFeatureType());
+					
+					iProduction *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getFeatureProductionPercent();
+					iProduction /= 100;
+					setExtraYieldTurns(-iProduction);
+				}
+			}
+		}
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
 #ifdef MULTI_FEATURE_MOD
-			pPlot->removeAllFeatures();
+		pPlot->removeAllFeatures();
 #else
-			pPlot->setFeatureType(NO_FEATURE);
+		pPlot->setFeatureType(NO_FEATURE);
 #endif
-		}
 	}
 
 	pPlot->updateCityRoute(false);
@@ -1131,7 +1106,6 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 		AI_reset();
 	}
 
-	m_eConscriptUnitType = NO_UNIT;
 	m_bIsGreatWallSeed = false;
 	m_deferringBonusProcessingCount = 0;
 }
@@ -1765,20 +1739,6 @@ void CvCity::doTurnBeginProcessing()
 
 	FAssert(m_deferringBonusProcessingCount == 0);
 
-	// Allow the player to determine the type of conscripted units
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		long lConscriptUnit;
-		
-		CyArgsList argsList;
-		argsList.add(getOwnerINLINE());	// pass in player
-		lConscriptUnit = -1;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "getConscriptUnitType", argsList.makeFunctionArgs(),&lConscriptUnit);
-
-		m_eConscriptUnitType = (lConscriptUnit == -1 ? NO_UNIT : (UnitTypes)lConscriptUnit);
-	}
-
 	AI_prepareForTurnProcessing();
 
 	// Barbarian overhaul. dbkblk, 2015-09
@@ -1960,29 +1920,6 @@ void CvCity::doTurnEnactCurrentProduction(CvCityTurnPipelineWorkItem* item)
 
 	item->m_bAllowNoProduction = !doCheckProduction();
 
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_DO_PRODUCTION_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doProduction", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	if (!isHuman() || isProductionAutomated())
 	{
 		//	Koshling - with the unit contracting system we only build units to contractual
@@ -3370,29 +3307,6 @@ bool CvCity::canTrainInternal(UnitTypes eUnit, bool bContinue, bool bTestVisible
 		return false;
 	}
 
-	if(GC.getUSE_CAN_TRAIN_CALLBACK(eUnit))
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		PROFILE("canTrain.Python");
-
-		CyCity* pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList.add(eUnit);
-		argsList.add(bContinue);
-		argsList.add(bTestVisible);
-		argsList.add(bIgnoreCost);
-		argsList.add(bIgnoreUpgrades);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canTrain", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return true;
-		}
-	}
-
 	if (!plot()->canTrain(eUnit, bContinue, bTestVisible))
 	{
 		return false;
@@ -3508,28 +3422,6 @@ bool CvCity::canTrainInternal(UnitTypes eUnit, bool bContinue, bool bTestVisible
 			return false;
 		}
 	}
-
-	if(GC.getUSE_CANNOT_TRAIN_CALLBACK(eUnit))
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity *pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList2; // XXX
-		argsList2.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList2.add(eUnit);
-		argsList2.add(bContinue);
-		argsList2.add(bTestVisible);
-		argsList2.add(bIgnoreCost);
-		argsList2.add(bIgnoreUpgrades);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotTrain", argsList2.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return false;
-		}
-	}
-
 	return true;
 }
 
@@ -4031,26 +3923,6 @@ bool CvCity::canConstructInternal(BuildingTypes eBuilding, bool bContinue, bool 
 
 	CvBuildingInfo& kBuilding = GC.getBuildingInfo(eBuilding);
 
-	if(GC.getUSE_CAN_CONSTRUCT_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList.add(eBuilding);
-		argsList.add(bContinue);
-		argsList.add(bTestVisible);
-		argsList.add(bIgnoreCost);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canConstruct", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return true;
-		}
-	}
-	
 	//ls612: No Holy City Tag
 	if (GC.getBuildingInfo(eBuilding).isNoHolyCity() && isHolyCity())
 	{
@@ -4615,156 +4487,19 @@ bool CvCity::canConstructInternal(BuildingTypes eBuilding, bool bContinue, bool 
 			return false;
 		}
 	}
-
-	if(GC.getUSE_CANNOT_CONSTRUCT_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity *pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList2; // XXX
-		argsList2.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList2.add(eBuilding);
-		argsList2.add(bContinue);
-		argsList2.add(bTestVisible);
-		argsList2.add(bIgnoreCost);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotConstruct", argsList2.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return false;
-		}
-	}
-
 	return true;
 }
 
 
 bool CvCity::canCreate(ProjectTypes eProject, bool bContinue, bool bTestVisible) const
 {
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_CREATE_PROJECT_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList.add(eProject);
-		argsList.add(bContinue);
-		argsList.add(bTestVisible);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canCreate", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return true;
-		}	
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-
-
-	if (!(GET_PLAYER(getOwnerINLINE()).canCreate(eProject, bContinue, bTestVisible)))
-	{
-		return false;
-	}
-
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CANNOT_CREATE_PROJECT_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList2; // XXX
-		argsList2.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList2.add(eProject);
-		argsList2.add(bContinue);
-		argsList2.add(bTestVisible);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotCreate", argsList2.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return false;
-		}	
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-
-
-	return true;
+	return GET_PLAYER(getOwnerINLINE()).canCreate(eProject, bContinue, bTestVisible);
 }
 
 
 bool CvCity::canMaintain(ProcessTypes eProcess, bool bContinue) const
 {
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_MAINTAIN_PROCESS_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList.add(eProcess);
-		argsList.add(bContinue);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "canMaintain", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return true;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-	if (!(GET_PLAYER(getOwnerINLINE()).canMaintain(eProcess, bContinue)))
-	{
-		return false;
-	}
-
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CANNOT_MAINTAIN_PROCESS_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList2; // XXX
-		argsList2.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList2.add(eProcess);
-		argsList2.add(bContinue);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotMaintain", argsList2.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return false;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-	return true;
+	return GET_PLAYER(getOwnerINLINE()).canMaintain(eProcess, bContinue);
 }
 
 
@@ -4776,17 +4511,14 @@ bool CvCity::canJoin() const
 
 int CvCity::getFoodTurnsLeft() const
 {
-	int iFoodLeft;
-	int iTurnsLeft;
-
-	iFoodLeft = (growthThreshold() - getFood());
+	const int iFoodLeft = growthThreshold() - getFood();
 
 	if (foodDifference() <= 0)
 	{
 		return iFoodLeft;
 	}
 
-	iTurnsLeft = (iFoodLeft / foodDifference());
+	int iTurnsLeft = (iFoodLeft / foodDifference());
 
 	if ((iTurnsLeft * foodDifference()) <  iFoodLeft)
 	{
@@ -5491,28 +5223,7 @@ int CvCity::getProductionNeeded(UnitTypes eUnit) const
 
 int CvCity::getProductionNeeded(BuildingTypes eBuilding) const
 {
-	int iProductionNeeded = GET_PLAYER(getOwnerINLINE()).getProductionNeeded(eBuilding);
-
-	// Python cost modifier
-	if (GC.getUSE_GET_BUILDING_COST_MOD_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(getOwnerINLINE());	// Player ID
-		argsList.add(getID());	// City ID
-		argsList.add(eBuilding);	// Building ID
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "getBuildingCostMod", argsList.makeFunctionArgs(), &lResult);
-
-		if (lResult > 1)
-		{
-			iProductionNeeded *= lResult;
-			iProductionNeeded /= 100;
-		}
-	}
-
-	return iProductionNeeded;
+	return GET_PLAYER(getOwnerINLINE()).getProductionNeeded(eBuilding);
 }
 
 int CvCity::getProductionNeeded(ProjectTypes eProject) const
@@ -6223,51 +5934,31 @@ bool CvCity::hurryOverflow(HurryTypes eHurry, int* iProduction, int* iGold, bool
 
 UnitTypes CvCity::getConscriptUnit() const
 {
-	UnitTypes eBestUnit;
+	int iBestValue = 0;
+	UnitTypes eBestUnit = NO_UNIT;
 
-	if (m_eConscriptUnitType != NO_UNIT)
+	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
 	{
-		eBestUnit = m_eConscriptUnitType;
-	}
-	else
-	{
-		UnitTypes eLoopUnit;
-		int iValue;
-		int iBestValue;
-		int iI;
+		const UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI);
 
-		iBestValue = 0;
-		eBestUnit = NO_UNIT;
-
-		for (iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+		if (eLoopUnit != NO_UNIT && canTrain(eLoopUnit))
 		{
-			eLoopUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI);
+			const int iValue = GC.getUnitInfo(eLoopUnit).getConscriptionValue();
 
-			if (eLoopUnit != NO_UNIT)
+			if (iValue > iBestValue)
 			{
-				if (canTrain(eLoopUnit))
-				{
-					iValue = GC.getUnitInfo(eLoopUnit).getConscriptionValue();
-
-					if (iValue > iBestValue)
-					{
-						iBestValue = iValue;
-						eBestUnit = eLoopUnit;
-					}
-				}
+				iBestValue = iValue;
+				eBestUnit = eLoopUnit;
 			}
 		}
 	}
-
 	return eBestUnit;
 }
 
 
 int CvCity::getConscriptPopulation() const
 {
-	UnitTypes eConscriptUnit;
-
-	eConscriptUnit = getConscriptUnit();
+	const UnitTypes eConscriptUnit = getConscriptUnit();
 
 	if (eConscriptUnit == NO_UNIT)
 	{
@@ -6285,13 +5976,7 @@ int CvCity::getConscriptPopulation() const
 
 int CvCity::conscriptMinCityPopulation() const
 {
-	int iPopulation;
-
-	iPopulation = GC.getDefineINT("CONSCRIPT_MIN_CITY_POPULATION");
-
-	iPopulation += getConscriptPopulation();
-
-	return iPopulation;
+	return GC.getDefineINT("CONSCRIPT_MIN_CITY_POPULATION") + getConscriptPopulation();
 }
 
 
@@ -20458,31 +20143,7 @@ const std::vector< std::pair<float, float> >& CvCity::getWallOverridePoints() co
 
 void CvCity::doGrowth()
 {
-	int iDiff;
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_DO_GROWTH_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doGrowth", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-	iDiff = foodDifference();
+	const int iDiff = foodDifference();
 
 	changeFood(iDiff);
 	changeFoodKept(iDiff);
@@ -20491,18 +20152,7 @@ void CvCity::doGrowth()
 
 	if (getFood() >= growthThreshold())
 	{
-/************************************************************************************************/
-/* Afforess	                  Start		 06/28/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/*
-		if (AI_isEmphasizeAvoidGrowth())
-*/
 		if ((isHuman() && AI_avoidGrowth()) || AI_isEmphasizeAvoidGrowth())
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 		{
 			setFood(growthThreshold());
 		}
@@ -20530,30 +20180,6 @@ void CvCity::doGrowth()
 void CvCity::doCulture()
 {
 	PROFILE_FUNC();
-	
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_DO_CULTURE_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doCulture", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	changeCultureTimes100(getOwnerINLINE(), getCommerceRateTimes100(COMMERCE_CULTURE), false, true);
 }
 
@@ -20562,37 +20188,8 @@ void CvCity::doPlotCulture(bool bUpdate, PlayerTypes ePlayer, int iCultureRate)
 {
 	PROFILE_FUNC();
 
-	CvPlot* pLoopPlot;
-	int iDX, iDY;
-	int iCultureRange;
 	CultureLevelTypes eCultureLevel = (CultureLevelTypes)0;
 
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_DO_PLOT_CULTURE_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList.add(bUpdate);
-		argsList.add(ePlayer);
-		argsList.add(iCultureRate);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doPlotCulture", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	FAssert(NO_PLAYER != ePlayer);
 
 	if (getOwnerINLINE() == ePlayer)
@@ -20612,30 +20209,23 @@ void CvCity::doPlotCulture(bool bUpdate, PlayerTypes ePlayer, int iCultureRate)
 	}
 
 	// Afforess
-	//int iFreeCultureRate = GC.getDefineINT("CITY_FREE_CULTURE_GROWTH_FACTOR");
-	int iFreeCultureRate = GC.getCITY_FREE_CULTURE_GROWTH_FACTOR();
-	if (getCultureTimes100(ePlayer) > 0)
+	if (getCultureTimes100(ePlayer) > 0 && eCultureLevel != NO_CULTURELEVEL)
 	{
-		if (eCultureLevel != NO_CULTURELEVEL)
+		const int iFreeCultureRate = GC.getCITY_FREE_CULTURE_GROWTH_FACTOR();
+		clearCultureDistanceCache();
+		for (int iDX = -eCultureLevel; iDX <= eCultureLevel; iDX++)
 		{
-			clearCultureDistanceCache();
-			for (iDX = -eCultureLevel; iDX <= eCultureLevel; iDX++)
+			for (int iDY = -eCultureLevel; iDY <= eCultureLevel; iDY++)
 			{
-				for (iDY = -eCultureLevel; iDY <= eCultureLevel; iDY++)
+				const int iCultureRange = cultureDistance(iDX, iDY);
+
+				if (iCultureRange <= eCultureLevel)
 				{
-					iCultureRange = cultureDistance(iDX, iDY);
+					CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
 
-					if (iCultureRange <= eCultureLevel)
+					if (pLoopPlot != NULL && pLoopPlot->isPotentialCityWorkForArea(area()))
 					{
-						pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
-
-						if (pLoopPlot != NULL)
-						{
-							if (pLoopPlot->isPotentialCityWorkForArea(area()))
-							{
-								pLoopPlot->changeCulture(ePlayer, (((eCultureLevel - iCultureRange + 1) * iFreeCultureRate) + iCultureRate + 1), (bUpdate || !(pLoopPlot->isOwned())));
-							}
-						}
+						pLoopPlot->changeCulture(ePlayer, (((eCultureLevel - iCultureRange + 1) * iFreeCultureRate) + iCultureRate + 1), (bUpdate || !(pLoopPlot->isOwned())));
 					}
 				}
 			}
@@ -20996,41 +20586,7 @@ void CvCity::doReligion()
 	int iLoop = 0;
 	int iI, iJ;
 
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_DO_RELIGION_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doReligion", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-/************************************************************************************************/
-/* Afforess	                  Start		 06/09/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/*
-	if (getReligionCount() == 0)
-*/
 	if (getReligionCount() == 0 || GC.getGameINLINE().isModderGameOption(MODDERGAMEOPTION_MULTIPLE_RELIGION_SPREAD))
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	{
 		for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
 		{
@@ -21231,29 +20787,6 @@ void CvCity::doReligion()
 
 void CvCity::doGreatPeople()
 {
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_DO_GREATPEOPLE_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doGreatPeople", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	if (isDisorder())
 	{
 		return;
@@ -21307,71 +20840,32 @@ void CvCity::doGreatPeople()
 
 void CvCity::doMeltdown()
 {
-	CvWString szBuffer;
-	int iI;
-
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_CAN_DO_MELTDOWN_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "doMeltdown", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
 		if (getNumBuilding((BuildingTypes)iI) > 0)
 		{
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                                                               jdog5000      */
-/*                                                                                              */
-/* Gamespeed scaling                                                                            */
-/************************************************************************************************/
-/* original bts code
-			if (GC.getBuildingInfo((BuildingTypes)iI).getNukeExplosionRand() != 0)
-			{
-				if (getCitySorenRandNum(GC.getBuildingInfo((BuildingTypes)iI).getNukeExplosionRand(), "Meltdown!!!") == 0)
-				{
-*/
 			int iOdds = GC.getBuildingInfo((BuildingTypes)iI).getNukeExplosionRand();
 
-			if( iOdds > 0 )
+			if (iOdds > 0)
 			{
 				iOdds *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent();
 				iOdds /= 100;
 
-				if( getCitySorenRandNum(iOdds, "Meltdown!!!") == 0)
+				if (getCitySorenRandNum(iOdds, "Meltdown!!!") == 0)
 				{
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
 					if (getNumRealBuilding((BuildingTypes)iI) > 0)
 					{
 						setNumRealBuilding(((BuildingTypes)iI), 0);
 					}
-
 					plot()->nukeExplosion(1);
-
 					{
 						MEMORY_TRACK_EXEMPT();
-
-						szBuffer = DLL_SERIALIZE(gDLL->getText("TXT_KEY_MISC_MELTDOWN_CITY", getNameKey()));
-						AddDLLMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MELTDOWN", MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_UNHEALTHY_PERSON")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
+						AddDLLMessage(
+							getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(),
+							DLL_SERIALIZE(gDLL->getText("TXT_KEY_MISC_MELTDOWN_CITY", getNameKey())),
+							"AS2D_MELTDOWN", MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_UNHEALTHY_PERSON")->getPath(),
+							(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true
+						);
 					}
 					break;
 				}

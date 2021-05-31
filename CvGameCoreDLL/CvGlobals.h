@@ -163,45 +163,6 @@ class CvMapSwitchInfo;
 
 #include "CvInfoReplacements.h"
 
-//	KOSHLING - granular control over callback enabling
-#define GRANULAR_CALLBACK_CONTROL
-#ifdef GRANULAR_CALLBACK_CONTROL
-typedef enum
-{
-	CALLBACK_TYPE_CAN_TRAIN = 1,
-	CALLBACK_TYPE_CANNOT_TRAIN = 2,
-	CALLBACK_TYPE_CAN_BUILD = 3
-} PythonCallbackTypes;
-
-class GranularCallbackController
-{
-public:
-	GranularCallbackController()
-	{
-		m_rawInputProcessed = false;
-	}
-
-	//	Unit list for a named (unit based) callback which must be enabled
-	//	Logically OR'd into the current set
-	void RegisterUnitCallback(PythonCallbackTypes eCallbackType, const char* unitList);
-	//	Unit list for a named (improvement based) callback which must be enabled
-	//	Logically OR'd into the current set
-	void RegisterBuildCallback(PythonCallbackTypes eCallbackType, const char* buildList);
-	
-	bool IsUnitCallbackEnabled(PythonCallbackTypes eCallbackType, UnitTypes eUnit) const;
-	bool IsBuildCallbackEnabled(PythonCallbackTypes eCallbackType, BuildTypes eBuild) const;
-
-private:
-	void ProcessRawInput(void) const;
-
-	std::map<PythonCallbackTypes,std::vector<CvString> > m_rawUnitCallbacks;			//	Raw strings aggregated from each registartion call
-	std::map<PythonCallbackTypes,std::vector<CvString> > m_rawBuildCallbacks;		//	Raw strings aggregated from each registartion call
-	mutable std::map<PythonCallbackTypes,std::map<UnitTypes,bool> > m_unitCallbacks;			//	Processed list indexed by unit types
-	mutable std::map<PythonCallbackTypes,std::map<BuildTypes,bool> > m_buildCallbacks;	//	Processed list indexed by improvement types
-	mutable bool m_rawInputProcessed;
-};
-#endif
-
 extern CvDLLUtilityIFaceBase* g_DLL;
 
 class cvInternalGlobals
@@ -665,30 +626,7 @@ public:
 	int getSCORE_LAND_FACTOR();
 	int getSCORE_TECH_FACTOR();
 	int getSCORE_WONDER_FACTOR();
-	
-	int getUSE_CAN_CREATE_PROJECT_CALLBACK();
-	int getUSE_CANNOT_CREATE_PROJECT_CALLBACK();
-	int getUSE_CAN_DO_MELTDOWN_CALLBACK();
-	int getUSE_CAN_MAINTAIN_PROCESS_CALLBACK();
-	int getUSE_CANNOT_MAINTAIN_PROCESS_CALLBACK();
-	int getUSE_CAN_DO_GROWTH_CALLBACK();
-	int getUSE_CAN_DO_CULTURE_CALLBACK();
-	int getUSE_CAN_DO_PLOT_CULTURE_CALLBACK();
-	int getUSE_CAN_DO_PRODUCTION_CALLBACK();
-	int getUSE_CAN_DO_RELIGION_CALLBACK();
-	int getUSE_CAN_DO_GREATPEOPLE_CALLBACK();
-	int getUSE_CAN_RAZE_CITY_CALLBACK();
-	int getUSE_CAN_DO_GOLD_CALLBACK();
-	int getUSE_CAN_DO_RESEARCH_CALLBACK();
-	int getUSE_UPGRADE_UNIT_PRICE_CALLBACK();
-	int getUSE_IS_VICTORY_CALLBACK();
-	int getUSE_AI_UPDATE_UNIT_CALLBACK();
-	int getUSE_AI_CHOOSE_PRODUCTION_CALLBACK();
-	int getUSE_EXTRA_PLAYER_COSTS_CALLBACK();
-	int getUSE_AI_DO_DIPLO_CALLBACK();
-	int getUSE_AI_BESTTECH_CALLBACK();
-	int getUSE_CAN_DO_COMBAT_CALLBACK();
-	int getUSE_AI_CAN_DO_WARPLANS_CALLBACK();
+
 	int getLAND_UNITS_CAN_ATTACK_WATER_CITIES() const;
 	int getRECON_VISIBILITY_RANGE() const;
 	int getBASE_UNIT_UPGRADE_COST() const;
@@ -1180,30 +1118,8 @@ public:
 	float getCAMERA_LOWER_PITCH();
 	float getFIELD_OF_VIEW();
 	float getSHADOW_SCALE();
-	 float getUNIT_MULTISELECT_DISTANCE();
+	float getUNIT_MULTISELECT_DISTANCE();
 
-	int getUSE_CANNOT_FOUND_CITY_CALLBACK();
-	int getUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK();
-	int getUSE_IS_PLAYER_RESEARCH_CALLBACK();
-	int getUSE_CAN_RESEARCH_CALLBACK();
-	int getUSE_CANNOT_DO_CIVIC_CALLBACK();
-	int getUSE_CAN_DO_CIVIC_CALLBACK();
-	int getUSE_CANNOT_CONSTRUCT_CALLBACK();
-	int getUSE_CAN_CONSTRUCT_CALLBACK();
-	int getUSE_CAN_DECLARE_WAR_CALLBACK();
-	int getUSE_CANNOT_RESEARCH_CALLBACK();
-	int getUSE_GET_UNIT_COST_MOD_CALLBACK();
-	int getUSE_GET_BUILDING_COST_MOD_CALLBACK();
-	int getUSE_GET_CITY_FOUND_VALUE_CALLBACK();
-	int getUSE_CANNOT_HANDLE_ACTION_CALLBACK();
-	int getUSE_CAN_TRAIN_CALLBACK();
-	int getUSE_CANNOT_TRAIN_CALLBACK();
-	int getUSE_CAN_BUILD_CALLBACK();
-	int getUSE_CAN_TRAIN_CALLBACK(UnitTypes eUnit);
-	int getUSE_CANNOT_TRAIN_CALLBACK(UnitTypes eUnit);
-	int getUSE_CAN_BUILD_CALLBACK(BuildTypes eBuild);
-	int getUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK();
-	int getUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK();
 	int getUSE_FINISH_TEXT_CALLBACK();
 	int getUSE_ON_UNIT_SET_XY_CALLBACK();
 	int getUSE_ON_UNIT_SELECTED_CALLBACK();
@@ -1755,30 +1671,6 @@ protected:
 	int m_iSCORE_LAND_FACTOR;
 	int m_iSCORE_TECH_FACTOR;
 	int m_iSCORE_WONDER_FACTOR;
-	
-	int m_iUSE_CAN_CREATE_PROJECT_CALLBACK;
-	int m_iUSE_CANNOT_CREATE_PROJECT_CALLBACK;
-	int m_iUSE_CAN_DO_MELTDOWN_CALLBACK;
-	int m_iUSE_CAN_MAINTAIN_PROCESS_CALLBACK;
-	int m_iUSE_CANNOT_MAINTAIN_PROCESS_CALLBACK;
-	int m_iUSE_CAN_DO_GROWTH_CALLBACK;
-	int m_iUSE_CAN_DO_CULTURE_CALLBACK;
-	int m_iUSE_CAN_DO_PLOT_CULTURE_CALLBACK;
-	int m_iUSE_CAN_DO_PRODUCTION_CALLBACK;
-	int m_iUSE_CAN_DO_RELIGION_CALLBACK;
-	int m_iUSE_CAN_DO_GREATPEOPLE_CALLBACK;
-	int m_iUSE_CAN_RAZE_CITY_CALLBACK;
-	int m_iUSE_CAN_DO_GOLD_CALLBACK;
-	int m_iUSE_CAN_DO_RESEARCH_CALLBACK;
-	int m_iUSE_UPGRADE_UNIT_PRICE_CALLBACK;
-	int m_iUSE_IS_VICTORY_CALLBACK;
-	int m_iUSE_AI_UPDATE_UNIT_CALLBACK;
-	int m_iUSE_AI_CHOOSE_PRODUCTION_CALLBACK;
-	int m_iUSE_EXTRA_PLAYER_COSTS_CALLBACK;
-	int m_iUSE_AI_DO_DIPLO_CALLBACK;
-	int m_iUSE_AI_BESTTECH_CALLBACK;
-	int m_iUSE_CAN_DO_COMBAT_CALLBACK;
-	int m_iUSE_AI_CAN_DO_WARPLANS_CALLBACK;
 
 	int m_iCITY_FREE_CULTURE_GROWTH_FACTOR;
 	int m_iMAX_TRADE_ROUTES;
@@ -1836,31 +1728,13 @@ protected:
 	float m_fSHADOW_SCALE;
 	float m_fUNIT_MULTISELECT_DISTANCE;
 
-	int m_iUSE_CANNOT_FOUND_CITY_CALLBACK;
-	int m_iUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK;
-	int m_iUSE_IS_PLAYER_RESEARCH_CALLBACK;
-	int m_iUSE_CAN_RESEARCH_CALLBACK;
-	int m_iUSE_CANNOT_DO_CIVIC_CALLBACK;
-	int m_iUSE_CAN_DO_CIVIC_CALLBACK;
-	int m_iUSE_CANNOT_CONSTRUCT_CALLBACK;
-	int m_iUSE_CAN_CONSTRUCT_CALLBACK;
-	int m_iUSE_CAN_DECLARE_WAR_CALLBACK;
-	int m_iUSE_CANNOT_RESEARCH_CALLBACK;
-	int m_iUSE_GET_UNIT_COST_MOD_CALLBACK;
-	int m_iUSE_GET_BUILDING_COST_MOD_CALLBACK;
-	int m_iUSE_GET_CITY_FOUND_VALUE_CALLBACK;
-	int m_iUSE_CANNOT_HANDLE_ACTION_CALLBACK;
-	int m_iUSE_CAN_BUILD_CALLBACK;
-	int m_iUSE_CANNOT_TRAIN_CALLBACK;
-	int m_iUSE_CAN_TRAIN_CALLBACK;
-	int m_iUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK;
-	int m_iUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK;
 	int m_iUSE_FINISH_TEXT_CALLBACK;
 	int m_iUSE_ON_UNIT_SET_XY_CALLBACK;
 	int m_iUSE_ON_UNIT_SELECTED_CALLBACK;
 	int m_iUSE_ON_UPDATE_CALLBACK;
 	int m_iUSE_ON_UNIT_CREATED_CALLBACK;
 	int m_iUSE_ON_UNIT_LOST_CALLBACK;
+
 	int m_iLAND_UNITS_CAN_ATTACK_WATER_CITIES;
 	int m_iBASE_UNIT_UPGRADE_COST;
 	int m_iCITY_BARBARIAN_DEFENSE_MODIFIER;
@@ -1894,11 +1768,6 @@ protected:
 /*                                                                                              */
 /* Efficiency, Options                                                                          */
 /************************************************************************************************/
-	//	Koshling - granular callback control
-#ifdef GRANULAR_CALLBACK_CONTROL
-public:
-	mutable GranularCallbackController	m_pythonCallbackController;
-#endif
 
 public:
 	int getDefineINT( const char * szName, const int iDefault ) const;

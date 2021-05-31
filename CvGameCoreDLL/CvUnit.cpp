@@ -2757,15 +2757,6 @@ void CvUnit::checkRemoveSelectionAfterAttack()
 
 bool CvUnit::isActionRecommended(int iAction)
 {
-	CvCity* pWorkingCity;
-	CvPlot* pPlot;
-	ImprovementTypes eImprovement;
-	ImprovementTypes eFinalImprovement;
-	BuildTypes eBuild;
-	RouteTypes eRoute;
-	BonusTypes eBonus;
-	int iIndex;
-
 	if (getOwnerINLINE() != GC.getGameINLINE().getActivePlayer())
 	{
 		return false;
@@ -2776,23 +2767,7 @@ bool CvUnit::isActionRecommended(int iAction)
 		return false;
 	}
 
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyUnit* pyUnit = new CyUnit(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyUnit));	// pass in unit class
-		argsList.add(iAction);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "isActionRecommended", argsList.makeFunctionArgs(), &lResult);
-		delete pyUnit;	// python fxn must not hold on to this pointer
-		if (lResult == 1)
-		{
-			return true;
-		}
-	}
-
-	pPlot = gDLL->getInterfaceIFace()->getGotoPlot();
+	CvPlot* pPlot = gDLL->getInterfaceIFace()->getGotoPlot();
 
 	if (pPlot == NULL)
 	{
@@ -2817,18 +2792,11 @@ bool CvUnit::isActionRecommended(int iAction)
 #endif
 // BUFFY - Don't Recommend Actions in Fog of War - end
 
-	if (GC.getActionInfo(iAction).getMissionType() == MISSION_FORTIFY)
+	if (GC.getActionInfo(iAction).getMissionType() == MISSION_FORTIFY
+	&& pPlot->isCity(true, getTeam()) && canDefend(pPlot)
+	&& pPlot->getNumDefenders(getOwnerINLINE()) < (atPlot(pPlot) ? 2 : 1))
 	{
-		if (pPlot->isCity(true, getTeam()))
-		{
-			if (canDefend(pPlot))
-			{
-				if (pPlot->getNumDefenders(getOwnerINLINE()) < ((atPlot(pPlot)) ? 2 : 1))
-				{
-					return true;
-				}
-			}
-		}
+		return true;
 	}
 
 // BUG - Sentry Actions - start
@@ -2839,149 +2807,120 @@ bool CvUnit::isActionRecommended(int iAction)
 #endif
 // BUG - Sentry Actions - end
 	{
-		if (isHurt())
+		if (isHurt() && !hasMoved() && (pPlot->getTeam() == getTeam() || healTurns(pPlot) < 4))
 		{
-			if (!hasMoved())
-			{
-				if ((pPlot->getTeam() == getTeam()) || (healTurns(pPlot) < 4))
-				{
-					return true;
-				}
-			}
+			return true;
 		}
 	}
 
-	if (GC.getActionInfo(iAction).getMissionType() == MISSION_FOUND)
+	if (GC.getActionInfo(iAction).getMissionType() == MISSION_FOUND && canFound(pPlot) && pPlot->isBestAdjacentFound(getOwnerINLINE()))
 	{
-		if (canFound(pPlot))
-		{
-			if (pPlot->isBestAdjacentFound(getOwnerINLINE()))
-			{
-				return true;
-			}
-		}
+		return true;
 	}
 
-	if (GC.getActionInfo(iAction).getMissionType() == MISSION_BUILD)
+	if (GC.getActionInfo(iAction).getMissionType() == MISSION_BUILD && pPlot->getOwnerINLINE() == getOwnerINLINE())
 	{
-		if (pPlot->getOwnerINLINE() == getOwnerINLINE())
+		const BuildTypes eBuild = ((BuildTypes)(GC.getActionInfo(iAction).getMissionData()));
+		FAssert(eBuild != NO_BUILD);
+		FAssertMsg(eBuild < GC.getNumBuildInfos(), "Invalid Build");
+
+		if (canBuild(pPlot, eBuild))
 		{
-			eBuild = ((BuildTypes)(GC.getActionInfo(iAction).getMissionData()));
-			FAssert(eBuild != NO_BUILD);
-			FAssertMsg(eBuild < GC.getNumBuildInfos(), "Invalid Build");
+			const ImprovementTypes eImprovement = ((ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement()));
+			const BonusTypes eBonus = pPlot->getBonusType(getTeam());
+			CvCity* pWorkingCity = pPlot->getWorkingCity();
 
-			if (canBuild(pPlot, eBuild))
+			if (pPlot->getImprovementType() == NO_IMPROVEMENT)
 			{
-				eImprovement = ((ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement()));
-				eRoute = ((RouteTypes)(GC.getBuildInfo(eBuild).getRoute()));
-				eBonus = pPlot->getBonusType(getTeam());
-				pWorkingCity = pPlot->getWorkingCity();
-
-				if (pPlot->getImprovementType() == NO_IMPROVEMENT)
+				if (pWorkingCity != NULL)
 				{
-					if (pWorkingCity != NULL)
+					const int iIndex = pWorkingCity->getCityPlotIndex(pPlot);
+
+					if (iIndex != -1 && pWorkingCity->AI_getBestBuild(iIndex) == eBuild)
 					{
-						iIndex = pWorkingCity->getCityPlotIndex(pPlot);
-
-						if (iIndex != -1)
-						{
-							if (pWorkingCity->AI_getBestBuild(iIndex) == eBuild)
-							{
-								return true;
-							}
-						}
-					}
-
-					if (eImprovement != NO_IMPROVEMENT)
-					{
-						if (eBonus != NO_BONUS)
-						{
-							if (GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eBonus))
-							{
-								return true;
-							}
-						}
-
-						if (pPlot->getImprovementType() == NO_IMPROVEMENT)
-						{
-							if (!(pPlot->isIrrigated()) && pPlot->isIrrigationAvailable(true))
-							{
-								if (GC.getImprovementInfo(eImprovement).isCarriesIrrigation())
-								{
-									return true;
-								}
-							}
-
-							if (pWorkingCity != NULL)
-							{
-								if (GC.getImprovementInfo(eImprovement).getYieldChange(YIELD_FOOD) > 0)
-								{
-									return true;
-								}
-
-								if (pPlot->isHills())
-								{
-									if (GC.getImprovementInfo(eImprovement).getYieldChange(YIELD_PRODUCTION) > 0)
-									{
-										return true;
-									}
-								}
-								else
-								{
-									if (GC.getImprovementInfo(eImprovement).getYieldChange(YIELD_COMMERCE) > 0)
-									{
-										return true;
-									}
-								}
-							}
-						}
+						return true;
 					}
 				}
 
-				if (eRoute != NO_ROUTE)
+				if (eImprovement != NO_IMPROVEMENT)
 				{
-					if (!(pPlot->isRoute()))
+					if (eBonus != NO_BONUS && GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eBonus))
 					{
-						if (eBonus != NO_BONUS)
+						return true;
+					}
+
+					if (pPlot->getImprovementType() == NO_IMPROVEMENT)
+					{
+						if (!pPlot->isIrrigated() && pPlot->isIrrigationAvailable(true) && GC.getImprovementInfo(eImprovement).isCarriesIrrigation())
 						{
 							return true;
 						}
 
 						if (pWorkingCity != NULL)
 						{
-							if (pPlot->isRiver())
+							if (GC.getImprovementInfo(eImprovement).getYieldChange(YIELD_FOOD) > 0)
+							{
+								return true;
+							}
+
+							if (pPlot->isHills())
+							{
+								if (GC.getImprovementInfo(eImprovement).getYieldChange(YIELD_PRODUCTION) > 0)
+								{
+									return true;
+								}
+							}
+							else if (GC.getImprovementInfo(eImprovement).getYieldChange(YIELD_COMMERCE) > 0)
 							{
 								return true;
 							}
 						}
 					}
+				}
+			}
 
-					eFinalImprovement = eImprovement;
-
-					if (eFinalImprovement == NO_IMPROVEMENT)
+			const RouteTypes eRoute = (RouteTypes)GC.getBuildInfo(eBuild).getRoute();
+			if (eRoute != NO_ROUTE)
+			{
+				if (!(pPlot->isRoute()))
+				{
+					if (eBonus != NO_BONUS)
 					{
-						eFinalImprovement = pPlot->getImprovementType();
+						return true;
 					}
 
-					if (eFinalImprovement != NO_IMPROVEMENT)
+					if (pWorkingCity != NULL)
 					{
-						if ((GC.getImprovementInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_FOOD) > 0) ||
-							(GC.getImprovementInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_PRODUCTION) > 0) ||
-							(GC.getImprovementInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_COMMERCE) > 0))
+						if (pPlot->isRiver())
 						{
 							return true;
 						}
 					}
 				}
+
+				ImprovementTypes eFinalImprovement = eImprovement;
+
+				if (eFinalImprovement == NO_IMPROVEMENT)
+				{
+					eFinalImprovement = pPlot->getImprovementType();
+				}
+
+				if (eFinalImprovement != NO_IMPROVEMENT)
+				{
+					if ((GC.getImprovementInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_FOOD) > 0) ||
+						(GC.getImprovementInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_PRODUCTION) > 0) ||
+						(GC.getImprovementInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_COMMERCE) > 0))
+					{
+						return true;
+					}
+				}
 			}
 		}
 	}
-
 	if (GC.getActionInfo(iAction).getCommandType() == COMMAND_PROMOTION)
 	{
 		return true;
 	}
-
 	return false;
 }
 
@@ -4546,26 +4485,6 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
-
-	if (GC.getUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		// Python Override
-		CyArgsList argsList;
-		argsList.add(getOwnerINLINE());	// Player ID
-		argsList.add(getID());	// Unit ID
-		argsList.add(pPlot->getX());	// Plot X
-		argsList.add(pPlot->getY());	// Plot Y
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "unitCannotMoveInto", argsList.makeFunctionArgs(), &lResult);
-
-		if (lResult != 0)
-		{
-			return false;
-		}
-	}
-
 	return true;
 }
 
@@ -9149,35 +9068,6 @@ bool CvUnit::canSpread(const CvPlot* pPlot, ReligionTypes eReligion, bool bTestV
 {
 	PROFILE_FUNC();
 
-	CvCity* pCity;
-
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       08/19/09                                jdog5000      */
-/*                                                                                              */
-/* Efficiency                                                                                   */
-/************************************************************************************************/
-/* orginal bts code
-	if (GC.getUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK())
-	{
-		CyArgsList argsList;
-		argsList.add(getOwnerINLINE());
-		argsList.add(getID());
-		argsList.add((int) eReligion);
-		argsList.add(pPlot->getX());
-		argsList.add(pPlot->getY());
-		long lResult=0;
-		PYTHON_CALL_FUNCTION(__FUNCTION__, PYGameModule, "cannotSpreadReligion", argsList.makeFunctionArgs(), &lResult);
-		if (lResult > 0)
-		{
-			return false;
-		}
-	}
-*/
-				// UP efficiency: Moved below faster calls
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
-
 	if (eReligion == NO_RELIGION)
 	{
 		return false;
@@ -9188,7 +9078,7 @@ bool CvUnit::canSpread(const CvPlot* pPlot, ReligionTypes eReligion, bool bTestV
 		return false;
 	}
 
-	pCity = pPlot->getPlotCity();
+	CvCity* pCity = pPlot->getPlotCity();
 
 	if (pCity == NULL)
 	{
@@ -9219,32 +9109,7 @@ bool CvUnit::canSpread(const CvPlot* pPlot, ReligionTypes eReligion, bool bTestV
 		}
 	}
 
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       08/19/09                                jdog5000      */
-/*                                                                                              */
-/* Efficiency                                                                                   */
-/************************************************************************************************/
-	if (GC.getUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(getOwnerINLINE());
-		argsList.add(getID());
-		argsList.add((int) eReligion);
-		argsList.add(pPlot->getX());
-		argsList.add(pPlot->getY());
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "cannotSpreadReligion", argsList.makeFunctionArgs(), &lResult);
-		if (lResult > 0)
-		{
-			return false;
-		}
-	}
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
-//TB Prophet Mod start
+	//TB Prophet Mod start
 	if (AI_getUnitAIType() != UNITAI_MISSIONARY)
 	{
 		return false;
@@ -11147,41 +11012,14 @@ int CvUnit::getStackExperienceToGive(int iNumUnits) const
 
 int CvUnit::upgradePrice(UnitTypes eUnit) const
 {
-	int iPrice;
-
-/************************************************************************************************/
-/* Afforess	                  Start		 12/21/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if(GC.getUSE_UPGRADE_UNIT_PRICE_CALLBACK())
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList;
-		argsList.add(getOwnerINLINE());
-		argsList.add(getID());
-		argsList.add((int) eUnit);
-		long lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "getUpgradePriceOverride", argsList.makeFunctionArgs(), &lResult);
-		if (lResult >= 0)
-		{
-			return lResult;
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	if (isBarbarian())
 	{
 		return 0;
 	}
 
-	iPrice = GC.getBASE_UNIT_UPGRADE_COST();
+	int iPrice = GC.getBASE_UNIT_UPGRADE_COST();
 
-	int iUpgradeCostModifier;
-
-	iUpgradeCostModifier = ((GET_PLAYER(getOwnerINLINE()).getProductionNeeded(eUnit) - GET_PLAYER(getOwnerINLINE()).getProductionNeeded(getUnitType())) * (GC.getDefineINT("UNIT_UPGRADE_COST_PER_PRODUCTION")));
+	int iUpgradeCostModifier = ((GET_PLAYER(getOwnerINLINE()).getProductionNeeded(eUnit) - GET_PLAYER(getOwnerINLINE()).getProductionNeeded(getUnitType())) * (GC.getDefineINT("UNIT_UPGRADE_COST_PER_PRODUCTION")));
 	iUpgradeCostModifier /= 100;
 
 	iPrice += (std::max(0, (iUpgradeCostModifier)));

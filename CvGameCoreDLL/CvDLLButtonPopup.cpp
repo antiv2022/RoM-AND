@@ -1131,33 +1131,11 @@ bool CvDLLButtonPopup::launchTextPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
-	CvWString szBuffer;
-	CvString szArtFilename; 
-	CvWString szTemp;
-	CyCity* pyCity;
-	long lResult;
-
 	CvCity* pCity = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCity(info.getData1());
 	if (NULL == pCity || pCity->isProductionAutomated())
 	{
 		return (false);
 	}
-
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		pyCity = new CyCity(pCity);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in plot class
-		lResult=0;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "skipProductionPopup", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
-			return (false);
-		}
-	}
-
 	FAssertMsg(pCity->getOwnerINLINE() == GC.getGameINLINE().getActivePlayer(), "City must belong to Active Player");	
 
 	UnitTypes eTrainUnit = NO_UNIT;
@@ -1177,7 +1155,9 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	default:
 		break;
 	}
-	bool bFinish = info.getOption1();
+	CvWString szBuffer;
+	CvString szArtFilename; 
+	const bool bFinish = info.getOption1();
 
 	if (eTrainUnit != NO_UNIT)
 	{
@@ -1226,65 +1206,28 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 	gDLL->getInterfaceIFace()->popupSetHeaderString(pPopup, szBuffer, DLL_FONT_LEFT_JUSTIFY);
 
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
+	int iExamineCityID = GC.getNumUnitInfos();
 
-		pyCity = new CyCity(pCity);
-		CyArgsList argsList2;
-		argsList2.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in plot class
-		lResult=1;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "showExamineCityButton", argsList2.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-	}
-
-	if (lResult == 1)
-	{
-		int iExamineCityID = 0;
-		iExamineCityID = std::max(iExamineCityID, GC.getNumUnitInfos());
-		iExamineCityID = std::max(iExamineCityID, GC.getNumBuildingInfos());
-		iExamineCityID = std::max(iExamineCityID, GC.getNumProjectInfos());
-		iExamineCityID = std::max(iExamineCityID, GC.getNumProcessInfos());
+	iExamineCityID = std::max(iExamineCityID, GC.getNumBuildingInfos());
+	iExamineCityID = std::max(iExamineCityID, GC.getNumProjectInfos());
+	iExamineCityID = std::max(iExamineCityID, GC.getNumProcessInfos());
 
 // BUG - Zoom City Details - start
-		if (getBugOptionBOOL("MiscHover__CDAZoomCityDetails", true, "BUG_CDA_ZOOM_CITY_DETAILS"))
-		{
-			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_EXAMINE_CITY").c_str(), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), iExamineCityID, WIDGET_ZOOM_CITY, GC.getGameINLINE().getActivePlayer(), info.getData1(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
-		}
-		else
-		{
-			// unchanged
-			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_EXAMINE_CITY").c_str(), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), iExamineCityID, WIDGET_GENERAL, -1, -1, true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
-		}
-// BUG - Zoom City Details - end
+	if (getBugOptionBOOL("MiscHover__CDAZoomCityDetails", true, "BUG_CDA_ZOOM_CITY_DETAILS"))
+	{
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_EXAMINE_CITY").c_str(), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), iExamineCityID, WIDGET_ZOOM_CITY, GC.getGameINLINE().getActivePlayer(), info.getData1(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 	}
+	else
+	{
+		// unchanged
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_EXAMINE_CITY").c_str(), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), iExamineCityID, WIDGET_GENERAL, -1, -1, true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
+	}
+// BUG - Zoom City Details - end
+
 	UnitTypes eProductionUnit = pCity->getProductionUnit();
 	BuildingTypes eProductionBuilding = pCity->getProductionBuilding();
 	ProjectTypes eProductionProject = pCity->getProductionProject();
 	ProcessTypes eProductionProcess = pCity->getProductionProcess();
-
-	int iNumBuilds = 0;
-
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		pyCity = new CyCity(pCity);
-		CyArgsList argsList3;
-		argsList3.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		lResult=-1;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "getRecommendedUnit", argsList3.makeFunctionArgs(), &lResult);
-		eProductionUnit = ((UnitTypes)lResult);
-	}
-	
-	{
-		PYTHON_ACCESS_LOCK_SCOPE
-
-		CyArgsList argsList4; // XXX
-		argsList4.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		lResult=-1;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "getRecommendedBuilding", argsList4.makeFunctionArgs(), &lResult);
-		eProductionBuilding = ((BuildingTypes)lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-	}
 
 	AdvisorTypes eBuildingAdvisor = NO_ADVISOR;
 	
@@ -1295,9 +1238,8 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 	if (eProductionUnit == NO_UNIT)
 	{
-		int						iDummyValue;
+		int iDummyValue;
 		CvUnitSelectionCriteria criteria;
-
 		criteria.m_eIgnoreAdvisor = eBuildingAdvisor;
 
 		eProductionUnit = pCity->AI_bestUnit(iDummyValue, -1, NULL, true, NULL, false, false, &criteria);
@@ -1320,6 +1262,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 		}
 	}
 
+	int iNumBuilds = 0;
 	if (eUnitAdvisor != NO_ADVISOR)
 	{
 		int iTurns = pCity->getProductionTurnsLeft(eProductionUnit, 0);
@@ -1461,7 +1404,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 		iEndIndex = szTempBuffer.find(']');
 		assert(iEndIndex > 6);
 		szOriginalBuffer = szTempBuffer;
-		//regenerate the String to display		
+		//regenerate the String to display
 		szBuffer = szTempBuffer.substr(0,iBeginIndex-3);
 		szTempBuffer = szTempBuffer.substr(iBeginIndex+1,iEndIndex-(iBeginIndex+1));
 		iOriginalIndex = _wtoi(szTempBuffer.c_str());
@@ -1918,14 +1861,7 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 	 * Solution: Set a flag if the player was logged in during the oracle build
 	 *           and skip second popup.
 	 */
-	if(	info.getFlags() == 1 ){
-		return (false);
-	}
-	CyArgsList argsList;
-	argsList.add(GC.getGameINLINE().getActivePlayer());
-	long lResult=0;
-	PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "skipResearchPopup", argsList.makeFunctionArgs(), &lResult);
-	if (lResult == 1)
+	if (info.getFlags() == 1)
 	{
 		return false;
 	}
@@ -1940,44 +1876,8 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 	}
 	gDLL->getInterfaceIFace()->popupSetHeaderString(pPopup, szHeader, DLL_FONT_LEFT_JUSTIFY);
 
-	if (iDiscover == 0)
-	{
-		lResult=1;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "showTechChooserButton", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-		{
-			// Allow user to Jump to the Tech Chooser
-			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_SEE_BIG_PICTURE").c_str(), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_POPUPBUTTON_TECH")->getPath(), GC.getNumTechInfos(), WIDGET_GENERAL, -1, MAX_INT, true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
-			// Note: This button is NOT supposed to close the popup!! 
-		}
-	}
-
-	TechTypes eBestTech = NO_TECH;
 	TechTypes eNextBestTech = NO_TECH;
-
-	lResult = -1;
-	{
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "getFirstRecommendedTech", argsList.makeFunctionArgs(), &lResult);
-	}
-	eBestTech = ((TechTypes)lResult);
-
-	if (eBestTech == NO_TECH)
-	{
-		eBestTech = player.AI_bestTech(1, (iDiscover > 0), true);
-	}
-
-	if (eBestTech != NO_TECH)
-	{
-		argsList.add(eBestTech);
-		lResult = -1;
-		PYTHON_CALL_FUNCTION4(__FUNCTION__, PYGameModule, "getSecondRecommendedTech", argsList.makeFunctionArgs(), &lResult);
-		eNextBestTech = ((TechTypes)lResult);
-
-		if (eNextBestTech == NO_TECH)
-		{
-			eNextBestTech = player.AI_bestTech(1, (iDiscover > 0), true, eBestTech, ((AdvisorTypes)(GC.getTechInfo(eBestTech).getAdvisorType())));
-		}
-	}
+	TechTypes eBestTech = player.AI_bestTech(1, (iDiscover > 0), true);
 
 	int iNumTechs = 0;
 	for (int iPass = 0; iPass < 2; iPass++)
@@ -2030,14 +1930,14 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 	if (0 == iNumTechs)
 	{
 		// player cannot research anything, so don't show this popup after all
-		return (false);
+		return false;
 	}
 
 	gDLL->getInterfaceIFace()->popupSetPopupType(pPopup, POPUPEVENT_TECHNOLOGY, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_POPUPBUTTON_TECH")->getPath());
 
 	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, ((iDiscover > 0) ? POPUPSTATE_QUEUED : POPUPSTATE_MINIMIZED));
 
-	return (true);
+	return true;
 }
 
 /************************************************************************************************/

@@ -2142,8 +2142,6 @@ private:
 	bool m_bIsGreatWallSeed;
 	mutable bool m_bMaintenanceDirty;
 
-	UnitTypes					m_eConscriptUnitType;
-
 	std::vector<OrderData>		m_inProcessOrders;
 	std::vector<OrderData>		m_completedOrders;
 	mutable std::map<int,bool>*	m_bCanConstruct;
