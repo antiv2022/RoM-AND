@@ -163,7 +163,7 @@ bool CvSelectionGroup::sentryAlert() const
 	standard Sentry mission behave like SENTRY_LAND_UNITS or SENTRY_SEA_UNITS. */
 #ifndef _MOD_SENTRY
 	return sentryAlertSameDomainType();
-#endif // </f1rpo>
+#else // </f1rpo>
 	CvUnit* pHeadUnit = NULL;
 	int iMaxRange = 0;
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
@@ -203,6 +203,7 @@ bool CvSelectionGroup::sentryAlert() const
 	}
 
 	return false;
+#endif // f1rpo
 }
 
 // BUG - Sentry Actions - start
