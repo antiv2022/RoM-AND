@@ -145,21 +145,20 @@
 #define ANIMATION_DEFAULT											(1)			// Default idle animation
 
 // python module names
-#define PYDebugToolModule			"CvDebugInterface"
-#define PYScreensModule				"CvScreensInterface"
-#define PYCivModule						"CvAppInterface"
+#define PYDebugToolModule		"CvDebugInterface"
+#define PYScreensModule			"CvScreensInterface"
+#define PYCivModule				"CvAppInterface"
 #define PYWorldBuilderModule	"CvWBInterface"
-#define PYPopupModule					"CvPopupInterface"
-#define PYDiplomacyModule			"CvDiplomacyInterface"
+#define PYPopupModule			"CvPopupInterface"
+#define PYDiplomacyModule		"CvDiplomacyInterface"
 #define PYUnitControlModule		"CvUnitControlInterface"
-#define PYTextMgrModule				"CvTextMgrInterface"
-#define PYPerfTestModule			"CvPerfTest"
+#define PYTextMgrModule			"CvTextMgrInterface"
+#define PYPerfTestModule		"CvPerfTest"
 #define PYDebugScriptsModule	"DebugScripts"
-#define PYPitBossModule				"PbMain"
-#define PYTranslatorModule		"CvTranslator"
-#define PYGameModule					"CvGameInterface"
-#define PYEventModule					"CvEventInterface"
-#define PYRandomEventModule					"CvRandomEventInterface"
+#define PYPitBossModule			"PbMain"
+#define PYGameModule			"CvGameInterface"
+#define PYEventModule			"CvEventInterface"
+#define PYRandomEventModule		"CvRandomEventInterface"
 
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      08/21/09                                jdog5000      */

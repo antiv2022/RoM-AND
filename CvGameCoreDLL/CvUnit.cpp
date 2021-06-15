@@ -449,12 +449,9 @@ void CvUnit::init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOw
 					}
 				}
 			}
-
 			szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_CREATED_UNIT", GET_PLAYER(getOwnerINLINE()).getNameKey(), getNameKey());
 			GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwnerINLINE(), szBuffer, getX_INLINE(), getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
 		}
-
-		CvEventReporter::getInstance().unitCreated(this);
 	}
 }
 
@@ -1134,8 +1131,6 @@ void CvUnit::killUnconditional(bool bDelay, PlayerTypes ePlayer, bool bMessaged)
 		setXY(INVALID_PLOT_COORD, INVALID_PLOT_COORD, true);
 
 		joinGroup(NULL, false, false);
-
-		CvEventReporter::getInstance().unitLost(this);
 
 		eOwner = getOwnerINLINE();
 		eCapturingPlayer = getCapturingPlayer();
@@ -15033,9 +15028,6 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 			gDLL->getEntityIFace()->updateEnemyGlow(getUnitEntity());
 		}
 	}
-
-	// report event to Python, along with some other key state
-	CvEventReporter::getInstance().unitSetXY(pNewPlot, this);
 }
 
 

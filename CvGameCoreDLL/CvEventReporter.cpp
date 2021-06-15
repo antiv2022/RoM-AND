@@ -170,10 +170,7 @@ void CvEventReporter::init()
 	m_kPythonEventMgr.reportInit();
 }
 
-void CvEventReporter::update(float fDeltaTime)
-{
-	m_kPythonEventMgr.reportUpdate(fDeltaTime);
-}
+void CvEventReporter::update(float fDeltaTime) {}
 
 void CvEventReporter::unInit()
 {
@@ -383,16 +380,6 @@ void CvEventReporter::unitMove(CvPlot* pPlot, CvUnit* pUnit, CvPlot* pOldPlot)
 	m_kPythonEventMgr.reportUnitMove(pPlot, pUnit, pOldPlot);
 }
 
-void CvEventReporter::unitSetXY(CvPlot* pPlot, CvUnit* pUnit)
-{
-	m_kPythonEventMgr.reportUnitSetXY(pPlot, pUnit);
-}
-
-void CvEventReporter::unitCreated(CvUnit *pUnit)
-{
-	m_kPythonEventMgr.reportUnitCreated(pUnit);
-}
-
 void CvEventReporter::unitBuilt(CvCity *pCity, CvUnit *pUnit)
 {
 	m_kPythonEventMgr.reportUnitBuilt(pCity, pUnit);
@@ -412,11 +399,6 @@ void CvEventReporter::unitCaptured(PlayerTypes eFromPlayer, UnitTypes eUnitType,
 }
 // BUG - Unit Captured Event - end
 
-void CvEventReporter::unitLost(CvUnit *pUnit)
-{
-	m_kPythonEventMgr.reportUnitLost(pUnit);
-}
-
 void CvEventReporter::unitPromoted(CvUnit *pUnit, PromotionTypes ePromotion)
 {
 	m_kPythonEventMgr.reportUnitPromoted(pUnit, ePromotion);
@@ -429,10 +411,7 @@ void CvEventReporter::unitUpgraded(CvUnit *pOldUnit, CvUnit *pNewUnit, int iPric
 }
 // BUG - Upgrade Unit Event - end
 
-void CvEventReporter::unitSelected( CvUnit *pUnit)
-{
-	m_kPythonEventMgr.reportUnitSelected(pUnit);
-}
+void CvEventReporter::unitSelected( CvUnit *pUnit) {}
 
 void CvEventReporter::unitRename(CvUnit* pUnit)
 {

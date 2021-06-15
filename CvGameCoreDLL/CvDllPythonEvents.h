@@ -13,7 +13,6 @@ public:
 	void reportModNetMessage(int iData1, int iData2, int iData3, int iData4, int iData5);
 
 	void reportInit();
-	void reportUpdate(float fDeltaTime);
 	void reportUnInit();
 	void reportGameStart();
 	void reportGameEnd();
@@ -73,20 +72,16 @@ public:
 
 	void reportSelectionGroupPushMission(CvSelectionGroup* pSelectionGroup, MissionTypes eMission);
 
-	void reportUnitMove(CvPlot* pPlot, CvUnit* pUnit, CvPlot* pOldPlot);					
-	void reportUnitSetXY(CvPlot* pPlot, CvUnit* pUnit);					
-	void reportUnitCreated(CvUnit *pUnit);
+	void reportUnitMove(CvPlot* pPlot, CvUnit* pUnit, CvPlot* pOldPlot);
 	void reportUnitBuilt(CvCity *pCity, CvUnit *pUnit);
-	void reportUnitKilled(CvUnit *pUnit, PlayerTypes eAttacker);			
+	void reportUnitKilled(CvUnit *pUnit, PlayerTypes eAttacker);
 // BUG - Upgrade Unit Event - start
 	void reportUnitCaptured(PlayerTypes eFromPlayer, UnitTypes eUnitType, CvUnit* pNewUnit);
 // BUG - Upgrade Unit Event - end
-	void reportUnitLost(CvUnit *pUnit);
 	void reportUnitPromoted(CvUnit* pUnit, PromotionTypes ePromotion);
 // BUG - Upgrade Unit Event - start
 	void reportUnitUpgraded(CvUnit* pOldUnit, CvUnit* pNewUnit, int iPrice);
 // BUG - Upgrade Unit Event - end
-	void reportUnitSelected(CvUnit *pUnit);
 	void reportUnitRename(CvUnit *pUnit);
 	void reportUnitPillage(CvUnit* pUnit, ImprovementTypes eImprovement, RouteTypes eRoute, PlayerTypes ePlayer);
 	void reportUnitSpreadReligionAttempt(CvUnit* pUnit, ReligionTypes eReligion, bool bSuccess);

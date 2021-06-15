@@ -345,28 +345,16 @@ m_fCAMERA_LOWER_PITCH(0),
 m_fFIELD_OF_VIEW(0),
 m_fSHADOW_SCALE(0),
 m_fUNIT_MULTISELECT_DISTANCE(0),
-m_iUSE_FINISH_TEXT_CALLBACK(0),
-m_iUSE_ON_UNIT_SET_XY_CALLBACK(0),
-m_iUSE_ON_UNIT_SELECTED_CALLBACK(0),
-m_iUSE_ON_UPDATE_CALLBACK(0),
-m_iUSE_ON_UNIT_CREATED_CALLBACK(0),
-m_iUSE_ON_UNIT_LOST_CALLBACK(0),
 m_iLAND_UNITS_CAN_ATTACK_WATER_CITIES(0),
 m_iBASE_UNIT_UPGRADE_COST(0),
 m_iCITY_BARBARIAN_DEFENSE_MODIFIER(0),
 m_iUNIT_VISIBILITY_RANGE(0),
 m_iRECON_VISIBILITY_RANGE(0),
 m_iWATER_POTENTIAL_CITY_WORK_FOR_AREA(0),
-/************************************************************************************************/
-/* MODULES                                 11/13/07                            MRGENIE          */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+
 m_iTGA_RELIGIONS(0),                            // GAMEFONT_TGA_RELIGIONS
 m_iTGA_CORPORATIONS(0),                         // GAMEFONT_TGA_CORPORATIONS
-/************************************************************************************************/
-/* MODULES                                 END                                                  */
-/************************************************************************************************/
+
 m_bMultimapsEnabled(false),
 m_bViewportsEnabled(false),
 m_iViewportFocusBorder(0),
@@ -3716,13 +3704,6 @@ void cvInternalGlobals::cacheGlobals()
 	m_fSHADOW_SCALE = getDefineFLOAT("SHADOW_SCALE");
 	m_fUNIT_MULTISELECT_DISTANCE = getDefineFLOAT("UNIT_MULTISELECT_DISTANCE");
 
-	m_iUSE_FINISH_TEXT_CALLBACK = getDefineINT("USE_FINISH_TEXT_CALLBACK");
-	m_iUSE_ON_UNIT_SET_XY_CALLBACK = getDefineINT("USE_ON_UNIT_SET_XY_CALLBACK");
-	m_iUSE_ON_UNIT_SELECTED_CALLBACK = getDefineINT("USE_ON_UNIT_SELECTED_CALLBACK");
-	m_iUSE_ON_UPDATE_CALLBACK = getDefineINT("USE_ON_UPDATE_CALLBACK");
-	m_iUSE_ON_UNIT_CREATED_CALLBACK = getDefineINT("USE_ON_UNIT_CREATED_CALLBACK");
-	m_iUSE_ON_UNIT_LOST_CALLBACK = getDefineINT("USE_ON_UNIT_LOST_CALLBACK");
-
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
 /*                                                                                              */
@@ -4196,36 +4177,6 @@ float cvInternalGlobals::getSHADOW_SCALE()
 float cvInternalGlobals::getUNIT_MULTISELECT_DISTANCE()
 {
 	return m_fUNIT_MULTISELECT_DISTANCE;
-}
-
-int cvInternalGlobals::getUSE_FINISH_TEXT_CALLBACK()
-{
-	return m_iUSE_FINISH_TEXT_CALLBACK;
-}
-
-int cvInternalGlobals::getUSE_ON_UNIT_SET_XY_CALLBACK()
-{
-	return m_iUSE_ON_UNIT_SET_XY_CALLBACK;
-}
-
-int cvInternalGlobals::getUSE_ON_UNIT_SELECTED_CALLBACK()
-{
-	return m_iUSE_ON_UNIT_SELECTED_CALLBACK;
-}
-
-int cvInternalGlobals::getUSE_ON_UPDATE_CALLBACK()
-{
-	return m_iUSE_ON_UPDATE_CALLBACK;
-}
-
-int cvInternalGlobals::getUSE_ON_UNIT_CREATED_CALLBACK()
-{
-	return m_iUSE_ON_UNIT_CREATED_CALLBACK;
-}
-
-int cvInternalGlobals::getUSE_ON_UNIT_LOST_CALLBACK()
-{
-	return m_iUSE_ON_UNIT_LOST_CALLBACK;
 }
 
 int cvInternalGlobals::getLAND_UNITS_CAN_ATTACK_WATER_CITIES() const

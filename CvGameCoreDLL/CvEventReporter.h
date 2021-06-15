@@ -96,15 +96,12 @@ public:
 
 	void selectionGroupPushMission(CvSelectionGroup* pSelectionGroup, MissionTypes eMission);
 
-	void unitMove(CvPlot* pPlot, CvUnit* pUnit, CvPlot* pOldPlot);					
-	void unitSetXY(CvPlot* pPlot, CvUnit* pUnit);					
-	void unitCreated(CvUnit *pUnit);
+	void unitMove(CvPlot* pPlot, CvUnit* pUnit, CvPlot* pOldPlot);
 	void unitBuilt(CvCity *pCity, CvUnit *pUnit);
 	void unitKilled(CvUnit *pUnit, PlayerTypes eAttacker);
 // BUG - Unit Captured Event - start
 	void unitCaptured(PlayerTypes eFromPlayer, UnitTypes eUnitType, CvUnit* pNewUnit);
 // BUG - Unit Captured Event - end
-	void unitLost(CvUnit *pUnit);
 	void unitPromoted(CvUnit *pUnit, PromotionTypes ePromotion);
 // BUG - Upgrade Unit Event - start
 	void unitUpgraded(CvUnit *pOldUnit, CvUnit *pNewUnit, int iPrice);

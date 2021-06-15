@@ -12,3 +12,4 @@ ESTIMATED_EXTRA_WAR_COSTS_PER_ERA, replaced with ESTIMATED_EXTRA_WAR_EXPENSE_PER
 
 Files:
 Rise of Mankind Config.ini, replaced with TechConquest.ini in the "Assets" folder.
+PythonCallbackDefines.xml
