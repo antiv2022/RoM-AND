@@ -68,6 +68,37 @@ namespace intdiv
 	}
 }
 
+// <f1rpo> from AdvCiv
+inline int longLongToInt(long long x)
+{
+	FAssert(x <= MAX_INT && x >= MIN_INT);
+	return static_cast<int>(std::max<long long>(std::min<long long>(MAX_INT, x), MIN_INT));
+}
+
+template<typename T>
+inline short toShort(T x)
+{
+	BOOST_STATIC_ASSERT(sizeof(T) > sizeof(short));
+	FAssert(x <= MAX_SHORT && x >= MIN_SHORT);
+	return static_cast<short>(std::max<T>(std::min<T>(MAX_SHORT, x), MIN_SHORT));
+}
+
+template<typename T>
+inline char toChar(T x)
+{
+	BOOST_STATIC_ASSERT(sizeof(T) > sizeof(char));
+	FAssert(x <= MAX_CHAR && x >= MIN_CHAR);
+	return static_cast<char>(std::max<T>(std::min<T>(MAX_CHAR, x), MIN_CHAR));
+}
+
+template<typename T>
+inline wchar toWChar(T x)
+{
+	BOOST_STATIC_ASSERT(sizeof(T) > sizeof(wchar));
+	FAssert(x <= WCHAR_MAX && x >= WCHAR_MIN);
+	return static_cast<wchar>(std::max<T>(std::min<T>(WCHAR_MAX, x), WCHAR_MIN));
+} // </f1rpo>
+
 
 inline int range(int iNum, int iLow, int iHigh)
 {
