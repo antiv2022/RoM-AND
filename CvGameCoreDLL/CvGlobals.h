@@ -286,7 +286,13 @@ public:
 		return *m_pa##Name##Info[e##Name]; \
 	}
 	DO_FOR_EACH_INFO_TYPE(MAKE_INFO_ACCESSOR);
-	// </f1rpo>
+	/*	This type uses irregular naming and is neither fully static nor dynamic.
+		Not covered by the macro. */
+	__forceinline CvWorldInfo const& getInfo(WorldSizeTypes eWorldSize) const
+	{
+		FAssertBounds(0, m_paWorldInfo.size(), eWorldSize);
+		return *m_paWorldInfo[eWorldSize];
+	} // </f1rpo>
 
 /************************************************************************************************/
 /* SORT_ALPHABET                           11/19/07                                MRGENIE      */
