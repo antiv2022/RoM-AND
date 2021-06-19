@@ -185,6 +185,23 @@ public:
 		return r;
 	}
 
+	/*	See intHash (CvGameCoreUtils.h) about the parameters.
+		Result in the half-open interval [0, 1). */
+	static ScaledNum hash(std::vector<int> const& x, PlayerTypes ePlayer = NO_PLAYER)
+	{
+		CvRandom rng;
+		rng.init(::intHash(x, ePlayer));
+		return rand(rng, NULL);
+	}
+
+	// For hashing just a single input
+	static inline ScaledNum hash(int x, PlayerTypes ePlayer = NO_PLAYER)
+	{
+		std::vector<int> v;
+		v.push_back(x);
+		return hash(v, ePlayer);
+	}
+
 	__forceinline ScaledNum() : m_i(static_cast<IntType>(0)) {}
 	__forceinline ScaledNum(int i) : m_i(static_cast<IntType>(SCALE * i))
 	{

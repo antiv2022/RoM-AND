@@ -36,6 +36,35 @@
 #define	PATH_ENEMY_CITY_WEIGHT									(500)
 #define PATH_DAMAGE_WEIGHT										(2000)
 
+/*	f1rpo (from AdvCiv):
+	Akin to natGetDeterministicRandom (free function in CvCity.cpp). */
+int intHash(std::vector<int> const& kInputs, PlayerTypes ePlayer)
+{
+	int const iPrime = 31;
+	int iHashVal = 0;
+	for (size_t i = 0; i < kInputs.size(); i++)
+	{
+		iHashVal += kInputs[i];
+		iHashVal *= iPrime;
+	}
+	int iCapitalIndex = -1;
+	if (ePlayer != NO_PLAYER)
+	{
+		CvCity* pCapital = GET_PLAYER(ePlayer).getCapitalCity();
+		if (pCapital != NULL)
+		{
+			iCapitalIndex = GC.getMap().plotNum(
+					pCapital->getX_INLINE(), pCapital->getY_INLINE());
+		}
+	}
+	if (iCapitalIndex >= 0)
+	{
+		iHashVal += iCapitalIndex;
+		iHashVal *= iPrime;
+	}
+	return iHashVal;
+}
+
 CvPlot* plotCity(int iX, int iY, int iIndex)
 {
 	return GC.getMapINLINE().plotINLINE((iX + GC.getCityPlotX()[iIndex]), (iY + GC.getCityPlotY()[iIndex]));

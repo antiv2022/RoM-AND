@@ -68,6 +68,10 @@ namespace intdiv
 	}
 }
 
+/*  f1rpo: Hash based on kInputs. Plot index of capital factored in for
+	increased range if ePlayer given. (ePlayer is ignored if it has no capital.) */
+int intHash(std::vector<int> const& kInputs, PlayerTypes ePlayer);
+
 // <f1rpo> from AdvCiv
 inline int longLongToInt(long long x)
 {
