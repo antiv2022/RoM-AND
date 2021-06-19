@@ -4376,6 +4376,49 @@ void CvTeamAI::AI_changeWarSuccess(TeamTypes eIndex, int iChange)
 }
 
 
+/*	f1rpo (from K-Mod): Return a rating of our war success between -99 and 99.
+	-99 means we losing and have very little hope of surviving.
+	99 means we are soundly defeating our enemies.
+	Zero is neutral (eg. no wars being fought). */
+int CvTeamAI::AI_getWarSuccessRating() const
+{
+	PROFILE_FUNC();
+
+	int iMilitaryUnits = 0;
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
+		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+		if (kLoopPlayer.getTeam() == getID())
+		{
+			iMilitaryUnits += kLoopPlayer.getNumMilitaryUnits();
+		}
+	}
+	int iSuccessScale = iMilitaryUnits * GC.getDefineINT("WAR_SUCCESS_ATTACKING") / 5;
+
+	int iThisTeamPower = getPower(true);
+	int iScore = 0;
+
+	for (int i = 0; i < MAX_CIV_TEAMS; i++)
+	{
+		CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)i);
+		if (i != getID() && isAtWar((TeamTypes)i) && kLoopTeam.isAlive()
+			&& !kLoopTeam.isAVassal())
+		{
+			int iThisTeamSuccess = AI_getWarSuccess((TeamTypes)i);
+			int iOtherTeamSuccess = kLoopTeam.AI_getWarSuccess(getID());
+
+			int iOtherTeamPower = kLoopTeam.getPower(true);
+
+			iScore += (iThisTeamSuccess + iSuccessScale) * iThisTeamPower;
+			iScore -= (iOtherTeamSuccess + iSuccessScale) * iOtherTeamPower;
+		}
+	}
+	iScore = range((100 * iScore)
+			/ std::max(1, iThisTeamPower * iSuccessScale * 5), -99, 99);
+	return iScore;
+}
+
+
 int CvTeamAI::AI_getEnemyPeacetimeTradeValue(TeamTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");

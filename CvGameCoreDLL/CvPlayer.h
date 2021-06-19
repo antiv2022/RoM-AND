@@ -331,6 +331,8 @@ public:
 	DllExport int getNumTradeableBonuses(BonusTypes eBonus) const;																				// Exposed to Python
 	int getNumTradeBonusImports(PlayerTypes ePlayer) const;																								// Exposed to Python
 	bool hasBonus(BonusTypes eBonus) const;									// Exposed to Python
+	// f1rpo (from K-Mod):
+	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const;
 
 	bool isTradingWithTeam(TeamTypes eTeam, bool bIncludeCancelable) const;
 	bool canStopTradingWithTeam(TeamTypes eTeam, bool bContinueNotTrading = false) const;																										// Exposed to Python

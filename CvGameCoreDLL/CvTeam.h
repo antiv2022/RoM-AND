@@ -523,6 +523,8 @@ public:
 
 	int getImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2) const;										// Exposed to Python 
 	void changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2, int iChange);		// Exposed to Python 
+	// f1rpo (from K-Mod):
+	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const;
 
 	void addPropertiesAllCities(CvProperties* pProp);
 	void subtractPropertiesAllCities(CvProperties* pProp);

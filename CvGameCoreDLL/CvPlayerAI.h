@@ -439,8 +439,9 @@ public:
 	
     int AI_countDeadlockedBonuses(CvPlot* pPlot) const;
     
-    int AI_getOurPlotStrength(CvPlot* pPlot, int iRange, bool bDefensiveBonuses, bool bTestMoves) const;
-    int AI_getEnemyPlotStrength(CvPlot* pPlot, int iRange, bool bDefensiveBonuses, bool bTestMoves) const;
+    int AI_getOurPlotStrength(CvPlot const* pPlot, int iRange, bool bDefensiveBonuses, bool bTestMoves,
+			int* piUnitCount = NULL) const; // f1rpo
+    int AI_getEnemyPlotStrength(CvPlot const* pPlot, int iRange, bool bDefensiveBonuses, bool bTestMoves) const;
 
 	int AI_goldToUpgradeAllUnits(int iExpThreshold = 0) const;
 
@@ -563,6 +564,14 @@ public:
 	TechTypes AI_bestReligiousTech(int iMaxPathLength, TechTypes eIgnoreTech, AdvisorTypes eIgnoreAdvisor) const;
 	int AI_religiousTechValue(TechTypes eTech) const;
 	int AI_ourCityValue(CvCity* pCity) const;
+	// <f1rpo>
+	int AI_nukePlotValue(CvPlot const& kPlot, int iCivilianTargetWeight) const;
+	int AI_nukeBaseDestructionWeight() const;
+	int AI_nukeExtraDestructionWeight(PlayerTypes eTarget,
+			int iTheirNukes, bool bLimited) const;
+	int AI_estimateNukeCount(PlayerTypes eOwner) const;
+	scaled AI_nukeChanceToKillUnit(int iHP, int iNukeModifier = 0) const;
+	// </f1rpo>
 
 	void AI_noteWarStatusChange(TeamTypes eTeam, bool bAtWar);
 	

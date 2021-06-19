@@ -195,6 +195,8 @@ public:
 	void AI_setWarSuccess(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarSuccess(TeamTypes eIndex, int iChange);
 
+	int AI_getWarSuccessRating() const; // f1rpo (from K-Mod)
+
 	int AI_getEnemyPeacetimeTradeValue(TeamTypes eIndex) const;
 	void AI_setEnemyPeacetimeTradeValue(TeamTypes eIndex, int iNewValue);
 	void AI_changeEnemyPeacetimeTradeValue(TeamTypes eIndex, int iChange);

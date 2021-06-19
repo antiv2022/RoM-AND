@@ -371,7 +371,7 @@ protected:
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 	bool AI_nuke();
-	bool AI_nukeRange(int iRange);
+	//bool AI_nukeRange(int iRange); // f1rpo: Now handled by AI_nuke
 	bool AI_trade(int iValueThreshold);
 	bool AI_infiltrate();
 	bool AI_reconSpy(int iRange);
@@ -398,7 +398,11 @@ protected:
 
 	bool AI_defendPlot(CvPlot* pPlot);
 	int AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold = 0);
-	int AI_nukeValue(CvCity* pCity);
+	//int AI_nukeValue(CvCity* pCity);
+	// <f1rpo>
+	int AI_nukeValue(CvPlot const& kCenterPlot, int iSearchRange,
+			CvPlot const*& pBestTarget, int iCivilianTargetWeight = 50) const;
+	// </f1rpo>
 	bool AI_canPillage(CvPlot& kPlot) const;
 
 	int AI_searchRange(int iRange);

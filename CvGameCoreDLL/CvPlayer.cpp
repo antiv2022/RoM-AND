@@ -8627,6 +8627,14 @@ bool CvPlayer::hasBonus(BonusTypes eBonus) const
 	return false;
 }
 
+// f1rpo (from K-Mod; see the CvTeam function of the same name)
+bool CvPlayer::doesImprovementConnectBonus(ImprovementTypes eImprovement,
+	BonusTypes eBonus) const
+{
+	return GET_TEAM(getTeam()).doesImprovementConnectBonus(eImprovement, eBonus);
+}
+
+
 int CvPlayer::getNumTradeBonusImports(PlayerTypes ePlayer) const
 {
 	CLLNode<TradeData>* pNode;

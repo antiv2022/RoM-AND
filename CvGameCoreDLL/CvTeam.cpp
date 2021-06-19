@@ -7482,7 +7482,32 @@ void CvTeam::changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes e
 		updateYield();
 	}
 }
-// Protected Functions...
+
+
+/*	f1rpo (from K-Mod; note that I haven't endeavored to fix those "heaps of bugs"
+	- to the extent that they may also exist in AND):
+	In the original code, there seems to be a lot of confusion about what
+	the exact conditions are for a bonus being connected. There were heaps of bugs
+	where CvImprovementInfo::isImprovementBonusTrade was mistakenly used as the
+	sole condition for a bonus being connected or not. I created this function
+	to make the situation a bit more clear... */
+bool CvTeam::doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const
+{
+	if (eImprovement == NO_IMPROVEMENT || eBonus == NO_BONUS)
+		return false;
+
+	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
+	if (!isHasTech((TechTypes)kBonus.getTechCityTrade())
+		|| (kBonus.getTechObsolete() != NO_TECH &&
+		isHasTech((TechTypes)kBonus.getTechObsolete())))
+	{
+		return false;
+	}
+	CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
+	return (kImprovement.isImprovementBonusTrade(eBonus)
+			|| kImprovement.isActsAsCity());
+}
+
 
 void CvTeam::doWarWeariness()
 {

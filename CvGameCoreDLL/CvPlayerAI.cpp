@@ -31757,8 +31757,15 @@ int CvPlayerAI::AI_countDeadlockedBonuses(CvPlot* pPlot) const
     return iCount;
 }
 
-int CvPlayerAI::AI_getOurPlotStrength(CvPlot* pPlot, int iRange, bool bDefensiveBonuses, bool bTestMoves) const
+int CvPlayerAI::AI_getOurPlotStrength(CvPlot const* pPlot, int iRange,
+	bool bDefensiveBonuses, bool bTestMoves,
+	// <f1rpo>
+	int* piUnitCount) const
 {
+	int iDummy=0;
+	int& iUnitCount = (piUnitCount == NULL ? iDummy : *piUnitCount);
+	iUnitCount = 0; // </f1rpo>
+
 	PROFILE_FUNC();
 
 	CLLNode<IDInfo>* pUnitNode;
@@ -31799,12 +31806,14 @@ int CvPlayerAI::AI_getOurPlotStrength(CvPlot* pPlot, int iRange, bool bDefensive
                                         if (!bTestMoves)
                                         {
                                         	iValue += pLoopUnit->currEffectiveStr((bDefensiveBonuses ? pPlot : NULL), NULL);
+											iUnitCount++; // f1rpo
                                         }
                                         else
                                         {
 											if (pLoopUnit->baseMoves() >= iDistance)
                                             {
                                                 iValue += pLoopUnit->currEffectiveStr((bDefensiveBonuses ? pPlot : NULL), NULL);
+												iUnitCount++; // f1rpo
                                             }
                                         }
 								    }
@@ -31821,7 +31830,7 @@ int CvPlayerAI::AI_getOurPlotStrength(CvPlot* pPlot, int iRange, bool bDefensive
 	return iValue;
 }
 
-int CvPlayerAI::AI_getEnemyPlotStrength(CvPlot* pPlot, int iRange, bool bDefensiveBonuses, bool bTestMoves) const
+int CvPlayerAI::AI_getEnemyPlotStrength(CvPlot const* pPlot, int iRange, bool bDefensiveBonuses, bool bTestMoves) const
 {
 	PROFILE_FUNC();
 
@@ -35601,6 +35610,260 @@ CvCity* CvPlayerAI::findBestCoastalCity(void) const
 
 	return pBestCity;
 }
+
+// <f1rpo> from AdvCiv
+// Based on K-Mod:
+int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
+	int iCivilianTargetWeight) const
+{
+	PROFILE_FUNC();
+	int const iMilitaryTargetWeight = 100;
+	int iValue = 0;
+	// value for improvements / bonuses etc.
+	if (kPlot.isOwned())
+	{
+		// (we aren't allowed to nuke neutrals)
+		bool const bEnemy = (kPlot.getTeam() != getTeam());
+		CvPlayerAI const& kPlotOwner = GET_PLAYER(kPlot.getOwner());
+		ImprovementTypes const eImprovement = kPlot.getRevealedImprovementType(
+				getTeam(), false);
+		if (eImprovement != NO_IMPROVEMENT)
+		{
+			CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
+			if (!kImprovement.isPermanent())
+			{
+				// arbitrary values, sorry.
+				iValue += 8 * (bEnemy ? iCivilianTargetWeight : -50);
+				if (kImprovement.getImprovementPillage() != NO_IMPROVEMENT)
+				{
+					iValue += (kImprovement.getImprovementUpgrade() == NO_IMPROVEMENT
+							? 32 : 16) * (bEnemy ? iCivilianTargetWeight : -50);
+				}
+			}
+		}
+		BonusTypes const eBonus = kPlot.getNonObsoleteBonusType(getTeam());
+		if (eBonus != NO_BONUS)
+		{
+			iValue += 8 * (bEnemy ? iCivilianTargetWeight : -50);
+			if (kPlotOwner.doesImprovementConnectBonus(eImprovement, eBonus))
+			{
+				/*	assume that valuable bonuses are military targets, because
+					the enemy might be using the bonus to build weapons. */
+				iValue += kPlotOwner.AI_bonusVal(eBonus, 0)
+						* (bEnemy ? iMilitaryTargetWeight : -100);
+			}
+		}
+	}
+	CvCity const* pCity = kPlot.getPlotCity();
+	/*	consider military units if the plot is visible.
+		(todo: increase value of military units that we can chase down this turn, maybe.) */
+	if (kPlot.isVisible(getTeam(), false))
+	{
+		scaled rFollowUpChance;
+		int const iDefenders = kPlot.plotCount(PUF_canDefendEnemy, getID(), FALSE);
+		if (iDefenders >= 4) // To save time
+		{
+			int iAttackers = 0;
+			AI_getOurPlotStrength(&kPlot, 2, false, false, &iAttackers);
+			rFollowUpChance = scaled(std::min(iAttackers, iDefenders), iDefenders);
+			rFollowUpChance /= 2;
+		}
+		int const iNukeModifier = (pCity != NULL ?
+				kPlot.getPlotCity()->getNukeModifier() : 0);
+		for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode();
+			pNode != NULL; pNode = kPlot.nextUnitNode(pNode))
+		{
+			CvUnit const& kUnit = *::getUnit(pNode->m_data);
+			/*	Allow the AI to cheat here by seeing cargo units.
+				(Human players can usually guess when a ship is loaded...) */
+			if (kUnit.isInvisible(getTeam(), false, true))
+				continue;
+			if (kUnit.isEnemy(getTeam(), &kPlot))
+			{
+				int iUnitValue = std::max(1, kUnit.getUnitInfo().getProductionCost());
+				iUnitValue = (iUnitValue * scaled::min(
+						AI_nukeChanceToKillUnit(kUnit.currHitPoints(), iNukeModifier)
+						/*	Give follow-up chance more weight if it might enable us
+							to conquer a city */
+						+ rFollowUpChance * (pCity != NULL ? 2 : 1), 1)).uround();
+				iValue += iMilitaryTargetWeight * iUnitValue;
+			}
+			else
+			{
+				if (kUnit.getTeam() == getTeam())
+				{
+					// nuking our own units... sometimes acceptable
+					int const iCost = kUnit.getUnitInfo().getProductionCost();
+					if (iCost > 0)
+						iValue -= iMilitaryTargetWeight * iCost;
+					// assume this is a special unit.
+					else return MIN_INT;
+				}
+				else FAssertMsg(false, "3rd party unit being considered for nuking.");
+			}
+		}
+	}
+	if (pCity == NULL || !pCity->isRevealed(getTeam(), false))
+		return iValue;
+	if (pCity->getTeam() == getTeam())
+		return MIN_INT;
+	// the values used here are quite arbitrary.
+	iValue += iCivilianTargetWeight * 2 * (pCity->getCultureLevel() + 2)
+			* pCity->getPopulation();
+	/*	note, it is possible to see which buildings the city has
+		by looking at the map. This is not secret information. */
+	static int const iNUKE_BUILDING_DESTRUCTION_PROB
+			= GC.getDefineINT("NUKE_BUILDING_DESTRUCTION_PROB");
+	FOR_EACH_ENUM(Building)
+	{
+		if (pCity->getNumRealBuilding(eLoopBuilding) <= 0)
+			continue;
+		CvBuildingInfo const& kBuilding = GC.getInfo(eLoopBuilding);
+		if (!kBuilding.isNukeImmune())
+		{
+			iValue += (iCivilianTargetWeight * pCity->getNumRealBuilding(eLoopBuilding)
+					* std::max(0, kBuilding.getProductionCost())
+					* iNUKE_BUILDING_DESTRUCTION_PROB)
+					/ 100;
+		}
+	}
+	/*	if we don't have vision of the city, just assume that there are
+		at least a couple of defenders, and count that into our evaluation. */
+	if (!kPlot.isVisible(getTeam(), false))
+	{
+		UnitTypes eBasicUnit = pCity->getConscriptUnit();
+		int iBasicCost = std::max(10, eBasicUnit != NO_UNIT ?
+				GC.getInfo(eBasicUnit).getProductionCost() : 0);
+		int iExpectedUnits = 1 + ((1 + pCity->getCultureLevel()) *
+				pCity->getPopulation() + pCity->getHighestPopulation() / 2) /
+				std::max(1, pCity->getHighestPopulation());
+		if (pCity->isHuman())
+		{
+			iExpectedUnits /= 2; // Still likely to overestimate human garrison
+			iExpectedUnits = std::max(iExpectedUnits, 1);
+		}
+		/*	It could be that we've recently nuked this plot blindly
+			(we have no visibility). In that case, nuking it (blindly) again
+			would have a good chance of killing units previously injured.
+			There's AdvCiv code for keeping track of plots recently nuked,
+			but I don't feel like porting that. So - assume that everyone's healthy. */
+		scaled rChanceToKill = AI_nukeChanceToKillUnit(GC.getMAX_HIT_POINTS());
+		iValue += (iMilitaryTargetWeight * iExpectedUnits * iBasicCost
+				* rChanceToKill).uround();
+	}
+	return iValue;
+}
+
+// The DestructionWeight functions are based on K-Mod code originally in CvUnitAI::AI_nuke
+int CvPlayerAI::AI_nukeBaseDestructionWeight() const
+{
+	int iR = 4;
+	if (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI))
+		iR += 6;
+	if (AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3))
+	{
+		iR += 8;
+		if (AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
+			iR += 12;
+	}
+	int const iWS = GET_TEAM(getTeam()).AI_getWarSuccessRating();
+	/*	War going badly is not actually a good reason for hitting civilian targets.
+		Let's say, only when it's going very, very badly (still questionable): */
+	if (iWS < -88)
+		iR -= iWS;
+	// K-Mod: Don't completely destroy them if we want to keep their land
+	int iWSThresh = 50;
+	if (iWS > iWSThresh)
+		iR -= iWS - iWSThresh;
+	else
+	{
+		int iTargetPowRatio = 200;
+		int iPowRatioPercent = (100 * GET_TEAM(getTeam()).getPower(true))
+				/ std::max(1, GET_TEAM(getTeam()).getEnemyPower());
+		if (iPowRatioPercent > iTargetPowRatio)
+			iR -= iPowRatioPercent - iTargetPowRatio;
+	}
+	iR += GC.getInfo(getPersonalityType()).getRazeCityProb() / 3;
+	return std::max(0, iR);
+}
+
+
+int CvPlayerAI::AI_nukeExtraDestructionWeight(PlayerTypes eTarget,
+	int iTheirNukes, bool bLimited) const
+{
+	int iR = 0;
+	CvPlayerAI const& kTarget = GET_PLAYER(eTarget);
+	if (kTarget.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
+	{
+		iR += 12;
+		if (kTarget.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
+			iR += 8;
+	}
+	// Don't give this much impact - attitude isn't very telling when at war.
+	iR -= AI_getAttitudeWeight(kTarget.getID()) / 8;
+	if (GET_TEAM(getTeam()).AI_getWorstEnemy() == kTarget.getTeam())
+		iR += 12;
+	if (!bLimited)
+		iR += 16;
+	int iMemoryVal = std::min(120,
+			2 * AI_getMemoryCount(kTarget.getID(), MEMORY_NUKED_FRIEND) +
+			5 * AI_getMemoryCount(kTarget.getID(), MEMORY_NUKED_US));
+	// Avoid escalation
+	if (iMemoryVal <= 5 && iTheirNukes > 0)
+		iR -= (scaled(iTheirNukes).sqrt() * 8).uround();
+	iR += iMemoryVal;
+	return iR;
+}
+
+// AdvCiv (not based on K-Mod):
+int CvPlayerAI::AI_estimateNukeCount(PlayerTypes eOwner) const
+{
+	int const iActualCount = GET_PLAYER(eOwner).getNumNukeUnits();
+	if (GET_PLAYER(eOwner).getTeam() == getTeam()
+		|| GET_TEAM(GET_PLAYER(eOwner).getTeam()).isVassal(getTeam()))
+	{
+		return iActualCount;
+	}
+	// Cheating plus noise
+	std::vector<int> aiInputs;
+	aiInputs.push_back(eOwner);
+	return (iActualCount *
+			(scaled::hash(aiInputs, getID()) + fixp(0.5))).uround();
+}
+
+/*	AdvCiv (not based on K-Mod):
+	Quick approximation (b/c I'm too lazy to calculate the exact odds;
+	the computational effort shouldn't be a concern - by virtue of the static cache).
+	Civilians have their own probability distribution; see CvPlot::nukeExplosion.
+	I'm not going to implement special treatment for civilians; I'd sooner merge
+	a Kek-Mod change that gives civilians the same survival chance as combatants. */
+scaled CvPlayerAI::AI_nukeChanceToKillUnit(int iHP, int iNukeModifier) const
+{
+	static scaled rLastResult = scaled::MIN();
+	static short iLastHP;
+	static short iLastModifier;
+	if (rLastResult > scaled::MIN() && iHP == iLastHP && iNukeModifier == iLastModifier)
+		return rLastResult;
+	iLastHP = toShort(iHP);
+	iLastModifier = toShort(iNukeModifier);
+	static short const iNukeDamageRand1 = toShort(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_1")
+			* (100 + iNukeModifier) / 100);
+	static short const iNukeDamageRand2 = toShort(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_2")
+			* (100 + iNukeModifier) / 100);
+	static short const iNukeUnitDamageBase = toShort(GC.getDefineINT("NUKE_UNIT_DAMAGE_BASE")
+			* (100 + iNukeModifier) / 100);
+	int iSumDamageRands = iNukeDamageRand1 + iNukeDamageRand2;
+	scaled rKillChanceCorrection = scaled::min(1,
+			1 - (iSumDamageRands <= 0 ? 0
+			: scaled(std::min(iNukeDamageRand1, iNukeDamageRand2), iSumDamageRands)));
+	int iMaxHPAfterHit = iHP - iNukeUnitDamageBase;
+	scaled r = 1 - scaled(iMaxHPAfterHit, iSumDamageRands);
+	r *= rKillChanceCorrection;
+	r.clamp(0, 1);
+	rLastResult = r;
+	return r;
+} // </f1rpo>
+
 
 int CvPlayerAI::strengthOfBestUnitAI(DomainTypes eDomain, UnitAITypes eUnitAIType) const
 {
