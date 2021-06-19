@@ -60,8 +60,11 @@ public:
 	CLLNode<tVARTYPE>* deleteNode(CLLNode<tVARTYPE>* pNode);
 	void moveToEnd(CLLNode<tVARTYPE>* pThisNode);
 
-	CLLNode<tVARTYPE>* next(CLLNode<tVARTYPE>* pNode) const;
-	CLLNode<tVARTYPE>* prev(CLLNode<tVARTYPE>* pNode) const;
+	// f1rpo: Const and non-const versions
+	CLLNode<tVARTYPE>* next(CLLNode<tVARTYPE>* pNode) const { return pNode->m_pNext; }
+	CLLNode<tVARTYPE>* prev(CLLNode<tVARTYPE>* pNode) const { return pNode->m_pPrev; }
+	CLLNode<tVARTYPE> const* next(CLLNode<tVARTYPE> const* pNode) const { return pNode->m_pNext; }
+	CLLNode<tVARTYPE> const* prev(CLLNode<tVARTYPE> const* pNode) const { return pNode->m_pPrev; }
 
 	CLLNode<tVARTYPE>* nodeNum(int iNum) const;
 
@@ -333,24 +336,6 @@ inline void CLinkList<tVARTYPE>::moveToEnd(CLLNode<tVARTYPE>* pNode)
 	m_pTail->m_pNext = pNode;
 	pNode->m_pPrev = m_pTail;
 	m_pTail = pNode;
-}
-
-
-template <class tVARTYPE>
-inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::next(CLLNode<tVARTYPE>* pNode) const
-{
-  assert(pNode != NULL);
-
-  return pNode->m_pNext;
-}
-
-
-template <class tVARTYPE>
-inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::prev(CLLNode<tVARTYPE>* pNode) const
-{
-	assert(pNode != NULL);
-
-	return pNode->m_pPrev;
 }
 
 

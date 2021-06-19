@@ -4635,23 +4635,23 @@ bool CvPlot::isTeamBorderCache( TeamTypes eTeam ) const
 	return m_abIsTeamBorderCache[eTeam];
 }
 
-void CvPlot::setIsActivePlayerNoDangerCache( bool bNewValue )
+void CvPlot::setIsActivePlayerNoDangerCache( bool bNewValue ) const
 {
 	m_bIsActivePlayerNoDangerCache = bNewValue;
 }
 
-void CvPlot::setIsActivePlayerHasDangerCache( bool bNewValue )
+void CvPlot::setIsActivePlayerHasDangerCache( bool bNewValue ) const
 {
 	m_bIsActivePlayerHasDangerCache = bNewValue;
 }
 
-void CvPlot::setIsTeamBorderCache( TeamTypes eTeam, bool bNewValue )
+void CvPlot::setIsTeamBorderCache( TeamTypes eTeam, bool bNewValue ) const
 {
 	PROFILE_FUNC();
 	m_abIsTeamBorderCache[eTeam] = bNewValue;
 }
 
-void CvPlot::invalidateIsTeamBorderCache()
+void CvPlot::invalidateIsTeamBorderCache() const
 {
 	PROFILE_FUNC();
 
@@ -9875,7 +9875,7 @@ int CvPlot::getVisibilityCount(TeamTypes eTeam) const
 	return m_aiVisibilityCount[eTeam];
 }
 
-int CvPlot::getDangerCount(int /*PlayerTypes*/ ePlayer)
+int CvPlot::getDangerCount(int /*PlayerTypes*/ ePlayer) const
 {
 	FAssertMsg(ePlayer >= 0, "ePlayer is expected to be non-negative (invalid Index)");
 	FAssertMsg(ePlayer < MAX_PLAYERS, "ePlayer is expected to be within maximum bounds (invalid Index)");

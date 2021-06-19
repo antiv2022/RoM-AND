@@ -289,10 +289,10 @@ public:
 	bool isActivePlayerNoDangerCache() const;
 	bool isActivePlayerHasDangerCache() const;
 	bool isTeamBorderCache( TeamTypes eTeam ) const;
-	void setIsActivePlayerNoDangerCache( bool bNewValue );
-	void setIsActivePlayerHasDangerCache( bool bNewValue );
-	void setIsTeamBorderCache( TeamTypes eTeam, bool bNewValue );
-	void invalidateIsTeamBorderCache();
+	void setIsActivePlayerNoDangerCache( bool bNewValue ) const;
+	void setIsActivePlayerHasDangerCache( bool bNewValue ) const;
+	void setIsTeamBorderCache( TeamTypes eTeam, bool bNewValue ) const;
+	void invalidateIsTeamBorderCache() const;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -698,7 +698,7 @@ public:
 	int getVisibilityCount(TeamTypes eTeam) const;																											// Exposed to Python
 	void changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes eSeeInvisible, bool bUpdatePlotGroups);							// Exposed to Python
 
-	int getDangerCount(int /*PlayerTypes*/ ePlayer);
+	int getDangerCount(int /*PlayerTypes*/ ePlayer) const;
 	void setDangerCount(int /*PlayerTypes*/ ePlayer, int iNewCount);
 
 	int getStolenVisibilityCount(TeamTypes eTeam) const;																								// Exposed to Python
@@ -786,6 +786,11 @@ public:
 	void addUnit(CvUnit* pUnit, bool bUpdate = true);
 	void removeUnit(CvUnit* pUnit, bool bUpdate = true);
 	DllExport CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const;
+	// f1rpo: const version
+	CLLNode<IDInfo> const* nextUnitNode(CLLNode<IDInfo> const* pNode) const
+	{
+		return m_units.next(pNode);
+	}
 	DllExport CLLNode<IDInfo>* prevUnitNode(CLLNode<IDInfo>* pNode) const;
 	DllExport CLLNode<IDInfo>* headUnitNode() const;
 	DllExport CLLNode<IDInfo>* tailUnitNode() const;
@@ -875,10 +880,10 @@ protected:
 /*                                                                                              */
 /* Efficiency                                                                                   */
 /************************************************************************************************/
-	// Plot danger cache
-	bool m_bIsActivePlayerHasDangerCache;
-	bool m_bIsActivePlayerNoDangerCache;
-	bool* m_abIsTeamBorderCache;
+	// Plot danger cache (f1rpo: mutable; mutator functions constified.)
+	mutable bool m_bIsActivePlayerHasDangerCache;
+	mutable bool m_bIsActivePlayerNoDangerCache;
+	mutable bool* m_abIsTeamBorderCache;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
