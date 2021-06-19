@@ -1281,7 +1281,7 @@ void CvGame::initAIHandicap()
 		}
 	}
 	if(iDiv > 0) // Leaves it at STANDARD_HANDICAP in all-human games
-		m_eAIHandicap = (HandicapTypes)ROUND_DIVIDE(iHandicapSum, iDiv);
+		m_eAIHandicap = (HandicapTypes)intdiv::uround(iHandicapSum, iDiv);
 }
 
 // f1rpo (era options):

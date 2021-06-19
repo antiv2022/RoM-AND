@@ -147,7 +147,7 @@ public:
 		that the conversion to SCALE happens at compile time, so that
 		floating-point math can be used for maximal accuracy. */
 	template<int iNUM, int iDEN>
-	static inline ScaledNum fromRational()
+	static __forceinline ScaledNum fromRational()
 	{
 		BOOST_STATIC_ASSERT(iDEN != 0);
 		BOOST_STATIC_ASSERT(bSIGNED || (iDEN > 0 && iNUM >= 0));
@@ -228,7 +228,10 @@ public:
 	//__forceinline int getInt() const { return round(); }
 	// Cast operator - again, better to be explicit.
 	//__forceinline operator int() const { return getInt(); }
-	int round() const; // (expect this to get inlined for unsigned IntType)
+	int round() const; // Expect this to get inlined for unsigned IntType
+	/*	Only for signed IntType. Non-branching, expect this to get inlined always,
+		but only works on non-negative numbers. */
+	int uround() const;
 	__forceinline int floor() const
 	{
 		return static_cast<int>(m_i / SCALE);
@@ -254,6 +257,10 @@ public:
 	__forceinline int roundToMultiple(int iMultiple) const
 	{
 		return mulDivRound(m_i, 1, SCALE * iMultiple) * iMultiple;
+	}
+	__forceinline int toMultipleFloor(int iMultiple) const
+	{
+		return (m_i / (SCALE * iMultiple)) * iMultiple;
 	}
 	__forceinline double getDouble() const
 	{
@@ -362,6 +369,9 @@ public:
 
 	__forceinline bool isPositive() const { return (m_i > 0); }
 	__forceinline bool isNegative() const { return (bSIGNED && m_i < 0); }
+	/*	Typically, the 0 sign doesn't matter, so this function wouldn't be
+		as efficient as it could be in most cases. */
+	//__forceinline char getSign() const { return (isPositive() ? 1 : (isNegative() ? -1 : 0)); }
 
 	__forceinline void flipSign() { *this = -(*this); }
 	__forceinline void flipFraction() { *this = 1 / *this; }
@@ -642,7 +652,7 @@ private:
 		{
 			int i = multiplicand;
 			i *= multiplier;
-			i = ROUND_DIVIDE(i, divisor);
+			i = intdiv::round(i, divisor);
 			i /= divisor;
 			return static_cast<ReturnType>(i);
 		} // In all remaining cases, mulDiv rounds too.
@@ -849,6 +859,16 @@ int ScaledNum_T::round() const
 	}
 	FAssert(m_i <= static_cast<IntType>(INTMAX - SCALE / 2u));
 	return (m_i + SCALE / 2u) / SCALE;
+}
+
+template<ScaledNum_PARAMS>
+int ScaledNum_T::uround() const
+{
+	BOOST_STATIC_ASSERT(bSIGNED); // Use round() instead
+	if (INTMAX < SCALE)
+		FAssert(false);
+	FAssert(m_i >= 0 && m_i <= static_cast<IntType>(INTMAX - SCALE / 2));
+	return (m_i + SCALE / 2) / SCALE;
 }
 
 template<ScaledNum_PARAMS>

@@ -8816,7 +8816,7 @@ int CvPlayerAI::AI_getFirstImpressionAttitude(PlayerTypes ePlayer, bool bAsync) 
 		}
 	}
 
-    return ROUND_DIVIDE(iAttitude, 100);
+    return intdiv::round(iAttitude, 100);
 }
 
 // <f1rpo> (Sexism, Racism)

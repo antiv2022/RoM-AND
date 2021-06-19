@@ -43,12 +43,31 @@ class CvInfoBase;
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };
 
-// f1rpo (from AdvCiv; based on K-Mod)
-inline int ROUND_DIVIDE(int a, int b)
+/*	f1rpo (from AdvCiv):
+	Can also use ScaledNum instead . Maybe these functions read a bit better
+	in code that doesn't use fractions much. */
+namespace intdiv
 {
-	int iSign = ((a ^ b) >= 0 ? 1 : -1);
-	return (a + iSign * b / 2) / b;
+	inline int round(int iDividend, int iDivisor)
+	{
+		int iSign = ((iDividend ^ iDivisor) >= 0 ? 1 : -1);
+		return (iDividend + iSign * iDivisor / 2) / iDivisor;
+	}
+
+	// The "u" functions are only for nonnegative numbers ...
+	inline int uround(int iDividend, int iDivisor)
+	{
+		FAssert((iDividend ^ iDivisor) >= 0); // Both negative is OK
+		return (iDividend + iDivisor / 2) / iDivisor;
+	}
+
+	inline int uceil(int iDividend, int iDivisor)
+	{
+		FAssert(iDividend >= 0 && iDivisor > 0);
+		return 1 + (iDividend - 1) / iDivisor;
+	}
 }
+
 
 inline int range(int iNum, int iLow, int iHigh)
 {
