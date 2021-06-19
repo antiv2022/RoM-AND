@@ -133,12 +133,17 @@ typedef unsigned long    dword;
 typedef unsigned __int64 qword;
 typedef wchar_t          wchar;
 
+/*	f1rpo: Put minus operators into the negative constants, otherwise,
+	if there's only a literal, it can get treated as an unsigned value. */
 #define MAX_CHAR                            (0x7f)
-#define MIN_CHAR                            (0x80)
+//#define MIN_CHAR							(0x80)
+#define MIN_CHAR							(-MAX_CHAR - 1)
 #define MAX_SHORT                           (0x7fff)
-#define MIN_SHORT                           (0x8000)
+//#define MIN_SHORT							(0x8000)
+#define MIN_SHORT							(-MAX_SHORT - 1)
 #define MAX_INT                             (0x7fffffff)
-#define MIN_INT                             (0x80000000)
+//#define MIN_INT							(0x80000000)
+#define MIN_INT								(-MAX_INT - 1)
 #define MAX_UNSIGNED_CHAR                   (0xff)
 #define MIN_UNSIGNED_CHAR                   (0x00)
 #define MAX_UNSIGNED_SHORT                  (0xffff)
