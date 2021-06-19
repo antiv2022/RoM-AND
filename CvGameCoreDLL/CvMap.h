@@ -271,7 +271,18 @@ public:
 		return &(m_pMapPlots[plotNumINLINE(iX, iY)]);
 	}
 #endif
-	 CvPlot* pointToPlot(float fX, float fY);
+	/*	f1rpo (from AdvCiv): Checks coordRange but not INVALID_PLOT_COORD.
+		For functions that compute x,y as an offset from a (valid) plot -
+		not plausible that the new coordinates would equal INVALID_PLOT_COORD,
+		so let's not waste time checking that. */
+	CvPlot* plotValidXY(int iX, int iY) const
+	{
+		int iMapX = coordRange(iX, getGridWidth(), isWrapX());
+		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
+		return (isPlot(iMapX, iMapY) ? &m_pMapPlots[plotNum(iMapX, iMapY)] : NULL);
+	}
+
+	CvPlot* pointToPlot(float fX, float fY);
 
 	int getIndexAfterLastArea();														// Exposed to Python
 	int getNumAreas();														// Exposed to Python

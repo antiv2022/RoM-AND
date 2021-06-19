@@ -187,6 +187,7 @@
     <ClCompile Include="..\FDialogTemplate.cpp" />
     <ClCompile Include="..\FLinedDataIOStream.cpp" />
     <ClCompile Include="..\IntExpr.cpp" />
+    <ClCompile Include="..\PlotRadiusIterator.cpp" />
     <ClCompile Include="..\UTF8Support.cpp" />
     <ClCompile Include="..\_precompile.cpp" />
   </ItemGroup>
@@ -332,6 +333,7 @@
     <ClInclude Include="..\IDValueMap.h" />
     <ClInclude Include="..\IntExpr.h" />
     <ClInclude Include="..\LinkedList.h" />
+    <ClInclude Include="..\PlotRadiusIterator.h" />
     <ClInclude Include="..\rapidxml\rapidxml.hpp" />
     <ClInclude Include="..\rapidxml\rapidxml_iterators.hpp" />
     <ClInclude Include="..\rapidxml\rapidxml_print.hpp" />
