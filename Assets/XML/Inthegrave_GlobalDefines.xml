@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
-	<!-- f1rpo (start): GlobalDefines for AI attitude -->
+	<!-- f1rpo (start) -->
+	<!-- GlobalDefines for AI attitude -->
 	<Define>
 		<DefineName>PEACE_WEIGHT_PERCENT</DefineName>
 		<iDefineIntVal>66</iDefineIntVal>
@@ -8,6 +9,14 @@
 	<Define>
 		<DefineName>WARMONGER_RESPECT_PERCENT</DefineName>
 		<iDefineIntVal>80</iDefineIntVal>
+	</Define>
+	<!-- The threshold for the AI nuke value gets multiplied by this percentage.
+		 The AI will only attack with a nuke if the nuke value of the best
+		 target plot exceeds the threshold. I.e. increasing the percentage
+		 makes the AI more reluctant to fire nukes. -->
+	<Define>
+		<DefineName>AI_NUKE_ATTACK_RELUCTANCE</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 	<!-- f1rpo: end -->
 	<Define>

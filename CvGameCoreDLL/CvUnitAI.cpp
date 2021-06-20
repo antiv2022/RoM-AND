@@ -7355,28 +7355,19 @@ void CvUnitAI::AI_ICBMMove()
 	
 	if (airRange() > 0)
 	{
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      04/25/10                                jdog5000      */
-/*                                                                                              */
-/* Unit AI                                                                                      */
-/************************************************************************************************/
-		if (plot()->isCity(true))
-		{
+		/*	f1rpo: K-Mod deletes this; I'm not sure why. It does look costly and
+			unnecessary, seeing that the AI considers rebasing in any case. Seems that
+			danger should be handled by AI_missileLoad and AI_airOffensiveCity instead. */
+		// BETTER_BTS_AI_MOD, 04/25/10, jdog5000 (Unit AI): START
+		/*if (plot()->isCity(true)) {
 			int iOurDefense = GET_TEAM(getTeam()).AI_getOurPlotStrength(plot(),0,true,false,true);
 			int iEnemyOffense = GET_PLAYER(getOwnerINLINE()).AI_getEnemyPlotStrength(plot(),2,false,false);
-
-			if (4*iEnemyOffense > iOurDefense || iOurDefense == 0)
-			{
+			if (4*iEnemyOffense > iOurDefense || iOurDefense == 0) {
 				// Too risky, pull back
 				if (AI_airOffensiveCity())
-				{
 					return;
-				}
 			}
-		}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+		}*/ // BETTER_BTS_AI_MOD: END
 
 		if (AI_missileLoad(UNITAI_MISSILE_CARRIER_SEA, 2, true))
 		{
@@ -28078,6 +28069,9 @@ bool CvUnitAI::AI_nuke()
 
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam());
+	if (kTeam.getAtWarCount(false, true) <= 0) // To save time
+		return false;
+
 	CvPlot const& kPlot = *plot();
 	int const iRange = airRange();
 	bool const bRangeLimited = (iRange > 0);
@@ -28093,7 +28087,7 @@ bool CvUnitAI::AI_nuke()
 	CvPlot* pBestTarget = NULL;
 	// Threshold for action; same scale as AI_nukeValue.
 	int iValueThresh = std::max(0, ((bRangeLimited ? 2 : 3)
-			- GC.getGameINLINE().isOption(GAMEOPTION_RUTHLESS_AI) ? 1 : 0)
+			- (GC.getGameINLINE().isOption(GAMEOPTION_RUTHLESS_AI) ? 1 : 0))
 			* getUnitInfo().getProductionCost()) + (bRangeLimited ? 60 : 20);
 	if (!bDanger)
 	{
@@ -28103,6 +28097,9 @@ bool CvUnitAI::AI_nuke()
 			iValueThresh = (iValueThresh * 3) / 2;
 		else iValueThresh += 80;
 	}
+	// Allow fine-tuning through XML
+	iValueThresh *= GC.getDefineINT("AI_NUKE_ATTACK_RELUCTANCE", 100);
+	iValueThresh /= 100;
 
 	bool bNeedDeterrent = kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1);
 	if (!bNeedDeterrent)
@@ -28128,12 +28125,19 @@ bool CvUnitAI::AI_nuke()
 			}
 		}
 	}
-	if (bNeedDeterrent)
 	{
-		iValueThresh *= std::max(1, iOurNukes + 2 * iOurCities);
-		iValueThresh /= std::max(1, 2 * iOurNukes + (bDanger ? 2 : 1) * iOurCities);
+		int iDividend = std::max(1, iOurNukes + 2 * iOurCities);
+		int iDivisor = std::max(1, 2 * iOurNukes + (bDanger ? 2 : 1) * iOurCities);
+		// Increase threshold only if we need a deterrent
+		if (bNeedDeterrent || iDivisor > iDividend)
+		{
+			iValueThresh *= iDividend;
+			iValueThresh /= iDivisor;
+		}
 	}
-	iValueThresh *= 150 + iWarRating;
+	/*	max: Don't be too motivated by a hopeless war.
+		Getting nuked back and losing is worse than just losing. */
+	iValueThresh *= 150 + std::max(iWarRating, -50);
 	iValueThresh /= 150;
 
 	int iBestValue = 0;
@@ -28190,8 +28194,8 @@ bool CvUnitAI::AI_nuke()
 				if (kLoopPlot.isVisible(kTeam.getID(), false)
 					// Units in or near cities are already taken care of
 					&& aiPlotNumEvaluated.count(kMap.plotNum(
-					kLoopPlot.getX_INLINE(), kLoopPlot.getY_INLINE())) <= 0 &&
-					canNukeAt(&kPlot, kLoopPlot.getX_INLINE(), kLoopPlot.getY_INLINE()))
+					kLoopPlot.getX_INLINE(), kLoopPlot.getY_INLINE())) <= 0
+					&& canNukeAt(&kPlot, kLoopPlot.getX_INLINE(), kLoopPlot.getY_INLINE()))
 				{
 					apiPotentialTargets.push_back(std::make_pair(
 							/*	0 search range - let's not bother with max damage to
@@ -28218,6 +28222,12 @@ bool CvUnitAI::AI_nuke()
 				rEscalationMult.decreaseTo(1);
 				iValue = (iValue * rEscalationMult).uround();
 			}
+			// Hiroshima clause
+			else if (GC.getGameINLINE().getNukesExploded() == 0)
+			{
+				iValue *= 5;
+				iValue /= 3;
+			}
 			if (iValue > iBestValue)
 			{
 				int iLoopValueThresh = iValueThresh;
@@ -28229,13 +28239,6 @@ bool CvUnitAI::AI_nuke()
 				{
 					iLoopValueThresh *= 2;
 					iLoopValueThresh /= 3;
-				}
-				// Hiroshima clause
-				if (GC.getGameINLINE().getNukesExploded() == 0
-					&& iTheirNukesAdjusted <= 0)
-				{
-					iLoopValueThresh *= 3;
-					iLoopValueThresh /= 5;
 				}
 				if (iValue > iLoopValueThresh)
 				{

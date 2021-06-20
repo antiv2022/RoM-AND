@@ -35624,7 +35624,7 @@ int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
 	{
 		// (we aren't allowed to nuke neutrals)
 		bool const bEnemy = (kPlot.getTeam() != getTeam());
-		CvPlayerAI const& kPlotOwner = GET_PLAYER(kPlot.getOwner());
+		CvPlayerAI const& kPlotOwner = GET_PLAYER(kPlot.getOwnerINLINE());
 		ImprovementTypes const eImprovement = kPlot.getRevealedImprovementType(
 				getTeam(), false);
 		if (eImprovement != NO_IMPROVEMENT)
@@ -35712,8 +35712,7 @@ int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
 			* pCity->getPopulation();
 	/*	note, it is possible to see which buildings the city has
 		by looking at the map. This is not secret information. */
-	static int const iNUKE_BUILDING_DESTRUCTION_PROB
-			= GC.getDefineINT("NUKE_BUILDING_DESTRUCTION_PROB");
+	int iBuildingValue = 0;
 	FOR_EACH_ENUM(Building)
 	{
 		if (pCity->getNumRealBuilding(eLoopBuilding) <= 0)
@@ -35721,12 +35720,14 @@ int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
 		CvBuildingInfo const& kBuilding = GC.getInfo(eLoopBuilding);
 		if (!kBuilding.isNukeImmune())
 		{
-			iValue += (iCivilianTargetWeight * pCity->getNumRealBuilding(eLoopBuilding)
-					* std::max(0, kBuilding.getProductionCost())
-					* iNUKE_BUILDING_DESTRUCTION_PROB)
-					/ 100;
+			iBuildingValue += pCity->getNumRealBuilding(eLoopBuilding)
+					* std::max(0, kBuilding.getProductionCost());
 		}
 	}
+	static int const iNUKE_BUILDING_DESTRUCTION_PROB
+			= GC.getDefineINT("NUKE_BUILDING_DESTRUCTION_PROB");
+	iValue = (iBuildingValue * iCivilianTargetWeight
+			* iNUKE_BUILDING_DESTRUCTION_PROB) / 100;
 	/*	if we don't have vision of the city, just assume that there are
 		at least a couple of defenders, and count that into our evaluation. */
 	if (!kPlot.isVisible(getTeam(), false))
