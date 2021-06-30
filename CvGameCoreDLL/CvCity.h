@@ -22,6 +22,7 @@ class CvArea;
 class CvGenericBuilding;
 class CvArtInfoBuilding;
 class CvCityTurnPipelineWorkItem;
+class CvCityAI; // f1rpo
 
 //	KOSHLING - Cache yield values where possible
 #define YIELD_VALUE_CACHING
@@ -1710,6 +1711,12 @@ public:
 	bool isDirectAttackable() const;
 
 	void changeZoCCount(short iChange);
+	/*	<f1rpo> Downcasting to CvCityAI is fine
+		(but can't do a static_cast w/o including the CityAI header) */
+	__forceinline CvCityAI& AI() { return *reinterpret_cast<CvCityAI*>(this); }
+	__forceinline CvCityAI const& AI() const { return *reinterpret_cast<CvCityAI const*>(this); }
+	// </f1rpo>
+
 protected:
 
 	int m_iID;

@@ -275,6 +275,7 @@ public:
 	int AI_getPromotionValue(PromotionTypes ePromotion) const;
 	int AI_calculateActualImprovementHealth(ImprovementTypes eImprovement) const;
 	int AI_getMilitaryProductionRateRank() const;
+	int AI_getMilitaryProductionRate() const; // f1rpo
 	bool AI_isMilitaryProductionCity() const;
 	void AI_setMilitaryProductionCity(bool bNewVal);
 

@@ -35724,10 +35724,25 @@ int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
 					* std::max(0, kBuilding.getProductionCost());
 		}
 	}
+	{
+		// Minor cheats: Enemy city count, city's milit-prod rank
+		int iOwnerCities = GET_PLAYER(pCity->getOwner()).getNumCities();
+		scaled rMilitaryProdFactor(
+				iOwnerCities - pCity->AI().AI_getMilitaryProductionRateRank() + 1,
+				iOwnerCities);
+		rMilitaryProdFactor -= fixp(0.5);
+		int iBuildingMilitaryValue = 0;
+		if (rMilitaryProdFactor > 0)
+			iBuildingMilitaryValue = (iBuildingValue * rMilitaryProdFactor).uround();
+		iBuildingValue = iBuildingValue * iCivilianTargetWeight +
+				/*	The _potential_ for military production shouldn't be treated
+					just the same as actual military units. Use the mean of military
+					and civilian weight. */
+				iBuildingMilitaryValue * (iCivilianTargetWeight + iMilitaryTargetWeight) / 2;
+	}
 	static int const iNUKE_BUILDING_DESTRUCTION_PROB
 			= GC.getDefineINT("NUKE_BUILDING_DESTRUCTION_PROB");
-	iValue = (iBuildingValue * iCivilianTargetWeight
-			* iNUKE_BUILDING_DESTRUCTION_PROB) / 100;
+	iValue = (iBuildingValue * iNUKE_BUILDING_DESTRUCTION_PROB) / 100;
 	/*	if we don't have vision of the city, just assume that there are
 		at least a couple of defenders, and count that into our evaluation. */
 	if (!kPlot.isVisible(getTeam(), false))

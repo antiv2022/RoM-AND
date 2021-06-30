@@ -15267,19 +15267,15 @@ int CvCityAI::AI_getMilitaryProductionRateRank() const
 {
 	PROFILE_FUNC();
 
-	int iRate = getPopulation() + getYieldRate(YIELD_PRODUCTION) - getYieldRate(YIELD_COMMERCE);
-	for (int iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
-	{
-		iRate += getSpecialistCount((SpecialistTypes)iI) * GC.getSpecialistInfo((SpecialistTypes)iI).getExperience();
-	}
-
+	int iRate = AI_getMilitaryProductionRate(); // f1rpo: Moved into new function
 	int iRank = 1;
 
 	int iLoop = 0;
-	CvCity* pLoopCity;
-	for (pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
+	for (CvCity const* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
 	{
-		int iLoopRate = pLoopCity->getPopulation() + pLoopCity->getYieldRate(YIELD_PRODUCTION) - pLoopCity->getYieldRate(YIELD_COMMERCE);
+		/*	f1rpo: Replacing code that was repeating the calculation from above except
+			for the evaluation of specialists - which I suppose was omitted by accident. */
+		int iLoopRate = pLoopCity->AI().AI_getMilitaryProductionRate();
 		if ((iLoopRate > iRate) ||
 			((iLoopRate == iRate) && (pLoopCity->getID() < getID())))
 		{
@@ -15291,6 +15287,23 @@ int CvCityAI::AI_getMilitaryProductionRateRank() const
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
+// f1rpo: Cut from AI_getMilitaryProductionRateRank
+int CvCityAI::AI_getMilitaryProductionRate() const
+{
+	int iRate = getPopulation() - getYieldRate(YIELD_COMMERCE);
+	int iProductionRate = getYieldRate(YIELD_PRODUCTION);
+	/*	<f1rpo> Want this taken into account for the evaluation of nuke targets -
+		but seems like a good idea in general. */
+	iProductionRate *= 100 + getMilitaryProductionModifier();
+	iProductionRate /= 100; // </f1rpo>
+	iRate += iProductionRate;
+	FOR_EACH_ENUM(Specialist)
+	{
+		iRate += getSpecialistCount(eLoopSpecialist)
+				* GC.getInfo(eLoopSpecialist).getExperience();
+	}
+	return iRate;
+}
 
 //	KOSHLING Mod - pre-calculate and cache building values for all focuses
 //
