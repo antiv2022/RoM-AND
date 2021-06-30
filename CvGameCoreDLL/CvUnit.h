@@ -403,6 +403,9 @@ public:
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
 	bool nuke(int iX, int iY);
+	// <f1rpo>
+	int nukeInterceptionChance(CvPlot const& kTarget, TeamTypes* pBestTeam = NULL,
+			bool (* const pTeamsAffected)[MAX_PLAYERS] = NULL) const; // </f1rpo>
 
 	bool canRecon(const CvPlot* pPlot) const;																											// Exposed to Python
 	bool canReconAt(const CvPlot* pPlot, int iX, int iY) const;																		// Exposed to Python

@@ -6462,27 +6462,9 @@ bool CvUnit::nuke(int iX, int iY)
 	}
 	// Dale - NB: A-Bomb END
 
-	int iBestInterception = 0;
-	TeamTypes eBestTeam = NO_TEAM;
-
-	for (int iI = 0; iI < MAX_TEAMS; iI++)
-	{
-		if (abTeamsAffected[iI] && GET_TEAM((TeamTypes)iI).getNukeInterception() > iBestInterception)
-		{
-			iBestInterception = GET_TEAM((TeamTypes)iI).getNukeInterception();
-			eBestTeam = (TeamTypes)iI;
-		}
-	}
-	//45deg - nuke evasion chances increased when launching from a small distance
-	int iDistanceForEvasion = 0;
-	int iNukeEvasionFromDistance = 0;
-	iDistanceForEvasion = plotDistance(getX_INLINE(), getY_INLINE(), iX, iY);
-	iNukeEvasionFromDistance = (std::max(0, 30 - iDistanceForEvasion));
-	iNukeEvasionFromDistance *= 2;
-	iBestInterception *= std::max(10, (100 - m_pUnitInfo->getEvasionProbability() - iNukeEvasionFromDistance));
-
-	//iBestInterception *= (100 - m_pUnitInfo->getEvasionProbability());
-	iBestInterception /= 100;
+	TeamTypes eBestTeam=NO_TEAM;
+	// f1rpo: Moved into new function
+	int iBestInterception = nukeInterceptionChance(*pPlot, &eBestTeam, &abTeamsAffected);
 
 	setReconPlot(pPlot);
 
@@ -6691,6 +6673,47 @@ bool CvUnit::nuke(int iX, int iY)
 
 	return true;
 }
+
+// f1rpo:
+int CvUnit::nukeInterceptionChance(CvPlot const& kTarget,
+	TeamTypes* pBestTeam, // Optional out-param
+	// Allow caller to provide set of affected teams (just to save time)
+	bool (* const pTeamsAffected)[MAX_PLAYERS]) const
+{
+	TeamTypes eBestTeam_local = NO_TEAM;
+	TeamTypes& eBestTeam = (pBestTeam == NULL ? eBestTeam_local : *pBestTeam);
+	bool abTeamsAffected_local[MAX_TEAMS];
+	if (pTeamsAffected == NULL)
+	{
+		for (int i = 0; i < MAX_TEAMS; i++)
+			abTeamsAffected_local[i] = isNukeVictim(&kTarget, (TeamTypes)i, nukeRange());
+	}
+	bool* const& abTeamsAffected = (pTeamsAffected == NULL
+			? abTeamsAffected_local : *pTeamsAffected);
+	// Rest of the body cut from nuke(int,int) ...
+	int iBestInterception = 0;
+	for (int i = 0; i < MAX_TEAMS; i++)
+	{
+		CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)i);
+		if (abTeamsAffected[i] && kLoopTeam.getNukeInterception() > iBestInterception)
+		{
+			iBestInterception = kLoopTeam.getNukeInterception();
+			eBestTeam = kLoopTeam.getID();
+		}
+	}
+	//45deg - nuke evasion chances increased when launching from a small distance
+	int iDistanceForEvasion = 0;
+	int iNukeEvasionFromDistance = 0;
+	iDistanceForEvasion = plotDistance(plot(), &kTarget);
+	iNukeEvasionFromDistance = std::max(0, 30 - iDistanceForEvasion);
+	iNukeEvasionFromDistance *= 2;
+	//iBestInterception *= (100 - m_pUnitInfo->getEvasionProbability());
+	iBestInterception *= std::max(10,
+			100 - m_pUnitInfo->getEvasionProbability() - iNukeEvasionFromDistance);
+	iBestInterception /= 100;
+	return iBestInterception;
+}
+
 
 bool CvUnit::canRecon(const CvPlot* pPlot) const
 {

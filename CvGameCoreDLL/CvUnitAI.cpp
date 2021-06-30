@@ -28101,14 +28101,15 @@ bool CvUnitAI::AI_nuke()
 	iValueThresh *= GC.getDefineINT("AI_NUKE_ATTACK_RELUCTANCE", 100);
 	iValueThresh /= 100;
 
+	scaled rMeanInterceptChance;
 	bool bNeedDeterrent = kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1);
-	if (!bNeedDeterrent)
 	{
+		int iInterceptRivals = 0;
 		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
 			CvPlayer const& kRival = GET_PLAYER((PlayerTypes)i);
 			CvTeamAI const& kRivalTeam = GET_TEAM(kRival.getTeam());
-			if (!kRival.isAlive()
+			if (!kRival.isAlive() || kRival.isMinorCiv() || kRivalTeam.isAVassal()
 				|| !kRivalTeam.canEventuallyDeclareWar(kTeam.getID())
 				|| !kTeam.isHasMet(kRival.getTeam()))
 			{
@@ -28117,13 +28118,18 @@ bool CvUnitAI::AI_nuke()
 			bool const bWar = kRivalTeam.isAtWar(kTeam.getID());
 			if (!bWar && kRivalTeam.AI_isAvoidWar(kTeam.getID()))
 				continue;
+			rMeanInterceptChance += kRivalTeam.getNukeInterception();
+			iInterceptRivals++;
+			if (bNeedDeterrent)
+				continue; // To save time
 			if (kRival.getNumNukeUnits() > 0
 				|| (!bWar && kRival.getPower() > kOwner.getPower()))
 			{
 				bNeedDeterrent = true;
-				break;
 			}
 		}
+		if (iInterceptRivals > 0)
+			rMeanInterceptChance /= iInterceptRivals;
 	}
 	{
 		int iDividend = std::max(1, iOurNukes + 2 * iOurCities);
@@ -28215,6 +28221,12 @@ bool CvUnitAI::AI_nuke()
 					iDestructionWeight);
 			if (bLimited && iWarRating > -10)
 				iValue /= 2;
+			scaled rInterceptChance = scaled::max(0,
+					per100(nukeInterceptionChance(*pTarget))
+					/*	If everyone can intercept, then there's no point in
+						holding on to our nukes. */
+					- fixp(0.75) * rMeanInterceptChance);
+			iValue = (iValue * (1 - rInterceptChance)).uround();
 			if (iTheirNukesAdjusted > 0) // Avoid escalation
 			{
 				scaled rEscalationMult = (1 + 2 * iNukedUsMemory)
