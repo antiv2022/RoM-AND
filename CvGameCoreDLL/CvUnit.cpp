@@ -6412,12 +6412,15 @@ bool CvUnit::nuke(int iX, int iY)
 				}
 			}
 //			}
+			/*	f1rpo: Moved this check into the MAD AI branch.
+				Perhaps it was intended this way; in any case, there's now proper
+				AI code (in CvUnitAI) for nuclear deterrent in the non-MAD case. */
+			if (myOwner.getNumNukeUnits() < plotOwner.getNumNukeUnits()
+			&& GC.getGameINLINE().getSorenRandNum(100, "Nukes attack") < 50)  //45deg: added a 50% chance that AI won't use nukes if opponent owns more nukes
+			{
+				return false;
+			}
 		}
-	}
-	if (myOwner.getNumNukeUnits() < plotOwner.getNumNukeUnits()
-	&& GC.getGameINLINE().getSorenRandNum(100, "Nukes attack") < 50)  //45deg: added a 50% chance that AI won't use nukes if opponent owns more nukes
-	{
-		return false;
 	}
 	// Dale - MAD: check validity of target before blowing it up
 	if (isMADEnabled())
