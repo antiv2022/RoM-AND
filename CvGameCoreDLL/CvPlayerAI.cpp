@@ -35788,17 +35788,7 @@ int CvPlayerAI::AI_nukeBaseDestructionWeight() const
 	if (iWS < -88)
 		iR -= iWS;
 	// K-Mod: Don't completely destroy them if we want to keep their land
-	int iWSThresh = 50;
-	if (iWS > iWSThresh)
-		iR -= iWS - iWSThresh;
-	else
-	{
-		int iTargetPowRatio = 200;
-		int iPowRatioPercent = (100 * GET_TEAM(getTeam()).getPower(true))
-				/ std::max(1, GET_TEAM(getTeam()).getEnemyPower());
-		if (iPowRatioPercent > iTargetPowRatio)
-			iR -= iPowRatioPercent - iTargetPowRatio;
-	}
+	iR -= std::max(0, iWS - 50);
 	iR += GC.getInfo(getPersonalityType()).getRazeCityProb() / 3;
 	return std::max(0, iR);
 }
@@ -35821,13 +35811,19 @@ int CvPlayerAI::AI_nukeExtraDestructionWeight(PlayerTypes eTarget,
 		iR += 12;
 	if (!bLimited)
 		iR += 16;
+	int const iMemoryNukedUs = AI_getMemoryCount(kTarget.getID(), MEMORY_NUKED_US);
 	int iMemoryVal = std::min(120,
 			2 * AI_getMemoryCount(kTarget.getID(), MEMORY_NUKED_FRIEND) +
-			5 * AI_getMemoryCount(kTarget.getID(), MEMORY_NUKED_US));
+			5 * iMemoryNukedUs);
 	// Avoid escalation
 	if (iMemoryVal <= 5 && iTheirNukes > 0)
 		iR -= (scaled(iTheirNukes).sqrt() * 8).uround();
 	iR += iMemoryVal;
+	if (iMemoryNukedUs <= 0
+		&& GET_TEAM(getTeam()).AI_getWarPlan(kTarget.getTeam()) == WARPLAN_ATTACKED_RECENT)
+	{
+		iR = (iR * 2) / 3;
+	}
 	return iR;
 }
 
