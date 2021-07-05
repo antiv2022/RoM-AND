@@ -625,7 +625,6 @@ void CvPlayer::init(PlayerTypes eID)
 /*                                                                                              */
 /************************************************************************************************/
 	setPopulationgrowthratepercentage(0);
-	setReligionSpreadRate(0);
 	setDistantUnitSupportCostModifier(0);
 	setExtraCityDefense(0);
 /************************************************************************************************/
@@ -1220,6 +1219,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_iFieldCommandersEverCount = 0;
 	m_iSeizedForeignConnectednessPercent = 0;
 	m_iWarMongerIndex = 0;
+	m_iReligionSpreadRate = 0;
 
 	m_Properties.clear();
 	m_canHaveBuilder.clear();
@@ -33564,15 +33564,10 @@ int CvPlayer::getReligionSpreadRate() const
 	return m_iReligionSpreadRate;
 }
 
-void CvPlayer::setReligionSpreadRate(int iValue)
-{
-    FAssertMsg(iValue >= 0, "iValue cannot be less than 0");
-    m_iReligionSpreadRate = iValue;
-}
-
 void CvPlayer::changeReligionSpreadRate(int iChange)
 {
-    setReligionSpreadRate(getReligionSpreadRate() + iChange);
+	m_iReligionSpreadRate += iChange;
+	FAssertMsg(m_iReligionSpreadRate >= 0, "iValue cannot be less than 0");
 }
 
 int CvPlayer::getDistantUnitSupportCostModifier() const
@@ -35245,7 +35240,7 @@ void CvPlayer::clearModifierTotals()
 	//m_Properties.clear();
 
 	setPopulationgrowthratepercentage(0);
-	setReligionSpreadRate(0);
+	m_iReligionSpreadRate = 0;
 	setDistantUnitSupportCostModifier(0);
 	setExtraCityDefense(0);
 

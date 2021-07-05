@@ -1497,7 +1497,6 @@ public:
 	int calculateTaxRateUnhappiness() const;
 	
 	int getReligionSpreadRate() const;
-	void setReligionSpreadRate(int iNewValue);
 	void changeReligionSpreadRate(int iChange);
 	
 	int getDistantUnitSupportCostModifier() const;
