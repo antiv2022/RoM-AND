@@ -8988,22 +8988,26 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 /*                                                                                              */
 /************************************************************************************************/
 	CvCivicInfo& kCivic = GC.getCivicInfo(eCivic);
-	if (kCivic.getReligionSpreadRate() > 0)
 	{
-		szHelpText.append(NEWLINE);
-		szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_RELIGION_SPREAD_RATE_FAST", kCivic.getReligionSpreadRate()));
-	}
-
-	else if (kCivic.getReligionSpreadRate() < 0 && kCivic.getReligionSpreadRate() > -100)
-	{
-		szHelpText.append(NEWLINE);
-		szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_RELIGION_SPREAD_RATE_SLOW", (100 + kCivic.getReligionSpreadRate())));
-	}
-
-	else if (kCivic.getReligionSpreadRate() < -100)
-	{
-		szHelpText.append(NEWLINE);
-		szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_RELIGION_NO_SPREAD"));
+		const int iReligionSpreadRate = kCivic.getReligionSpreadRate();
+		if (iReligionSpreadRate != 0)
+		{
+			if (iReligionSpreadRate > 0)
+			{
+				szHelpText.append(NEWLINE);
+				szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_RELIGION_SPREAD_RATE_FAST", iReligionSpreadRate));
+			}
+			else if (iReligionSpreadRate > -100)
+			{
+				szHelpText.append(NEWLINE);
+				szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_RELIGION_SPREAD_RATE_SLOW", 100 + iReligionSpreadRate));
+			}
+			else
+			{
+				szHelpText.append(NEWLINE);
+				szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_RELIGION_NO_SPREAD"));
+			}
+		}
 	}
 
 	if (kCivic.getPopulationgrowthratepercentage() > 0)
