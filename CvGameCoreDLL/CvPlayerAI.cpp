@@ -5246,64 +5246,64 @@ bool CvPlayerAI::AI_avoidScience() const
 }
 
 
-int CvPlayerAI::AI_safeCostAsPercentIncome() const
-{
-	int iSafePercent = 50;
-	
-	if (!GC.getGameINLINE().isOption(GAMEOPTION_NO_REVOLUTION))
-	{
-		// Afforess - these calculations mimic the Revolution.py assessment for the revolutions mod (check Revolution.py ~ line 1870)
-		// Higher safe percents mean AI has to earn more to be considered "safe"
-
-		int iRank = GC.getGameINLINE().getPlayerRank(getID());
-		if (iRank < 3)
-		{
-			iSafePercent += ((4 - iRank) * 5);
-		}
-
-		int iAtWarCount = GET_TEAM(getTeam()).getAtWarCount(true);
-		if (iAtWarCount > 0)
-		{
-			iSafePercent -= (10 + 2 * std::min(iAtWarCount, 5));
-		}
-		if (isCurrentResearchRepeat())
-		{
-			iSafePercent *= 2;
-			iSafePercent /= 3;
-		}
-		if (getCommercePercent(COMMERCE_CULTURE) > 70)
-		{
-			iSafePercent *= 2;
-			iSafePercent /= 3;
-		}
-	}
-	else
-	{
-		int iWarSuccessRatio = GET_TEAM(getTeam()).AI_getWarSuccessCapitulationRatio();
-		if (iWarSuccessRatio < -30)
-		{
-			iSafePercent -= std::max(20, iWarSuccessRatio / 3);
-		}
-
-		if (AI_avoidScience())
-		{
-			iSafePercent -= 8;
-		}
-
-		// Afforess - AI has been made aware of financials in war planning, this is not needed here
-		// if (GET_TEAM(getTeam()).getAnyWarPlanCount(true))
-		// {
-		//	iSafePercent -= 12;
-		// }
-
-		if (isCurrentResearchRepeat())
-		{
-			iSafePercent -= 10;
-		}
-	}
-
-	return iSafePercent;
-}
+int CvPlayerAI::AI_safeCostAsPercentIncome() const 
+{ 
+	int iSafePercent = 50; 
+	 
+	if (!GC.getGameINLINE().isOption(GAMEOPTION_NO_REVOLUTION)) 
+	{ 
+		// Afforess - these calculations mimic the Revolution.py assessment for the revolutions mod (check Revolution.py ~ line 1870) 
+		// Higher safe percents mean AI has to earn more to be considered "safe" 
+ 
+		int iRank = GC.getGameINLINE().getPlayerRank(getID()); 
+		if (iRank < 3) 
+		{ 
+			iSafePercent += ((4 - iRank) * 5); 
+		} 
+ 
+		int iAtWarCount = GET_TEAM(getTeam()).getAtWarCount(true); 
+		if (iAtWarCount > 0) 
+		{ 
+			iSafePercent -= (10 + 2 * std::min(iAtWarCount, 5)); 
+		} 
+		if (isCurrentResearchRepeat()) 
+		{ 
+			iSafePercent *= 2; 
+			iSafePercent /= 3; 
+		} 
+		if (getCommercePercent(COMMERCE_CULTURE) > 70) 
+		{ 
+			iSafePercent *= 2; 
+			iSafePercent /= 3; 
+		} 
+	} 
+	else 
+	{ 
+		int iWarSuccessRatio = GET_TEAM(getTeam()).AI_getWarSuccessCapitulationRatio(); 
+		if (iWarSuccessRatio < -30) 
+		{ 
+			iSafePercent -= std::max(20, iWarSuccessRatio / 3); 
+		} 
+ 
+		if (AI_avoidScience()) 
+		{ 
+			iSafePercent -= 8; 
+		} 
+ 
+		// Afforess - AI has been made aware of financials in war planning, this is not needed here 
+		// if (GET_TEAM(getTeam()).getAnyWarPlanCount(true)) 
+		// { 
+		//	iSafePercent -= 12; 
+		// } 
+ 
+		if (isCurrentResearchRepeat()) 
+		{ 
+			iSafePercent -= 10; 
+		} 
+	} 
+ 
+	return iSafePercent; 
+} 
 
 int CvPlayerAI::AI_costAsPercentIncome(int iExtraCost, int iExpenseMod, int* piNetCommerce) const
 {
@@ -5359,131 +5359,74 @@ int CvPlayerAI::AI_costAsPercentIncome(int iExtraCost, int iExpenseMod, int* piN
 //	how to value it
 int CvPlayerAI::AI_goldValueAssessmentModifier() const
 {
-	int iFundedPercent = AI_costAsPercentIncome();
-	int iSafePercent = AI_safeCostAsPercentIncome();
-
-	//	Normalize funded percent by safe percent
-	int	iModifier = (100*iSafePercent)/std::max(1,iFundedPercent);
-
+	// Normalize funded percent by safe percent
 	//	If we're only just funding at the safety level that's not good - rate that as 150% valuation for gold
-	return (iModifier*3)/2;
+	return 150 * AI_safeCostAsPercentIncome() / std::max(1, AI_costAsPercentIncome());
 }
 
-// XXX
 bool CvPlayerAI::AI_isFinancialTrouble() const
 {
 	PROFILE_FUNC();
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      06/12/09                                jdog5000      */
-/*                                                                                              */
-/* Barbarian AI                                                                                 */
-/************************************************************************************************/
-	if( isBarbarian() )
-	{
-		return false;
-	}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
-	//if (getCommercePercent(COMMERCE_GOLD) > 50)
-	{
-		int iFundedPercent = AI_costAsPercentIncome();
-		int iSafePercent = AI_safeCostAsPercentIncome();
-		
-		if (iFundedPercent < iSafePercent)
-		{
-			return true;
-		}
-	}
-
-	return false;
+	return !isBarbarian() && AI_costAsPercentIncome() < AI_safeCostAsPercentIncome();
 }
 
 int CvPlayerAI::AI_goldTarget() const
 {
 	int iGold = 0;
 
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       02/24/10                                jdog5000      */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
-/* original bts code
-	if (GC.getGameINLINE().getElapsedGameTurns() >= 40)
-*/
 	if (GC.getGameINLINE().getElapsedGameTurns() >= 40 || getNumCities() > 3)
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
 	{
-		int iMultiplier = 0;
-		iMultiplier += GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent();
-		iMultiplier += GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getTrainPercent();
-		iMultiplier += GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getConstructPercent();
-		iMultiplier /= 3;
+		iGold += getNumCities() * 3 + getTotalPopulation() / 3;
+		{
+			const int iMultiplier =
+			(
+				( GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent()
+				+ GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getTrainPercent()
+				+ GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getConstructPercent() ) / 3
+			);
+			iGold *= iMultiplier;
+			iGold /= 100;
 
-		iGold += ((getNumCities() * 3) + (getTotalPopulation() / 3));
+			iGold += 
+			(
+				iMultiplier * GC.getGame().getElapsedGameTurns()
+				/
+				(
+					GC.getGameINLINE().isOption(GAMEOPTION_NO_EVENTS) ? 10 : 6
+					*
+					GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent()
+				)
+			);
+		}
 
-/************************************************************************************************/
-/* Fuyu																		16.07.2010			*/
-/************************************************************************************************/
-/* original bts code
-		iGold += (GC.getGameINLINE().getElapsedGameTurns() / 2);
-
-		iGold *= iMultiplier;
+		iGold *= 100 + calculateInflationRate();
 		iGold /= 100;
-*/
-		iGold *= iMultiplier;
-		iGold /= 100;
 
-		iGold += ( (iMultiplier * GC.getGameINLINE().getElapsedGameTurns()) / (((GC.getGameINLINE().isOption(GAMEOPTION_NO_EVENTS))? 10 : 6) * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent()) );
-/************************************************************************************************/
-/* Fuyu								END															*/
-/************************************************************************************************/
-
-/************************************************************************************************/
-/* Afforess	                  Start		 02/01/10                                               */
-/************************************************************************************************/	
-		iGold *= (100 + calculateInflationRate());
-		iGold /= 100;
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-		
-		bool bAnyWar = GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0;
+		const bool bAnyWar = GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0;
 		if (bAnyWar)
 		{
 			iGold *= 3;
 			iGold /= 2;
 		}
 
-/************************************************************************************************/
-/* Afforess	                  Start		 02/01/10                                               */
-/*                                                                                              */
-/*  Don't bother saving gold if we can't trade it for anything                                  */
-/************************************************************************************************/
-	if (!GET_TEAM(getTeam()).isGoldTrading() || !(GET_TEAM(getTeam()).isTechTrading()) || (GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING)))
-	{
-		iGold /= 3;
-	}
-	//Fuyu: Afforess says gold is also less useful without tech brokering, so why not add it
-	else if (GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING))
-	{
-		iGold *= 3;
-		iGold /= 4;
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
+		// Afforess 02/01/10 - Don't bother saving gold if we can't trade it for anything
+		if (!GET_TEAM(getTeam()).isGoldTrading() || !GET_TEAM(getTeam()).isTechTrading() || GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING))
+		{
+			iGold /= 3;
+		}
+		//Fuyu: Afforess says gold is also less useful without tech brokering, so why not add it
+		else if (GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING))
+		{
+			iGold *= 3;
+			iGold /= 4;
+		}
 
 		if (AI_avoidScience())
 		{
 			iGold *= 10;
 		}
 
-		iGold += (AI_goldToUpgradeAllUnits() / (bAnyWar ? 1 : 2));
+		iGold += AI_goldToUpgradeAllUnits() / (!bAnyWar + 1);
 
 		CorporationTypes eActiveCorporation = NO_CORPORATION;
 		for (int iI = 0; iI < GC.getNumCorporationInfos(); iI++)
@@ -5496,14 +5439,12 @@ int CvPlayerAI::AI_goldTarget() const
 		}
 		if (eActiveCorporation != NO_CORPORATION)
 		{
-			int iSpreadCost = std::max(0, GC.getCorporationInfo(eActiveCorporation).getSpreadCost() * (100 + calculateInflationRate()));
-			iSpreadCost /= 50;
-			iGold += iSpreadCost;
+			iGold += std::max(0, GC.getCorporationInfo(eActiveCorporation).getSpreadCost() * (100 + calculateInflationRate())) / 50;
 		}
 	}
-
 	return iGold + AI_getExtraGoldTarget();
 }
+
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      05/14/10                                jdog5000      */
 /*                                                                                              */
