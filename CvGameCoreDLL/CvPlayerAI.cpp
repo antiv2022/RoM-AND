@@ -5246,64 +5246,39 @@ bool CvPlayerAI::AI_avoidScience() const
 }
 
 
-int CvPlayerAI::AI_safeCostAsPercentIncome() const 
-{ 
-	int iSafePercent = 50; 
-	 
-	if (!GC.getGameINLINE().isOption(GAMEOPTION_NO_REVOLUTION)) 
-	{ 
-		// Afforess - these calculations mimic the Revolution.py assessment for the revolutions mod (check Revolution.py ~ line 1870) 
-		// Higher safe percents mean AI has to earn more to be considered "safe" 
- 
-		int iRank = GC.getGameINLINE().getPlayerRank(getID()); 
-		if (iRank < 3) 
-		{ 
-			iSafePercent += ((4 - iRank) * 5); 
-		} 
- 
-		int iAtWarCount = GET_TEAM(getTeam()).getAtWarCount(true); 
-		if (iAtWarCount > 0) 
-		{ 
-			iSafePercent -= (10 + 2 * std::min(iAtWarCount, 5)); 
-		} 
-		if (isCurrentResearchRepeat()) 
-		{ 
-			iSafePercent *= 2; 
-			iSafePercent /= 3; 
-		} 
-		if (getCommercePercent(COMMERCE_CULTURE) > 70) 
-		{ 
-			iSafePercent *= 2; 
-			iSafePercent /= 3; 
-		} 
-	} 
-	else 
-	{ 
-		int iWarSuccessRatio = GET_TEAM(getTeam()).AI_getWarSuccessCapitulationRatio(); 
-		if (iWarSuccessRatio < -30) 
-		{ 
-			iSafePercent -= std::max(20, iWarSuccessRatio / 3); 
-		} 
- 
-		if (AI_avoidScience()) 
-		{ 
-			iSafePercent -= 8; 
-		} 
- 
-		// Afforess - AI has been made aware of financials in war planning, this is not needed here 
-		// if (GET_TEAM(getTeam()).getAnyWarPlanCount(true)) 
-		// { 
-		//	iSafePercent -= 12; 
-		// } 
- 
-		if (isCurrentResearchRepeat()) 
-		{ 
-			iSafePercent -= 10; 
-		} 
-	} 
- 
-	return iSafePercent; 
-} 
+int CvPlayerAI::AI_safeCostAsPercentIncome() const
+{
+	// Higher safe percents mean AI has to earn more to be considered "safe"
+	int iSafePercent = GC.getDefineINT("SAFE_PROFIT_MARGIN_BASE_PERCENT", 25);
+
+	{ // Toffer - High rank amounts to more conservative gold spending
+		const int iRank = GC.getGameINLINE().getPlayerRank(getID());
+		if (iRank < 6 && iRank < 1 + GC.getGameINLINE().countCivTeamsAlive() / 2)
+		{
+			iSafePercent += std::max(0, 12 - 2 * iRank);
+		}
+	}
+
+	{ // Toffer - Wealth is secondary when at war
+		if (GET_TEAM(getTeam()).getAtWarCount(true) > 0)
+		{
+			iSafePercent -= 5;
+
+			const int iWarSuccessRatio = GET_TEAM(getTeam()).AI_getWarSuccessCapitulationRatio();
+			if (iWarSuccessRatio < -3)
+			{
+				iSafePercent += iWarSuccessRatio / 4;
+			}
+		}
+	}
+	// Toffer - Beakers are not important, so its ok to have higher gold slider value (and high expenses) as research slider can be low.
+	if (AI_avoidScience())
+	{
+		iSafePercent *= 2;
+		iSafePercent /= 3;
+	}
+	return std::max(0, iSafePercent);
+}
 
 int CvPlayerAI::AI_costAsPercentIncome(int iExtraCost, int iExpenseMod, int* piNetCommerce) const
 {
