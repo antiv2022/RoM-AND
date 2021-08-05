@@ -17425,47 +17425,37 @@ int CvPlayer::getCommercePercent(CommerceTypes eIndex) const
 
 void CvPlayer::setCommercePercent(CommerceTypes eIndex, int iNewValue)
 {
-	int iTotalCommercePercent;
-	int iOldValue;
-	int iI;
-
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < NUM_COMMERCE_TYPES, "eIndex is expected to be within maximum bounds (invalid Index)");
 
-	iOldValue = getCommercePercent(eIndex);
+	iNewValue = range(iNewValue, 0, 100);
 
-	m_aiCommercePercent[eIndex] = range(iNewValue, 0, 100);
-
-	if (iOldValue != getCommercePercent(eIndex))
+	if (iNewValue != m_aiCommercePercent[eIndex])
 	{
-		iTotalCommercePercent = 0;
+		m_aiCommercePercent[eIndex] = iNewValue;
+		int iTotalCommercePercent = 0;
 
-		for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+		for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
 		{
-			iTotalCommercePercent += getCommercePercent((CommerceTypes)iI);
+			iTotalCommercePercent += m_aiCommercePercent[iI];
 		}
 
-		for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+		for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
 		{
 			if (iI != eIndex)
 			{
-				if (100 != iTotalCommercePercent)
-				{
-					int iAdjustment = std::min(m_aiCommercePercent[iI], iTotalCommercePercent - 100);
-					m_aiCommercePercent[iI] -= iAdjustment;
-					iTotalCommercePercent -= iAdjustment;
-				}
-				else
+				if (100 == iTotalCommercePercent)
 				{
 					break;
 				}
+				const int iAdjustment = std::min(m_aiCommercePercent[iI], iTotalCommercePercent - 100);
+				m_aiCommercePercent[iI] -= iAdjustment;
+				iTotalCommercePercent -= iAdjustment;
 			}
 		}
-
 		FAssert(100 == iTotalCommercePercent);
 
 		setCommerceDirty();
-
 		AI_makeAssignWorkDirty();
 
 		if (getTeam() == GC.getGameINLINE().getActiveTeam())

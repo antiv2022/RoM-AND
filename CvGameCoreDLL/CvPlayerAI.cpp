@@ -20495,93 +20495,45 @@ void CvPlayerAI::AI_doCommerce()
 {
 	PROFILE_FUNC();
 
-	CvCity* pLoopCity;
-	int iIdealPercent;
-	int iGoldTarget;
-	int iLoop = 0;
-
 	if (isHuman())
 	{
 		verifyGoldCommercePercent();
 		return;
 	}
-
-	FAssertMsg(!isHuman(), "isHuman did not return false as expected");
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      07/20/09                                jdog5000      */
-/*                                                                                              */
-/* Barbarian AI, efficiency                                                                     */
-/************************************************************************************************/
-	if( isBarbarian() || getAnarchyTurns() > 0)
+	// BETTER_BTS_AI_MOD - 07/20/09 - jdog5000 - Barbarian AI, efficiency
+	if (isBarbarian() || getAnarchyTurns() > 0)
 	{
 		return;
 	}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
-	iGoldTarget = AI_goldTarget();
-	int iTargetTurns = 4 * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent();
-	iTargetTurns /= 100;
-	iTargetTurns = std::max(3, iTargetTurns);
+	int iGoldTarget = AI_goldTarget();
 
-    if (isCommerceFlexible(COMMERCE_RESEARCH) && !AI_avoidScience())
+	const TechTypes eCurrentResearch = getCurrentResearch();
+
+	if (isCommerceFlexible(COMMERCE_RESEARCH) && !AI_avoidScience() && eCurrentResearch != NO_TECH)
 	{
-        // set research rate to 100%
+		// set research rate to 100%
 		setCommercePercent(COMMERCE_RESEARCH, 100);
-		
-		// if the gold rate is under 0 at 90% research
-		int iGoldRate = calculateGoldRate();
-		if (iGoldRate < 0)
+
+		// if losing gold per turn, and we can finish the current research without running out of gold, let us spend 2/3rds of our gold 
+		const int iGoldRate = calculateGoldRate();
+		if (iGoldRate < 0 && getGold() >= getResearchTurnsLeft(eCurrentResearch, true) * iGoldRate)
 		{
-			TechTypes eCurrentResearch = getCurrentResearch();
-			if (eCurrentResearch != NO_TECH)
-			{
-				int iResearchTurnsLeft = getResearchTurnsLeft(eCurrentResearch, true);
-				
-				// if we can finish the current research without running out of gold, let us spend 2/3rds of our gold 
-				if (getGold() >= iResearchTurnsLeft * iGoldRate)
-				{
-					iGoldTarget /= 3;
-				}
-			}
+			iGoldTarget *= 2;
+			iGoldTarget /= 3;
 		}
 	}
 
 	bool bReset = false;
 
-	if (isCommerceFlexible(COMMERCE_CULTURE))
+	if (isCommerceFlexible(COMMERCE_CULTURE) && getCommercePercent(COMMERCE_CULTURE) > 0)
 	{
-		if (getCommercePercent(COMMERCE_CULTURE) > 0)
-		{
-			setCommercePercent(COMMERCE_CULTURE, 0);
-
-			bReset = true;
-		}
+		setCommercePercent(COMMERCE_CULTURE, 0);
+		bReset = true;
 	}
 
 	if (isCommerceFlexible(COMMERCE_ESPIONAGE))
 	{
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						9/6/08				jdog5000	    */
-/* 																			    */
-/* 	Espionage AI															    */
-/********************************************************************************/
-		/* original BTS code
-		if (getCommercePercent(COMMERCE_ESPIONAGE) > 0)
-		{
-			setCommercePercent(COMMERCE_ESPIONAGE, 0);
-
-			for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
-			{
-				setEspionageSpendingWeightAgainstTeam((TeamTypes)iTeam, 0);
-			}
-
-			bReset = true;
-		}
-		*/
-		
 		// Reset espionage spending always
 		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
 		{
@@ -20591,12 +20543,8 @@ void CvPlayerAI::AI_doCommerce()
 		if (getCommercePercent(COMMERCE_ESPIONAGE) > 0)
 		{
 			setCommercePercent(COMMERCE_ESPIONAGE, 0);
-
 			bReset = true;
 		}
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								    */
-/********************************************************************************/
 	}
 
 	if (bReset)
@@ -20604,58 +20552,48 @@ void CvPlayerAI::AI_doCommerce()
 		AI_assignWorkingPlots();
 	}
 
-	bool bFirstTech = AI_isFirstTech(getCurrentResearch());
 	if (isCommerceFlexible(COMMERCE_CULTURE))
 	{
 		if (getNumCities() > 0)
 		{
-			iIdealPercent = 0;
-
-			for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-			{
-				if (pLoopCity->getCommerceHappinessPer(COMMERCE_CULTURE) > 0)
-				{
-					iIdealPercent += ((pLoopCity->angryPopulation() * 100) / pLoopCity->getCommerceHappinessPer(COMMERCE_CULTURE));
-				}
-			}
-
-			iIdealPercent /= getNumCities();
-
-			iIdealPercent -= (iIdealPercent % GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
-
-			iIdealPercent = std::min(iIdealPercent, 20);
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      03/08/10                                jdog5000      */
-/*                                                                                              */
-/* Victory Strategy AI                                                                          */
-/************************************************************************************************/
+			// BETTER_BTS_AI_MOD - 03/08/10 - jdog5000 - Victory Strategy AI
 			if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 			{
-			    iIdealPercent = 100;
+				setCommercePercent(COMMERCE_CULTURE, 100);
 			}
+			// ! BETTER_BTS_AI_MOD
+			else
+			{
+				int iIdealPercent = 0;
+				int iLoop = 0;
+				for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+				{
+					if (pLoopCity->getCommerceHappinessPer(COMMERCE_CULTURE) > 0)
+					{
+						iIdealPercent += pLoopCity->angryPopulation() * 100 / pLoopCity->getCommerceHappinessPer(COMMERCE_CULTURE);
+					}
+				}
+				iIdealPercent /= getNumCities();
 
-			setCommercePercent(COMMERCE_CULTURE, iIdealPercent);
+				iIdealPercent -= (iIdealPercent % GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
+
+				setCommercePercent(COMMERCE_CULTURE, std::min(iIdealPercent, 20));
+			}
 		}
 	}
+	const bool bFirstTech = AI_isFirstTech(eCurrentResearch);
+	const int iTargetTurns = std::max(3, 4 * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent() / 100);
+
+	CvTeamAI& myTeam = GET_TEAM(getTeam());
 
 	if (isCommerceFlexible(COMMERCE_RESEARCH))
 	{
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      03/08/10                                jdog5000      */
-/*                                                                                              */
-/* Victory Strategy AI                                                                          */
-/************************************************************************************************/
-		if ((isNoResearchAvailable() || AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4)) && !bFirstTech)
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+		// BETTER_BTS_AI_MOD - 03/08/10 - jdog5000 - Victory Strategy AI
+		if (!bFirstTech && (isNoResearchAvailable() || AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4)))
 		{
 			setCommercePercent(COMMERCE_RESEARCH, 0);
 		}
+		// ! BETTER_BTS_AI_MOD
 		else
 		{
 			while (calculateGoldRate() > 0)
@@ -20672,28 +20610,25 @@ void CvPlayerAI::AI_doCommerce()
 			{
 				while (getGold() + iTargetTurns * calculateGoldRate() <= iGoldTarget)
 				{
-					changeCommercePercent(COMMERCE_RESEARCH, -(GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")));
+					changeCommercePercent(COMMERCE_RESEARCH, -GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
 
-					if ((getCommercePercent(COMMERCE_RESEARCH) == 0))
+					if (getCommercePercent(COMMERCE_RESEARCH) == 0)
 					{
 						break;
 					}
 				}
 			}
-			else
+			else if (AI_avoidScience())
 			{
-				if (AI_avoidScience())
-				{
-					changeCommercePercent(COMMERCE_RESEARCH, -(GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")));
-				}
+				changeCommercePercent(COMMERCE_RESEARCH, -GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
 			}
 
-			if ((GET_TEAM(getTeam()).getChosenWarCount(true) > 0) || (GET_TEAM(getTeam()).getWarPlanCount(WARPLAN_ATTACKED_RECENT, true) > 0))
+			if (myTeam.getChosenWarCount(true) > 0 || myTeam.getWarPlanCount(WARPLAN_ATTACKED_RECENT, true) > 0)
 			{
-				changeCommercePercent(COMMERCE_RESEARCH, -(GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")));
+				changeCommercePercent(COMMERCE_RESEARCH, -GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
 			}
 
-			if ((getCommercePercent(COMMERCE_RESEARCH) == 0) && (calculateGoldRate() > 0))
+			if (getCommercePercent(COMMERCE_RESEARCH) == 0 && calculateGoldRate() > 0)
 			{
 				setCommercePercent(COMMERCE_RESEARCH, GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
 			}
@@ -20702,38 +20637,7 @@ void CvPlayerAI::AI_doCommerce()
 
 	if (isCommerceFlexible(COMMERCE_ESPIONAGE) && !bFirstTech)
 	{
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						9/7/08				jdog5000	    */
-/* 																			    */
-/* 	Espionage AI															    */
-/********************************************************************************/
-		// original BTS code
-		/*
-		int iEspionageTargetRate = 0;
-		//TSHEEP Additional variables for targetting tech leader
-		int iTechTeam = MAX_CIV_TEAMS;
-		int iTechScore = 0;
-		int iTechHighScore = 0;
-		//TSHEEP End
-
-		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
-		{
-			CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
-			if (kLoopTeam.isAlive() && iTeam != getTeam() && !kLoopTeam.isVassal(getTeam()) && !GET_TEAM(getTeam()).isVassal((TeamTypes)iTeam))
-			{
-				int iTarget = (kLoopTeam.getEspionagePointsAgainstTeam(getTeam()) - GET_TEAM(getTeam()).getEspionagePointsAgainstTeam((TeamTypes)iTeam)) / 8;
-
-				iTarget -= GET_TEAM(getTeam()).AI_getAttitudeVal((TeamTypes)iTeam);
-
-				if (iTarget > 0)
-				{
-					iEspionageTargetRate += iTarget;
-					changeEspionageSpendingWeightAgainstTeam((TeamTypes)iTeam, iTarget);
-				}
-			}
-		}
-		*/
-		
+		// BETTER_BTS_AI_MOD - 9/7/08 - jdog5000 - Espionage AI
 		int iEspionageTargetRate = 0;
 		int* piTarget = new int[MAX_CIV_TEAMS];
 		int* piWeight = new int[MAX_CIV_TEAMS];
@@ -20744,142 +20648,116 @@ void CvPlayerAI::AI_doCommerce()
 			piWeight[iTeam] = 0;
 
 			CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
-			if (kLoopTeam.isAlive() && iTeam != getTeam() && !kLoopTeam.isVassal(getTeam()) && !GET_TEAM(getTeam()).isVassal((TeamTypes)iTeam))
+			if (kLoopTeam.isAlive() && iTeam != getTeam() && !kLoopTeam.isVassal(getTeam()) && !myTeam.isVassal((TeamTypes)iTeam) && myTeam.isHasMet((TeamTypes)iTeam))
 			{
-				if( GET_TEAM(getTeam()).isHasMet((TeamTypes)iTeam) )
-				{	
-					int iTheirEspPoints = kLoopTeam.getEspionagePointsAgainstTeam(getTeam());
-					int iOurEspPoints = GET_TEAM(getTeam()).getEspionagePointsAgainstTeam((TeamTypes)iTeam);
-					int iDesiredMissionPoints = 0;
-					int iDesiredEspPoints = 0;
-					
-					piWeight[iTeam] = 10;
-					int iRateDivisor = 12;
+				int iTheirEspPoints = kLoopTeam.getEspionagePointsAgainstTeam(getTeam());
+				int iOurEspPoints = myTeam.getEspionagePointsAgainstTeam((TeamTypes)iTeam);
+				int iDesiredMissionPoints = 0;
+				int iDesiredEspPoints = 0;
 
-					if( GET_TEAM(getTeam()).AI_getWarPlan((TeamTypes)iTeam) != NO_WARPLAN )
+				piWeight[iTeam] = 10;
+				int iRateDivisor = 12;
+
+				if (myTeam.AI_getWarPlan((TeamTypes)iTeam) != NO_WARPLAN )
+				{
+					iTheirEspPoints *= 3;
+					iTheirEspPoints /= 2;
+
+					for (int iMission = 0; iMission < GC.getNumEspionageMissionInfos(); ++iMission)
 					{
-						iTheirEspPoints *= 3;
-						iTheirEspPoints /= 2;
+						CvEspionageMissionInfo& kMissionInfo = GC.getEspionageMissionInfo((EspionageMissionTypes)iMission);
 
+						if (kMissionInfo.isPassive() && (kMissionInfo.isSeeDemographics() || kMissionInfo.isSeeResearch()))
+						{
+							const int iMissionCost = getEspionageMissionCost((EspionageMissionTypes)iMission, kLoopTeam.getLeaderID(), NULL, -1, NULL) * 11 / 10;
+							if (iDesiredMissionPoints < iMissionCost)
+							{
+								iDesiredMissionPoints = iMissionCost;
+							}
+						}
+					}
+
+					iRateDivisor = 10;
+					piWeight[iTeam] = 20;
+
+					if (myTeam.AI_hasCitiesInPrimaryArea((TeamTypes)iTeam) )
+					{
+						piWeight[iTeam] = 30;
+						iRateDivisor = 8;
+					}
+				}
+				else
+				{
+					const int iAttitude = range(myTeam.AI_getAttitudeVal((TeamTypes)iTeam), -12, 12);
+
+					iTheirEspPoints -= iTheirEspPoints * iAttitude / 24;
+
+					if (iAttitude <= -3)
+					{
 						for (int iMission = 0; iMission < GC.getNumEspionageMissionInfos(); ++iMission)
 						{
 							CvEspionageMissionInfo& kMissionInfo = GC.getEspionageMissionInfo((EspionageMissionTypes)iMission);
-							
-							if( kMissionInfo.isPassive() )
+
+							if (kMissionInfo.isPassive() && (kMissionInfo.isSeeDemographics() || kMissionInfo.isSeeResearch()))
 							{
-								if( kMissionInfo.isSeeDemographics() || kMissionInfo.isSeeResearch() )
+								const int iMissionCost = getEspionageMissionCost((EspionageMissionTypes)iMission, kLoopTeam.getLeaderID(), NULL, -1, NULL) * 11 / 10;
+								if (iDesiredMissionPoints < iMissionCost)
 								{
-									int iMissionCost = (11*getEspionageMissionCost((EspionageMissionTypes)iMission, GET_TEAM((TeamTypes)iTeam).getLeaderID(), NULL, -1, NULL))/10;
-									if( iDesiredMissionPoints < iMissionCost )
-									{
-										iDesiredMissionPoints = iMissionCost;
-									}
+									iDesiredMissionPoints = iMissionCost;
 								}
 							}
 						}
-
-						iRateDivisor = 10;
-						piWeight[iTeam] = 20;
-
-						if( GET_TEAM(getTeam()).AI_hasCitiesInPrimaryArea((TeamTypes)iTeam) )
-						{
-							piWeight[iTeam] = 30;
-							iRateDivisor = 8;
-						}
 					}
-					else
+					else if (iAttitude < 3)
 					{
-						int iAttitude = range(GET_TEAM(getTeam()).AI_getAttitudeVal((TeamTypes)iTeam), -12, 12);
-
-						iTheirEspPoints -= (iTheirEspPoints*iAttitude)/(2*12);
-
-						if( iAttitude <= -3 )
+						for (int iMission = 0; iMission < GC.getNumEspionageMissionInfos(); ++iMission)
 						{
-							for (int iMission = 0; iMission < GC.getNumEspionageMissionInfos(); ++iMission)
+							CvEspionageMissionInfo& kMissionInfo = GC.getEspionageMissionInfo((EspionageMissionTypes)iMission);
+
+							if (kMissionInfo.isPassive() && kMissionInfo.isSeeDemographics())
 							{
-								CvEspionageMissionInfo& kMissionInfo = GC.getEspionageMissionInfo((EspionageMissionTypes)iMission);
-								
-								if( kMissionInfo.isPassive() )
+								const int iMissionCost = getEspionageMissionCost((EspionageMissionTypes)iMission, kLoopTeam.getLeaderID(), NULL, -1, NULL) * 11 / 10;
+								if (iDesiredMissionPoints < iMissionCost)
 								{
-									if( kMissionInfo.isSeeDemographics() || kMissionInfo.isSeeResearch() )
-									{
-										int iMissionCost = (11*getEspionageMissionCost((EspionageMissionTypes)iMission, GET_TEAM((TeamTypes)iTeam).getLeaderID(), NULL, -1, NULL))/10;
-										if( iDesiredMissionPoints < iMissionCost )
-										{
-											iDesiredMissionPoints = iMissionCost;
-										}
-									}
+									iDesiredMissionPoints = iMissionCost;
 								}
 							}
 						}
-						else if( iAttitude < 3 )
-						{
-							for (int iMission = 0; iMission < GC.getNumEspionageMissionInfos(); ++iMission)
-							{
-								CvEspionageMissionInfo& kMissionInfo = GC.getEspionageMissionInfo((EspionageMissionTypes)iMission);
-								
-								if( kMissionInfo.isPassive() )
-								{
-									if( kMissionInfo.isSeeDemographics() )
-									{
-										int iMissionCost = (11*getEspionageMissionCost((EspionageMissionTypes)iMission, GET_TEAM((TeamTypes)iTeam).getLeaderID(), NULL, -1, NULL))/10;
-										if( iDesiredMissionPoints < iMissionCost )
-										{
-											iDesiredMissionPoints = iMissionCost;
-										}
-									}
-								}
-							}
-						}
-
-						iRateDivisor += (iAttitude/5);
-						piWeight[iTeam] -= (iAttitude/2);
 					}
+					iRateDivisor += iAttitude / 5;
+					piWeight[iTeam] -= iAttitude / 2;
+				}
+				iDesiredEspPoints = std::max(iTheirEspPoints,iDesiredMissionPoints);
 
-					iDesiredEspPoints = std::max(iTheirEspPoints,iDesiredMissionPoints);
+				piTarget[iTeam] = (iDesiredEspPoints - iOurEspPoints)/std::max(6,iRateDivisor);
 
-					piTarget[iTeam] = (iDesiredEspPoints - iOurEspPoints)/std::max(6,iRateDivisor);
-
-					if( piTarget[iTeam] > 0 )
-					{
-						iEspionageTargetRate += piTarget[iTeam];
-					}
+				if (piTarget[iTeam] > 0)
+				{
+					iEspionageTargetRate += piTarget[iTeam];
 				}
 			}
 		}
 
 		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
 		{
-			if( piTarget[iTeam] > 0 )
+			if (piTarget[iTeam] > 0)
 			{
-				piWeight[iTeam] += (150*piTarget[iTeam])/std::max(4,iEspionageTargetRate);
+				piWeight[iTeam] += 150 * piTarget[iTeam] / std::max(4, iEspionageTargetRate);
 			}
-			else if( piTarget[iTeam] < 0 )
+			else if (piTarget[iTeam] < 0)
 			{
 				piWeight[iTeam] += 2*piTarget[iTeam];
-			}	
+			}
 			setEspionageSpendingWeightAgainstTeam((TeamTypes)iTeam, std::max(0,piWeight[iTeam]));
 		}
 		SAFE_DELETE_ARRAY(piTarget);
 		SAFE_DELETE_ARRAY(piWeight);
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								    */
-/********************************************************************************/
+		// ! BETTER_BTS_AI_MOD
 
-		//if economy is weak, neglect espionage spending.
-		//instead invest hammers into espionage via spies/builds
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      03/08/10                                jdog5000      */
-/*                                                                                              */
-/* Victory Strategy AI                                                                          */
-/************************************************************************************************/
-		if (AI_isFinancialTrouble() || AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+		// If economy is weak, neglect espionage spending. Invest hammers into espionage via spies/builds instead.
+		if (AI_isFinancialTrouble() || AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3)) // BETTER_BTS_AI_MOD - 03/08/10 - jdog5000 - Victory Strategy AI
 		{
-			//can still get trickle espionage income
-			iEspionageTargetRate = 0;
+			iEspionageTargetRate = 0; //can still get trickle espionage income
 		}
 		else
 		{
@@ -20889,23 +20767,11 @@ void CvPlayerAI::AI_doCommerce()
 			iEspionageTargetRate *= GC.getLeaderHeadInfo(getLeaderType()).getEspionageWeight();
 			iEspionageTargetRate /= 100;
 
-			int iInitialResearchPercent = getCommercePercent(COMMERCE_RESEARCH);
-/************************************************************************************************/
-/* Afforess	                  Start		 06/28/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/*
-			while (getCommerceRate(COMMERCE_ESPIONAGE) < iEspionageTargetRate && getCommercePercent(COMMERCE_ESPIONAGE) < 20)
-*/
-			int iMaxEspionage = AI_isFinancialTrouble() ? 0 : std::max(5, (5 - GC.getGameINLINE().getPlayerRank(getID())) * 5);
+			const int iMaxEspionage = AI_isFinancialTrouble() ? 0 : std::max(5, (5 - GC.getGameINLINE().getPlayerRank(getID())) * 5);
 
 			while (getCommerceRate(COMMERCE_ESPIONAGE) < iEspionageTargetRate && getCommercePercent(COMMERCE_ESPIONAGE) < iMaxEspionage)
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 			{
-				changeCommercePercent(COMMERCE_RESEARCH, -GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));			
+				changeCommercePercent(COMMERCE_RESEARCH, -GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
 				changeCommercePercent(COMMERCE_ESPIONAGE, GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
 
 				if (getGold() + iTargetTurns * calculateGoldRate() < iGoldTarget)
@@ -20913,62 +20779,48 @@ void CvPlayerAI::AI_doCommerce()
 					break;
 				}
 
-				if (!AI_avoidScience() && !isNoResearchAvailable())
+				if (!AI_avoidScience() && !isNoResearchAvailable()
+				&& getCommercePercent(COMMERCE_RESEARCH) * 2 <= (getCommercePercent(COMMERCE_ESPIONAGE) + GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")) * 3)
 				{
-	//				if (2 * getCommercePercent(COMMERCE_RESEARCH) < iInitialResearchPercent)
-	//				{
-	//					break;
-	//				}
-					if (getCommercePercent(COMMERCE_RESEARCH) * 2 <= (getCommercePercent(COMMERCE_ESPIONAGE) + GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")) * 3)
-					{
-						break;
-					}
+					break;
 				}
 			}
 		}
 	}
-	
+
 	if (!bFirstTech && (getGold() < iGoldTarget) && (getCommercePercent(COMMERCE_RESEARCH) > 40))
 	{
-		bool bHurryGold = false;
 		for (int iHurry = 0; iHurry < GC.getNumHurryInfos(); iHurry++)
 		{
-			if ((GC.getHurryInfo((HurryTypes)iHurry).getGoldPerProduction() > 0) && canHurry((HurryTypes)iHurry))
+			if (GC.getHurryInfo((HurryTypes)iHurry).getGoldPerProduction() > 0 && canHurry((HurryTypes)iHurry))
 			{
-				bHurryGold = true;
-				break;				
+				if (getCommercePercent(COMMERCE_ESPIONAGE) > 0)
+				{
+					changeCommercePercent(COMMERCE_ESPIONAGE, -GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
+				}
+				else
+				{
+					changeCommercePercent(COMMERCE_RESEARCH, -GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
+				}
+				break;
 			}
-		}
-		if (bHurryGold)
-		{
-			if (getCommercePercent(COMMERCE_ESPIONAGE) > 0)
-			{
-				changeCommercePercent(COMMERCE_ESPIONAGE, -GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));			
-			}
-			else
-			{
-				changeCommercePercent(COMMERCE_RESEARCH, -GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));			
-			}
-			//changeCommercePercent(COMMERCE_GOLD, GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
 		}
 	}
-	
-/************************************************************************************************/
-/* Afforess	                  Start		 01/14/10                                               */
-/*                                                                                              */
-/*    Taxation Anger Check                                                                      */
-/************************************************************************************************/
+
+// Afforess - 01/14/10 - Taxation Anger Check
 	int iMaxTaxRate = 100;
 	if (AI_avoidIncreasingTaxes())
 	{
 		iMaxTaxRate = getLastTurnTaxRate() + 10;
 		//if we round down instead, abuse our extra knowledge...
 		if (GC.getDefineINT("TAXATION_ANGER_ROUND_DOWN"))
+		{
 			iMaxTaxRate += 10;
+		}
 	}
 	//This allows the AI still to adjust their taxes up by at least 10% each turn, so they have some leeway.
 	
-	while ((iMaxTaxRate <= getCommercePercent(COMMERCE_GOLD)) && iMaxTaxRate != 100)
+	while (iMaxTaxRate <= getCommercePercent(COMMERCE_GOLD) && iMaxTaxRate != 100)
 	{
 		if (isCommerceFlexible(COMMERCE_ESPIONAGE) && (getCommercePercent(COMMERCE_ESPIONAGE) > GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")))
 		{
@@ -20976,25 +20828,27 @@ void CvPlayerAI::AI_doCommerce()
 		}
 		//Check to see if we meet the target now
 		if (iMaxTaxRate < getCommercePercent(COMMERCE_GOLD))
+		{
 			break;
-					
+		}
+
 		if (isCommerceFlexible(COMMERCE_RESEARCH) && (getCommercePercent(COMMERCE_RESEARCH) > GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")))
-		{	
+		{
 			changeCommercePercent(COMMERCE_RESEARCH, -GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
 		}
 		//Check to see if we meet the target now
 		if (iMaxTaxRate < getCommercePercent(COMMERCE_GOLD))
+		{
 			break;
-					
+		}
+
 		if (isCommerceFlexible(COMMERCE_CULTURE) && (getCommercePercent(COMMERCE_CULTURE) > GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")))
 		{
 			changeCommercePercent(COMMERCE_CULTURE, -GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
-		}				
+		}
 	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/	
-	
+// ! Afforess
+
 	// this is called on doTurn, so make sure our gold is high enough keep us above zero gold.
 	verifyGoldCommercePercent();
 }
