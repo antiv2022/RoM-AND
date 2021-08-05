@@ -632,8 +632,6 @@ public:
 	void AI_changeAttitudeExtra(int /*PlayerTypes*/ eIndex, int iChange);
 	int AI_getMemoryCount(int /*PlayerTypes*/ eIndex1, int /*MemoryTypes*/ eIndex2);
 	void AI_changeMemoryCount(int /*PlayerTypes*/ eIndex1, int /*MemoryTypes*/ eIndex2, int iChange);
-	int AI_getExtraGoldTarget() const;
-	void AI_setExtraGoldTarget(int iNewValue);
 // BUG - Refuses to Talk - start
 	bool AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer);
 // BUG - Refuses to Talk - end

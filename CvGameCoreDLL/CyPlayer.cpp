@@ -2523,19 +2523,6 @@ void CyPlayer::AI_changeMemoryCount(int /*PlayerTypes*/ eIndex1, int /*MemoryTyp
 		m_pPlayer->AI_changeMemoryCount((PlayerTypes)eIndex1, (MemoryTypes)eIndex2, iChange);
 }
 
-int CyPlayer::AI_getExtraGoldTarget() const
-{
-	return m_pPlayer ? m_pPlayer->AI_getExtraGoldTarget() : -1;
-}
-
-void CyPlayer::AI_setExtraGoldTarget(int iNewValue)
-{
-	if (m_pPlayer)
-	{
-		m_pPlayer->AI_setExtraGoldTarget(iNewValue);
-	}
-}
-
 // BUG - Refuses to Talk - start
 bool CyPlayer::AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer)
 {
