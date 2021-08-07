@@ -11596,38 +11596,26 @@ int CvUnit::visibilityRange(const CvPlot* pPlot) const
 
 
 int CvUnit::baseMoves() const
-{/************************************************************************************************/
-/* Afforess	                  Start		 07/16/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/*
-	return (m_pUnitInfo->getMoves() + getExtraMoves() + GET_TEAM(getTeam()).getExtraMoves(getDomainType()));
-*/
-	return (m_pUnitInfo->getMoves() + getExtraMoves() + (getDomainType() != DOMAIN_AIR ? GET_TEAM(getTeam()).getExtraMoves(getDomainType()) : 0));
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-
+{
+	return m_pUnitInfo->getMoves() + getExtraMoves() + (getDomainType() != DOMAIN_AIR ? GET_TEAM(getTeam()).getExtraMoves(getDomainType()) : 0);
 }
 
 int CvUnit::maxMoves() const
 {
 	PROFILE_FUNC();
 
-	if ( m_iMaxMoveCacheTurn != GC.getGameINLINE().getGameTurn() )
+	if (m_iMaxMoveCacheTurn != GC.getGameINLINE().getGameTurn())
 	{
-		m_maxMoveCache = (baseMoves() * GC.getMOVE_DENOMINATOR());
+		m_maxMoveCache = baseMoves() * GC.getMOVE_DENOMINATOR();
 		m_iMaxMoveCacheTurn = GC.getGameINLINE().getGameTurn();
 	}
-
 	return m_maxMoveCache;
 }
 
 
 int CvUnit::movesLeft() const
 {
-	return std::max(0, (maxMoves() - getMoves()));
+	return std::max(0, maxMoves() - getMoves());
 }
 
 
@@ -21847,7 +21835,19 @@ bool CvUnit::doVolley(int iX, int iY)
 	}
 	// Wrap it up
 	setMadeAttack(true);
-	changeMoves(GC.getMOVE_DENOMINATOR());
+
+	const int iCostDenominator = GC.getMOVE_DENOMINATOR();
+	const int iMaxMP = maxMoves();
+	const int iCurMP = iMaxMP - getMoves();
+
+	const int iCostMP = std::max(iCostDenominator, iMaxMP * GC.getDefineINT("VOLLEY_MP_COST_PERCENT", 65) / 100);
+
+	// Cutoff point, if remaining MP is too low then the unit should not be allowed to move afterwards.
+	if (iCurMP - iCostMP < iCostDenominator * 75 / 100)
+	{
+		changeMoves(iCurMP);
+	}
+	else changeMoves(iCostMP);
 
 	if (pPlot->isActiveVisible(false) && pVictim != NULL && !pVictim->isUsingDummyEntities())
 	{

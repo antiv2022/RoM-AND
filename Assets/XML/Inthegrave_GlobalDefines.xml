@@ -59,5 +59,14 @@
 		<DefineName>SAFE_PROFIT_MARGIN_BASE_PERCENT</DefineName>
 		<iDefineIntVal>25</iDefineIntVal>
 	</Define>
+	<Define>
+		<!--
+			Volley Movement Point (MP) cost percentage of units max MP.
+			If final MP is below 1 after percentage is applied, then it will lose all MP.
+			Volley has a hardcoded minimum of 1 MP cost, so setting a low value here like 10 won't cause a unit with 2 MP to only spend 0.2 MP on volley.
+		-->
+		<DefineName>VOLLEY_MP_COST_PERCENT</DefineName>
+		<iDefineIntVal>75</iDefineIntVal>
+	</Define>
 	<!-- ! Toffer -->
 </Civ4Defines>
