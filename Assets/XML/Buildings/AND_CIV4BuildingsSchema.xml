@@ -387,6 +387,9 @@
 	<ElementType name="iForeignConnectedCommerce" content="textOnly" dt:type="int"/>
 	<ElementType name="iCitiesRequiredPerForeignConnectedCity" content="textOnly" dt:type="int"/>
 	<ElementType name="iMaxForeignConnectedCommerce" content="textOnly" dt:type="int"/>
+	<ElementType name="iDiplomacyChange" content="textOnly" dt:type="int"/>
+	<ElementType name="iCrime" content="textOnly" dt:type="int"/>
+	<ElementType name="iCrimePerPop" content="textOnly" dt:type="int"/>
 	<!--Afforess-->
 	<ElementType name="fVisibilityPriority" content="textOnly"/>
 	<ElementType name="FreePromotion" content="textOnly"/>
@@ -843,6 +846,9 @@
 		<element type="iMaxForeignConnectedCommerce" minOccurs="0"/>
 		<element type="BonusCommercePercentChanges" minOccurs="0"/>
 		<element type="SpecialistCommercePercentChanges" minOccurs="0"/>
+		<element type="iDiplomacyChange" minOccurs="0"/>
+		<element type="iCrime" minOccurs="0"/>
+		<element type="iCrimePerPop" minOccurs="0"/>
 		<!--Afforess-->
 		<element type="fVisibilityPriority" minOccurs="0"/>
 		<element type="SeaPlotYieldChanges" minOccurs="0"/>

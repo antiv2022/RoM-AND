@@ -3158,7 +3158,14 @@ public:
 	bool m_bAnyVicinityBonusYieldChanges;
 	bool m_bAnyBonusCommercePercentChanges;
 	bool m_bAnySpecialistCommerceChanges;
-	bool getNotShowInCity() const;	
+	bool getNotShowInCity() const;
+
+	int getCrime() const { return m_iCrime; }
+	int getCrimePerPop() const { return m_iCrimePerPop; }
+
+private:
+	int m_iCrime;
+	int m_iCrimePerPop;
 
 protected:
 	bool m_bNotShowInCity;

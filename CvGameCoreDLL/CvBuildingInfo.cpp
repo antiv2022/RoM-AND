@@ -274,6 +274,10 @@ m_ppaiBonusYieldModifier(NULL)
 ,m_iCitiesRequiredPerForeignConnectedCity(1)
 ,m_iMaxForeignConnectedCommerce(0)
 ,m_iDiplomacyChange(0)
+
+,m_iCrime(0)
+,m_iCrimePerPop(0)
+
 //New Booleans
 ,m_bAnySpecialistYieldChanges(false)
 ,m_bAnyBonusYieldModifiers(false)
@@ -2146,10 +2150,7 @@ int CvBuildingInfo::getMemoryTypeModifier(int i) const
 	{
 		return m_piMemoryTypeModifier != NULL;
 	}
-	else
-	{
-		return m_piMemoryTypeModifier != NULL ? m_piMemoryTypeModifier[i] : 0;
-	}
+	return m_piMemoryTypeModifier != NULL ? m_piMemoryTypeModifier[i] : 0;
 }
 
 bool CvBuildingInfo::isPrereqOrBuildingClass(int i) const
@@ -2161,10 +2162,7 @@ bool CvBuildingInfo::isPrereqOrBuildingClass(int i) const
 	{
 		return (m_pbPrereqOrBuildingClass != NULL);
 	}
-	else
-	{
-		return m_pbPrereqOrBuildingClass ? m_pbPrereqOrBuildingClass[i] : false;
-	}
+	return m_pbPrereqOrBuildingClass ? m_pbPrereqOrBuildingClass[i] : false;
 }
 
 bool CvBuildingInfo::isPrereqOrGameSpeed(int i) const
@@ -3292,6 +3290,9 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iMaxForeignConnectedCommerce);
 	stream->Read(&m_iDiplomacyChange);
 
+	stream->Read(&m_iCrime);
+	stream->Read(&m_iCrimePerPop);
+
 	stream->Read(&m_bApplyFreePromotionOnMove);
 	stream->Read(&m_bProtectedCulture);
 	stream->Read(&m_bAllowsAmbassadors);
@@ -4397,6 +4398,9 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iMaxForeignConnectedCommerce);
 	stream->Write(m_iDiplomacyChange);
 
+	stream->Write(m_iCrime);
+	stream->Write(m_iCrimePerPop);
+
 	stream->Write(m_bApplyFreePromotionOnMove);
 	stream->Write(m_bProtectedCulture);
 	stream->Write(m_bAllowsAmbassadors);
@@ -5152,6 +5156,9 @@ void CvBuildingInfo::getCheckSum(unsigned int& iSum)
 	CheckSum(iSum, m_iCitiesRequiredPerForeignConnectedCity);
 	CheckSum(iSum, m_iMaxForeignConnectedCommerce);
 	CheckSum(iSum, m_iDiplomacyChange);
+
+	CheckSum(iSum, m_iCrime);
+	CheckSum(iSum, m_iCrimePerPop);
 
 	CheckSum(iSum, m_bApplyFreePromotionOnMove);
 	CheckSum(iSum, m_bProtectedCulture);
@@ -6055,6 +6062,9 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iCitiesRequiredPerForeignConnectedCity, "iCitiesRequiredPerForeignConnectedCity");
 	pXML->GetChildXmlValByName(&m_iMaxForeignConnectedCommerce, "iMaxForeignConnectedCommerce");
 	pXML->GetChildXmlValByName(&m_iDiplomacyChange, "iDiplomacyChange");
+
+	pXML->GetChildXmlValByName(&m_iCrime, "iCrime");
+	pXML->GetChildXmlValByName(&m_iCrimePerPop, "iCrimePerPop");
 
 	pXML->GetChildXmlValByName(&m_bProtectedCulture, "bProtectedCulture");
 	pXML->GetChildXmlValByName(&m_bAllowsAmbassadors, "bAllowsAmbassadors");
@@ -7539,6 +7549,9 @@ void CvBuildingInfo::copyNonDefaults(CvBuildingInfo* pClassInfo, CvXMLLoadUtilit
 	if (getCitiesRequiredPerForeignConnectedCommerce() == 1) m_iCitiesRequiredPerForeignConnectedCity = pClassInfo->getCitiesRequiredPerForeignConnectedCommerce();
 	if (getMaxForeignConnectedCommerce() == iDefault) m_iMaxForeignConnectedCommerce = pClassInfo->getMaxForeignConnectedCommerce();
 	if (getDiplomacyChange() == iDefault) m_iDiplomacyChange = pClassInfo->getDiplomacyChange();
+
+	if (m_iCrime == iDefault) m_iCrime = pClassInfo->getCrime();
+	if (m_iCrimePerPop == iDefault) m_iCrimePerPop = pClassInfo->getCrimePerPop();
 
 	if (isProtectedCulture() == bDefault) m_bProtectedCulture = pClassInfo->isProtectedCulture();
 	if (isAllowsAmbassadors() == bDefault) m_bAllowsAmbassadors = pClassInfo->isAllowsAmbassadors();
