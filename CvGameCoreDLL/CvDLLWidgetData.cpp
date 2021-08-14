@@ -786,7 +786,84 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 
 		case WIDGET_HELP_CITY_CRIME:
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_HELP_CITY_CRIME", gDLL->getInterfaceIFace()->getHeadSelectedCity()->getCrimeFinal()));
+			bool bFirst = true;
+			const CvCity* city = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+			const int iCrimeFinal = city->getCrimeFinal();
+			int iCrimeOther = iCrimeFinal;
+			{
+				const int iBaseCrime = GC.getDefineINT("CRIME_PER_100_POPULATION", 99) * city->getPopulation();
+				CvWString szValue;
+				if (iBaseCrime < 0)
+				{
+					if (iBaseCrime / 100 == 0)
+					{
+						szValue.Format(L"-0.%02d", abs(iBaseCrime) % 100);
+					}
+					else szValue.Format(L"%d.%02d", iBaseCrime / 100, abs(iBaseCrime) % 100);
+				}
+				else szValue.Format(L"%d.%02d", iBaseCrime / 100, iBaseCrime % 100);
+
+				szBuffer.append(gDLL->getText("TXT_KEY_HELP_CITY_CRIME_BASE", szValue.GetCString()));
+
+				const int iCrimePerPop = city->getCrimePerPop();
+				if (iCrimePerPop != 0)
+				{
+					szBuffer.append(SEPARATOR);
+					szBuffer.append(NEWLINE);
+					if (iCrimePerPop < 0)
+					{
+						if (iCrimePerPop / 100 == 0)
+						{
+							szValue.Format(L"-0.%02d", abs(iCrimePerPop) % 100);
+						}
+						else szValue.Format(L"%d.%02d", iCrimePerPop / 100, abs(iCrimePerPop) % 100);
+					}
+					else szValue.Format(L"%d.%02d", iCrimePerPop / 100, iCrimePerPop % 100);
+
+					CvWString szValue2;
+					const int iCrimeFromPop = iCrimePerPop * city->getPopulation();
+					if (iCrimeFromPop < 0)
+					{
+						if (iCrimeFromPop / 100 == 0)
+						{
+							szValue2.Format(L"-0.%02d", abs(iCrimeFromPop) % 100);
+						}
+						else szValue2.Format(L"%d.%02d", iCrimeFromPop / 100, abs(iCrimeFromPop) % 100);
+					}
+					else szValue2.Format(L"%d.%02d", iCrimeFromPop / 100, iCrimeFromPop % 100);
+
+					szBuffer.append(gDLL->getText("TXT_KEY_HELP_CITY_CRIME_BUILDINGS_PER_POP", szValue.GetCString(), szValue2.GetCString()));
+				}
+				iCrimeOther -= (iBaseCrime + iCrimePerPop * city->getPopulation()) / 100;
+			}
+			{
+				const int iCrime = city->getCrime();
+				if (iCrime != 0)
+				{
+					if (bFirst)
+					{
+						szBuffer.append(SEPARATOR);
+						bFirst = false;
+					}
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_HELP_CITY_CRIME_BUILDINGS", iCrime));
+					iCrimeOther -= iCrime;
+				}
+			}
+			if (iCrimeOther != 0)
+			{
+				if (bFirst)
+				{
+					szBuffer.append(SEPARATOR);
+					bFirst = false;
+				}
+				szBuffer.append(NEWLINE);
+				FAssertMsg(false, "Something is not listed in tooltip, iCrimeOther != 0");
+				szBuffer.append(gDLL->getText("TXT_KEY_HELP_CITY_CRIME_OTHER", iCrimeOther));
+			}
+			szBuffer.append(DOUBLE_SEPARATOR);
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_HELP_CITY_CRIME_SUM", iCrimeFinal));
 		}
 	}
 }

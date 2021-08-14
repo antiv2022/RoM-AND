@@ -89,7 +89,23 @@
 		<English>[ICON_BULLET]Crime: %s1/Population</English>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_HELP_CITY_CRIME</Tag>
+		<Tag>TXT_KEY_HELP_CITY_CRIME_BASE</Tag>
+		<English>Crime overview[NEWLINE]* Base: %s1</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HELP_CITY_CRIME_BUILDINGS</Tag>
+		<English>* Buildings: %d1</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HELP_CITY_CRIME_BUILDINGS_PER_POP</Tag>
+		<English>Buildings cause %s1 crime per population.[NEWLINE]* Valuate: %s2</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HELP_CITY_CRIME_OTHER</Tag>
+		<English>* Other: %d1</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HELP_CITY_CRIME_SUM</Tag>
 		<English>Total crime: %d1</English>
 	</TEXT>
 	<TEXT>
