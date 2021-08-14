@@ -620,6 +620,8 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 	m_iWarWearinessModifier = 0;
 	m_iHurryAngerModifier = 0;
 	m_iHealRate = 0;
+	m_iCrime = 0;
+	m_iCrimePerPop = 0;
 	m_iEspionageHealthCounter = 0;
 	m_iEspionageHappinessCounter = 0;
 	m_iFreshWaterGoodHealth = 0;
@@ -6425,6 +6427,8 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 			changeWarWearinessModifier(kBuilding.getWarWearinessModifier() * iChange);
 			changeHurryAngerModifier(kBuilding.getHurryAngerModifier() * iChange);
 			changeHealRate(kBuilding.getHealRateChange() * iChange);
+			changeCrime(kBuilding.getCrime() * iChange);
+			changeCrimePerPop(kBuilding.getCrimePerPop() * iChange);
 			{
 				const int iHealth = kBuilding.getHealth();
 				if (iHealth > 0)
@@ -10262,36 +10266,52 @@ int CvCity::getHealRate() const
 	return m_iHealRate;
 }
 
-
 void CvCity::changeHealRate(int iChange)
 {
-	m_iHealRate = (m_iHealRate + iChange);
-	FAssert(getHealRate() >= 0);
+	m_iHealRate += iChange;
+	FAssert(m_iHealRate >= 0);
 }
+
+
+int CvCity::getCrime() const
+{
+	return m_iCrime;
+}
+
+void CvCity::changeCrime(int iChange)
+{
+	m_iCrime += iChange;
+}
+
+int CvCity::getCrimePerPop() const
+{
+	return m_iCrimePerPop;
+}
+
+void CvCity::changeCrimePerPop(int iChange)
+{
+	m_iCrimePerPop += iChange;
+}
+
+int CvCity::getCrimeFinal() const
+{
+	return getCrime() + (getCrimePerPop() + GC.getDefineINT("CRIME_PER_100_POPULATION", 99)) * getPopulation() / 100;
+}
+
 
 int CvCity::getEspionageHealthCounter() const
 {
-/************************************************************************************************/
-/* Afforess	                  Start		 06/29/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/*
+/* Afforess - 06/29/10
 	return m_iEspionageHealthCounter;
 */
 	return std::min(8, m_iEspionageHealthCounter);
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
+	// ! Afforess
 }
 
 
 void CvCity::changeEspionageHealthCounter(int iChange)
 {
-	if (iChange != 0)
-	{
-		m_iEspionageHealthCounter += iChange;
-	}
+	m_iEspionageHealthCounter += iChange;
 }
 
 int CvCity::getEspionageHappinessCounter() const
@@ -10313,10 +10333,7 @@ int CvCity::getEspionageHappinessCounter() const
 
 void CvCity::changeEspionageHappinessCounter(int iChange)
 {
-	if (iChange != 0)
-	{
-		m_iEspionageHappinessCounter += iChange;
-	}
+	m_iEspionageHappinessCounter += iChange;
 }
 
 
@@ -20888,6 +20905,8 @@ void CvCity::resync(bool bWrite, ByteBuffer* pBuffer)
 	RESYNC_INT(bWrite, pBuffer, m_iWarWearinessModifier);
 	RESYNC_INT(bWrite, pBuffer, m_iHurryAngerModifier);
 	RESYNC_INT(bWrite, pBuffer, m_iHealRate);
+	RESYNC_INT(bWrite, pBuffer, m_iCrime);
+	RESYNC_INT(bWrite, pBuffer, m_iCrimePerPop);
 	RESYNC_INT(bWrite, pBuffer, m_iEspionageHealthCounter);
 	RESYNC_INT(bWrite, pBuffer, m_iEspionageHappinessCounter);
 	RESYNC_INT(bWrite, pBuffer, m_iFreshWaterGoodHealth);
@@ -21832,6 +21851,10 @@ void CvCity::read(FDataStreamBase* pStream)
 	WRAPPER_READ(wrapper, "CvCity", &m_iModifiedBuildingDefenseRecoverySpeedCap);
 	WRAPPER_READ(wrapper, "CvCity", &m_iExtraCityDefenseRecoverySpeedModifier);
 	WRAPPER_READ(wrapper, "CvCity", &m_iZoCCount);
+
+	WRAPPER_READ(wrapper, "CvCity", &m_iCrime);
+	WRAPPER_READ(wrapper, "CvCity", &m_iCrimePerPop);
+
 	WRAPPER_READ_OBJECT_END(wrapper);
 }
 
@@ -22189,6 +22212,10 @@ void CvCity::write(FDataStreamBase* pStream)
 	WRAPPER_WRITE(wrapper, "CvCity", m_iModifiedBuildingDefenseRecoverySpeedCap);
 	WRAPPER_WRITE(wrapper, "CvCity", m_iExtraCityDefenseRecoverySpeedModifier);
 	WRAPPER_WRITE(wrapper, "CvCity", m_iZoCCount);
+
+	WRAPPER_WRITE(wrapper, "CvCity", m_iCrime);
+	WRAPPER_WRITE(wrapper, "CvCity", m_iCrimePerPop);
+
 	WRAPPER_WRITE_OBJECT_END(wrapper);
 }
 
@@ -27114,6 +27141,8 @@ void CvCity::clearModifierTotals()
 	m_iWarWearinessModifier = 0;
 	m_iHurryAngerModifier = 0;
 	m_iHealRate = 0;
+	m_iCrime = 0;
+	m_iCrimePerPop = 0;
 	m_iBuildingGoodHealth = 0;
 	m_iBuildingBadHealth = 0;
 	m_iPowerGoodHealth = 0;

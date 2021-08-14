@@ -624,6 +624,12 @@ public:
 	int getHealRate() const;																							// Exposed to Python
 	void changeHealRate(int iChange);
 
+	int getCrime() const;
+	void changeCrime(int iChange);
+	int getCrimePerPop() const;
+	void changeCrimePerPop(int iChange);
+	int getCrimeFinal() const;
+
 	int getEspionageHealthCounter() const;														// Exposed to Python
 	void changeEspionageHealthCounter(int iChange);													// Exposed to Python
 
@@ -1744,6 +1750,8 @@ protected:
 	int m_iWarWearinessModifier;
 	int m_iHurryAngerModifier;
 	int m_iHealRate;
+	int m_iCrime;
+	int m_iCrimePerPop;
 	int m_iEspionageHealthCounter;
 	int m_iEspionageHappinessCounter;
 	int m_iFreshWaterGoodHealth;

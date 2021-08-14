@@ -68,5 +68,9 @@
 		<DefineName>VOLLEY_MP_COST_PERCENT</DefineName>
 		<iDefineIntVal>75</iDefineIntVal>
 	</Define>
+	<Define>
+		<DefineName>CRIME_PER_100_POPULATION</DefineName>
+		<iDefineIntVal>99</iDefineIntVal>
+	</Define>
 	<!-- ! Toffer -->
 </Civ4Defines>
