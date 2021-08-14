@@ -10226,10 +10226,7 @@ void CvCity::changeWarWearinessModifier(int iChange)
 
 int CvCity::getHurryAngerModifier() const
 {
-	int iTotalHurryAngerModifier = m_iHurryAngerModifier;
-	iTotalHurryAngerModifier += GET_PLAYER(getOwnerINLINE()).getNationalHurryAngerModifier();
-	// AIAndy: This used to return m_iHurryAngerModifier instead of the calculated iTotalHurryAngerModifier which I don't assume is correct
-	return iTotalHurryAngerModifier;
+	return m_iHurryAngerModifier + GET_PLAYER(getOwnerINLINE()).getNationalHurryAngerModifier();
 }
 
 

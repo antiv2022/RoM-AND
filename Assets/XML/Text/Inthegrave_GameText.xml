@@ -81,6 +81,10 @@
 	<!-- f1rpo: end -->
 	<!-- Toffer -->
     <TEXT>
+        <Tag>TXT_KEY_HELP_CITY_CRIME</Tag>
+        <English>Total crime: %d1</English>
+    </TEXT>
+    <TEXT>
         <Tag>TXT_KEY_MISSION_VOLLEY_HELP</Tag>
         <English>Damage your foe from afar.</English>
     </TEXT>

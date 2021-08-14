@@ -784,6 +784,10 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
 
+		case WIDGET_HELP_CITY_CRIME:
+		{
+			szBuffer.append(gDLL->getText("TXT_KEY_HELP_CITY_CRIME", gDLL->getInterfaceIFace()->getHeadSelectedCity()->getCrimeFinal()));
+		}
 	}
 }
 
@@ -1158,6 +1162,7 @@ bool CvDLLWidgetData::executeAction( CvWidgetDataStruct &widgetDataStruct )
 	case WIDGET_LEADERHEAD:
 	case WIDGET_LEADER_LINE:
 	case WIDGET_SCORE_BREAKDOWN:
+	case WIDGET_HELP_CITY_CRIME:
 /************************************************************************************************/
 /* Afforess	                  Start		 6/19/11                                                */
 /*                                                                                              */

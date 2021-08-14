@@ -641,6 +641,8 @@ enum WidgetTypes					// Exposed to Python
 	WIDGET_CITY_GOTO,
 	WIDGET_PEDIA_JUMP_TO_ROUTE,
 
+	WIDGET_HELP_CITY_CRIME,
+
 #ifdef _USRDLL
 	NUM_WIDGET_TYPES
 #endif
