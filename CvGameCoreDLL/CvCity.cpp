@@ -6321,486 +6321,445 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 {
 	PROFILE_FUNC();
 
-	UnitTypes eGreatPeopleUnit;
-	CvBuildingInfo& kBuilding = GC.getBuildingInfo(eBuilding); //Afforess
-	int iI, iJ;
+	CvBuildingInfo& kBuilding = GC.getBuildingInfo(eBuilding);
+	const BuildingClassTypes eBuildingClass = (BuildingClassTypes) kBuilding.getBuildingClassType();
+	CvTeam& team = GET_TEAM(getTeam());
+	CvPlayer& player = GET_PLAYER(getOwnerINLINE());
 
 	FAssert(iChange == 1 || iChange == -1);
 
-	//	We don't need to process the building effects in or out if it is
-	//		* obsolete (unless GOING obsolete explicitly now)
-	//		* has already been replaced, except in the middle of a modifier recalc where we might be processing it out
-	//		  due to that replacement being re-detected
-	if ((!(GET_TEAM(getTeam()).isObsoleteBuilding(eBuilding)) && (m_paiBuildingReplaced == NULL || m_paiBuildingReplaced[eBuilding] == 0 || bReplacingNow || (m_recalcBuilding != MAX_INT && iChange < 0))) || bObsolete)
+	// We don't need to process the building effects in or out if it is
+	//	* obsolete (unless GOING obsolete explicitly now)
+	//	* has already been replaced, except in the middle of a modifier recalc where we might be processing it out due to that replacement being re-detected
+	if (bObsolete || (!team.isObsoleteBuilding(eBuilding) && (m_paiBuildingReplaced == NULL || m_paiBuildingReplaced[eBuilding] == 0 || bReplacingNow || (m_recalcBuilding != MAX_INT && iChange < 0))))
 	{
 		{
 			PROFILE("CvCity::processBuilding.properties");
 
-		if (iChange > 0)
-		{
-			CorporationTypes eCorporation = (CorporationTypes)GC.getBuildingInfo(eBuilding).getFoundsCorporation();
-			if (NO_CORPORATION != eCorporation && !GC.getGameINLINE().isCorporationFounded(eCorporation))
+			if (iChange > 0)
 			{
-				setHeadquarters(eCorporation);
-			}
+				const CorporationTypes eCorporation = (CorporationTypes)kBuilding.getFoundsCorporation();
 
-			if (kBuilding.getFreeSpecialTech() != NO_TECH)
-			{
-				GET_TEAM(getTeam()).setHasTech(kBuilding.getFreeSpecialTech(), true, getOwner(), true, true);
-			}
+				if (NO_CORPORATION != eCorporation && !GC.getGameINLINE().isCorporationFounded(eCorporation))
+				{
+					setHeadquarters(eCorporation);
+				}
 
-			getProperties()->addProperties(kBuilding.getProperties());
-			//GET_PLAYER(getOwnerINLINE()).getProperties()->addProperties(kBuilding.getProperties());
-			CvProperties* pProp = kBuilding.getPropertiesAllCities();
-			if (!pProp->isEmpty())
-			{
-				GET_TEAM(getTeam()).addPropertiesAllCities(pProp);
+				if (kBuilding.getFreeSpecialTech() != NO_TECH)
+				{
+					team.setHasTech(kBuilding.getFreeSpecialTech(), true, getOwner(), true, true);
+				}
+				getProperties()->addProperties(kBuilding.getProperties());
+
+				CvProperties* pProp = kBuilding.getPropertiesAllCities();
+				if (!pProp->isEmpty())
+				{
+					team.addPropertiesAllCities(pProp);
+				}
 			}
-		}
-		else
-		{
-			getProperties()->subtractProperties(kBuilding.getProperties());
-			//GET_PLAYER(getOwnerINLINE()).getProperties()->subtractProperties(kBuilding.getProperties());
-			CvProperties* pProp = kBuilding.getPropertiesAllCities();
-			if (!pProp->isEmpty())
+			else
 			{
-				GET_TEAM(getTeam()).subtractPropertiesAllCities(pProp);
+				getProperties()->subtractProperties(kBuilding.getProperties());
+
+				CvProperties* pProp = kBuilding.getPropertiesAllCities();
+				if (!pProp->isEmpty())
+				{
+					team.subtractPropertiesAllCities(pProp);
+				}
 			}
-		}
 		}
 
 		{
 			PROFILE("CvCity::processBuilding.part2");
 
-			if (GC.getBuildingInfo(eBuilding).getNoBonus() != NO_BONUS)
+			if (kBuilding.getNoBonus() != NO_BONUS)
 			{
-				changeNoBonusCount(((BonusTypes)(GC.getBuildingInfo(eBuilding).getNoBonus())), iChange);
+				changeNoBonusCount(((BonusTypes)(kBuilding.getNoBonus())), iChange);
 			}
 
-			if (GC.getBuildingInfo(eBuilding).getFreeBonus() != NO_BONUS)
+			if (kBuilding.getFreeBonus() != NO_BONUS)
 			{
-				changeFreeBonus(((BonusTypes)(GC.getBuildingInfo(eBuilding).getFreeBonus())), (GC.getGameINLINE().getNumFreeBonuses(eBuilding) * iChange));
-				clearVicinityBonusCache((BonusTypes)(GC.getBuildingInfo(eBuilding).getFreeBonus()));
+				changeFreeBonus(((BonusTypes)(kBuilding.getFreeBonus())), (GC.getGameINLINE().getNumFreeBonuses(eBuilding) * iChange));
+				clearVicinityBonusCache((BonusTypes)(kBuilding.getFreeBonus()));
 			}
 
-			int iNum = kBuilding.getNumExtraFreeBonuses();
-			for (iI=0; iI<iNum; iI++)
+			for (int iI = kBuilding.getNumExtraFreeBonuses() - 1; iI > -1; iI--)
 			{
 				changeFreeBonus(kBuilding.getExtraFreeBonus(iI), kBuilding.getExtraFreeBonusNum(iI) * iChange);
 				clearVicinityBonusCache(kBuilding.getExtraFreeBonus(iI));
 			}
 
-			if (GC.getBuildingInfo(eBuilding).getFreePromotion() != NO_PROMOTION)
+			if (kBuilding.getFreePromotion() != NO_PROMOTION)
 			{
-				changeFreePromotionCount(((PromotionTypes)(GC.getBuildingInfo(eBuilding).getFreePromotion())), iChange);
+				changeFreePromotionCount(((PromotionTypes)(kBuilding.getFreePromotion())), iChange);
 			}
 
-			//TB Nukefix reset nuke validation
-			if (GC.getBuildingInfo(eBuilding).isAllowsNukes())
-			{//TB Nukefix (changed to GET_PLAYER(getOwnerINLINE() rather than GC.getGameINLINE)
-				GET_PLAYER(getOwnerINLINE()).makeNukesValid(true);
+			if (kBuilding.isAllowsNukes())
+			{
+				player.makeNukesValid(true);
 			}
 
-/************************************************************************************************/
-/* Afforess  Meteorology Modmod addon                    10/13/09                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-		if (kBuilding.getFreePromotion_2() != NO_PROMOTION)
-		{
-			changeFreePromotionCount(((PromotionTypes)(kBuilding.getFreePromotion_2())), iChange);
-		}
+			if (kBuilding.getFreePromotion_2() != NO_PROMOTION)
+			{
+				changeFreePromotionCount(((PromotionTypes)(kBuilding.getFreePromotion_2())), iChange);
+			}
 
-		if (kBuilding.getFreePromotion_3() != NO_PROMOTION)
-		{
-			changeFreePromotionCount(((PromotionTypes)(kBuilding.getFreePromotion_3())), iChange);
+			if (kBuilding.getFreePromotion_3() != NO_PROMOTION)
+			{
+				changeFreePromotionCount(((PromotionTypes)(kBuilding.getFreePromotion_3())), iChange);
+			}
+
+			changeEspionageDefenseModifier(kBuilding.getEspionageDefenseModifier() * iChange);
+
+			changePopulationgrowthratepercentage(kBuilding.getPopulationgrowthratepercentage(),(iChange==1));
+			changeGreatPeopleRateModifier(kBuilding.getGreatPeopleRateModifier() * iChange);
+			changeFreeExperience(kBuilding.getFreeExperience() * iChange);
+			changeMaxFoodKeptPercent(kBuilding.getFoodKept(),(iChange==1));
+			changeMaxAirlift(kBuilding.getAirlift() * iChange);
+			changeAirModifier(kBuilding.getAirModifier() * iChange);
+			changeAirUnitCapacity(kBuilding.getAirUnitCapacity() * iChange);
+			changeWonderCapacityIncrement(kBuilding.getWonderCapacityIncrement() * iChange);
+			changeNukeModifier(kBuilding.getNukeModifier() * iChange);
+			changeFreeSpecialist(kBuilding.getFreeSpecialist() * iChange);
+			changeMaintenanceModifier(kBuilding.getMaintenanceModifier() * iChange);
+			changeWarWearinessModifier(kBuilding.getWarWearinessModifier() * iChange);
+			changeHurryAngerModifier(kBuilding.getHurryAngerModifier() * iChange);
+			changeHealRate(kBuilding.getHealRateChange() * iChange);
+			{
+				const int iHealth = kBuilding.getHealth();
+				if (iHealth > 0)
+				{
+					changeBuildingGoodHealth(iHealth * iChange);
+				}
+				else if (iHealth < 0)
+				{
+					changeBuildingBadHealth(iHealth * iChange);
+				}
+			}
+			{
+				const int iHappiness = kBuilding.getHappiness();
+				if (iHappiness > 0)
+				{
+					changeBuildingGoodHappiness(iHappiness * iChange);
+				}
+				else if (iHappiness < 0)
+				{
+					changeBuildingBadHappiness(iHappiness * iChange);
+				}
+			}
+
+			if (kBuilding.getReligionType() != NO_RELIGION)
+			{
+				changeStateReligionHappiness((ReligionTypes) kBuilding.getReligionType(), kBuilding.getStateReligionHappiness() * iChange);
+				changeStateReligionHealth((ReligionTypes) kBuilding.getReligionType(), kBuilding.getStateReligionHealth() * iChange);
+			}
+			changeMilitaryProductionModifier(kBuilding.getMilitaryProductionModifier() * iChange);
+			changeSpaceProductionModifier(kBuilding.getSpaceProductionModifier() * iChange);
+			changeExtraTradeRoutes(kBuilding.getTradeRoutes() * iChange);
+			changeTradeRouteModifier(kBuilding.getTradeRouteModifier() * iChange);
+			changeForeignTradeRouteModifier(kBuilding.getForeignTradeRouteModifier() * iChange);
+			changePowerCount(((kBuilding.isPower()) ? iChange : 0), kBuilding.isDirtyPower());
+			changeNoPowerCount((kBuilding.isNoPower()) ? iChange : 0);
+			changeGovernmentCenterCount((kBuilding.isGovernmentCenter()) ? iChange : 0);
+			changeNoUnhappinessCount((kBuilding.isNoUnhappiness()) ? iChange : 0);
+			changeNoUnhealthyPopulationCount((kBuilding.isNoUnhealthyPopulation()) ? iChange : 0);
+			changeBuildingOnlyHealthyCount((kBuilding.isBuildingOnlyHealthy()) ? iChange : 0);
 		}
-/************************************************************************************************/
-/* Afforess	                         END                                                     */
-/************************************************************************************************/
-		changeEspionageDefenseModifier(GC.getBuildingInfo(eBuilding).getEspionageDefenseModifier() * iChange);
-/************************************************************************************************/
-/* Afforess  Food Threshold Modifier   Start          10/16/09                   		         */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-		changePopulationgrowthratepercentage(kBuilding.getPopulationgrowthratepercentage(),(iChange==1));
-/************************************************************************************************/
-/* Afforess  Food Threshold Modifier                        END                  		         */
-/************************************************************************************************/
-		changeGreatPeopleRateModifier(GC.getBuildingInfo(eBuilding).getGreatPeopleRateModifier() * iChange);
-		changeFreeExperience(GC.getBuildingInfo(eBuilding).getFreeExperience() * iChange);
-		changeMaxFoodKeptPercent(GC.getBuildingInfo(eBuilding).getFoodKept(),(iChange==1));
-		changeMaxAirlift(GC.getBuildingInfo(eBuilding).getAirlift() * iChange);
-		changeAirModifier(GC.getBuildingInfo(eBuilding).getAirModifier() * iChange);
-		changeAirUnitCapacity(GC.getBuildingInfo(eBuilding).getAirUnitCapacity() * iChange);
-		changeWonderCapacityIncrement(GC.getBuildingInfo(eBuilding).getWonderCapacityIncrement() * iChange);
-		changeNukeModifier(GC.getBuildingInfo(eBuilding).getNukeModifier() * iChange);
-		changeFreeSpecialist(GC.getBuildingInfo(eBuilding).getFreeSpecialist() * iChange);
-		changeMaintenanceModifier(GC.getBuildingInfo(eBuilding).getMaintenanceModifier() * iChange);
-		changeWarWearinessModifier(GC.getBuildingInfo(eBuilding).getWarWearinessModifier() * iChange);
-		changeHurryAngerModifier(GC.getBuildingInfo(eBuilding).getHurryAngerModifier() * iChange);
-		changeHealRate(GC.getBuildingInfo(eBuilding).getHealRateChange() * iChange);
-		if (GC.getBuildingInfo(eBuilding).getHealth() > 0)
-		{
-			changeBuildingGoodHealth(GC.getBuildingInfo(eBuilding).getHealth() * iChange);
-		}
-		else
-		{
-			changeBuildingBadHealth(GC.getBuildingInfo(eBuilding).getHealth() * iChange);
-		}
-		if (GC.getBuildingInfo(eBuilding).getHappiness() > 0)
-		{
-			changeBuildingGoodHappiness(GC.getBuildingInfo(eBuilding).getHappiness() * iChange);
-		}
-		else
-		{
-			changeBuildingBadHappiness(GC.getBuildingInfo(eBuilding).getHappiness() * iChange);
-		}
-		if (GC.getBuildingInfo(eBuilding).getReligionType() != NO_RELIGION)
-		{
-			changeStateReligionHappiness(((ReligionTypes)(GC.getBuildingInfo(eBuilding).getReligionType())), (GC.getBuildingInfo(eBuilding).getStateReligionHappiness() * iChange));
-			changeStateReligionHealth(((ReligionTypes)(GC.getBuildingInfo(eBuilding).getReligionType())), (GC.getBuildingInfo(eBuilding).getStateReligionHealth() * iChange));
-		}
-		changeMilitaryProductionModifier(GC.getBuildingInfo(eBuilding).getMilitaryProductionModifier() * iChange);
-		changeSpaceProductionModifier(GC.getBuildingInfo(eBuilding).getSpaceProductionModifier() * iChange);
-		changeExtraTradeRoutes(GC.getBuildingInfo(eBuilding).getTradeRoutes() * iChange);
-		changeTradeRouteModifier(GC.getBuildingInfo(eBuilding).getTradeRouteModifier() * iChange);
-		changeForeignTradeRouteModifier(GC.getBuildingInfo(eBuilding).getForeignTradeRouteModifier() * iChange);
-		changePowerCount(((GC.getBuildingInfo(eBuilding).isPower()) ? iChange : 0), GC.getBuildingInfo(eBuilding).isDirtyPower());
-		changeNoPowerCount((GC.getBuildingInfo(eBuilding).isNoPower()) ? iChange : 0);
-		changeGovernmentCenterCount((GC.getBuildingInfo(eBuilding).isGovernmentCenter()) ? iChange : 0);
-		changeNoUnhappinessCount((GC.getBuildingInfo(eBuilding).isNoUnhappiness()) ? iChange : 0);
-		changeNoUnhealthyPopulationCount((GC.getBuildingInfo(eBuilding).isNoUnhealthyPopulation()) ? iChange : 0);
-		changeBuildingOnlyHealthyCount((GC.getBuildingInfo(eBuilding).isBuildingOnlyHealthy()) ? iChange : 0);
-		}
-		for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
 		{
 			PROFILE("CvCity::processBuilding.Yields");
-			changeSeaPlotYield(((YieldTypes)iI), (GC.getBuildingInfo(eBuilding).getSeaPlotYieldChange(iI) * iChange));
-			changeRiverPlotYield(((YieldTypes)iI), (GC.getBuildingInfo(eBuilding).getRiverPlotYieldChange(iI) * iChange));
-/************************************************************************************************/
-/* Afforess	                  Start		 12/7/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/*			changeBaseYieldRate(((YieldTypes)iI), ((GC.getBuildingInfo(eBuilding).getYieldChange(iI) + getBuildingYieldChange((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType(), (YieldTypes)iI) + GET_TEAM(getTeam()).getBuildingYieldChange(eBuilding, (YieldTypes)iI))* iChange));
-			changeYieldRateModifier(((YieldTypes)iI), ((GC.getBuildingInfo(eBuilding).getYieldModifier(iI) + GET_TEAM(getTeam()).getBuildingYieldModifier(eBuilding, (YieldTypes)iI))* iChange));
-*/
-			changeBaseYieldRate(((YieldTypes)iI), ((kBuilding.getYieldChange(iI) + getBuildingYieldChange((BuildingClassTypes)kBuilding.getBuildingClassType(), (YieldTypes)iI))* iChange));
-			changeYieldRateModifier(((YieldTypes)iI), (kBuilding.getYieldModifier(iI) * iChange));
 
-			updateYieldRate(eBuilding, (YieldTypes)iI, ((getBuildingYieldChange((BuildingClassTypes)(kBuilding.getBuildingClassType()), (YieldTypes)iI)) + (GET_TEAM(getTeam()).getBuildingYieldChange(eBuilding, (YieldTypes)iI) * iChange)));
-			updateYieldModifierByBuilding(eBuilding, (YieldTypes)iI, GET_TEAM(getTeam()).getBuildingYieldModifier(eBuilding, (YieldTypes)iI) * iChange);
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-			changePowerYieldRateModifier(((YieldTypes)iI), (GC.getBuildingInfo(eBuilding).getPowerYieldModifier(iI) * iChange));
+			for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
+			{
+				const YieldTypes eYield = static_cast<YieldTypes>(iI);
+
+				changeSeaPlotYield(eYield, kBuilding.getSeaPlotYieldChange(iI) * iChange);
+				changeRiverPlotYield(eYield, kBuilding.getRiverPlotYieldChange(iI) * iChange);
+
+				changeBaseYieldRate(eYield, (kBuilding.getYieldChange(iI) + getBuildingYieldChange(eBuildingClass, eYield)) * iChange);
+				changeYieldRateModifier(eYield, kBuilding.getYieldModifier(iI) * iChange);
+
+				updateYieldRate(eBuilding, eYield, (getBuildingYieldChange(eBuildingClass, eYield) + team.getBuildingYieldChange(eBuilding, eYield)) * iChange);
+				updateYieldModifierByBuilding(eBuilding, eYield, team.getBuildingYieldModifier(eBuilding, eYield) * iChange);
+
+				changePowerYieldRateModifier(eYield, kBuilding.getPowerYieldModifier(iI) * iChange);
+			}
 		}
-
-		for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
 		{
 			PROFILE("CvCity::processBuilding.Commerces");
-/************************************************************************************************/
-/* Afforess	                  Start		 5/28/11                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-			updateCommerceRateByBuilding(eBuilding, (CommerceTypes)iI, ((GET_TEAM(getTeam()).getBuildingCommerceChange(eBuilding, (CommerceTypes)iI) + GET_PLAYER(getOwnerINLINE()).getBuildingClassCommerceChange((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType(), (CommerceTypes)iI)) * iChange));
-			changeCommerceRateModifier(((CommerceTypes)iI), (GC.getBuildingInfo(eBuilding).getCommerceModifier(iI) * iChange));
-			updateCommerceModifierByBuilding(eBuilding, (CommerceTypes)iI, (GET_TEAM(getTeam()).getBuildingCommerceModifier(eBuilding, (CommerceTypes)iI) + GET_PLAYER(getOwnerINLINE()).getBuildingCommerceModifier(eBuilding, (CommerceTypes)iI)) * iChange);
-			changeMaxCommerceAttacks((CommerceTypes)iI, kBuilding.getCommerceAttacks(iI) * iChange);
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 
-			changeCommerceHappinessPer(((CommerceTypes)iI), (GC.getBuildingInfo(eBuilding).getCommerceHappiness(iI) * iChange));
+			for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+			{
+				const CommerceTypes eCommerce = static_cast<CommerceTypes>(iI);
+
+				updateCommerceRateByBuilding(
+					eBuilding, eCommerce,
+					(
+						team.getBuildingCommerceChange(eBuilding, eCommerce)
+						+
+						player.getBuildingClassCommerceChange(eBuildingClass, eCommerce)
+					)
+					* iChange
+				);
+				changeCommerceRateModifier(eCommerce, kBuilding.getCommerceModifier(iI) * iChange);
+				updateCommerceModifierByBuilding(eBuilding, eCommerce, (team.getBuildingCommerceModifier(eBuilding, eCommerce) + player.getBuildingCommerceModifier(eBuilding, eCommerce)) * iChange);
+				changeMaxCommerceAttacks(eCommerce, kBuilding.getCommerceAttacks(iI) * iChange);
+				changeCommerceHappinessPer(eCommerce, kBuilding.getCommerceHappiness(iI) * iChange);
+			}
 		}
 		changeExtraCapitalCommerce(kBuilding.getExtraCapitalCommerce() * iChange);
 		changeExtraForeignCapitalCommerce(kBuilding.getExtraForeignCapitalCommerce() * iChange);
-		if ((kBuilding.getDomesticConnectedCommerce() != 0 || kBuilding.getForeignConnectedCommerce() != 0 )&& iChange != 0)
+
+		if (kBuilding.getDomesticConnectedCommerce() != 0 || kBuilding.getForeignConnectedCommerce() != 0)
 		{
 			doConnectednessCalculations();
 		}
 
-		for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
 		{
 			PROFILE("CvCity::processBuilding.Religions");
-			changeReligionInfluence(((ReligionTypes)iI), (GC.getBuildingInfo(eBuilding).getReligionChange(iI) * iChange));
-		}
 
-		for (iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
+			for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
+			{
+				changeReligionInfluence(((ReligionTypes)iI), (kBuilding.getReligionChange(iI) * iChange));
+			}
+		}
 		{
 			PROFILE("CvCity::processBuilding.Specialists");
-/************************************************************************************************/
-/* Afforess	                  Start		 12/7/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-			changeMaxSpecialistCount(((SpecialistTypes)iI), (kBuilding.getSpecialistCount(iI) + GET_TEAM(getTeam()).getBuildingSpecialistChange(eBuilding, (SpecialistTypes)iI)) * iChange);
-			/* Was:
-			changeMaxSpecialistCount(((SpecialistTypes)iI), GC.getBuildingInfo(eBuilding).getSpecialistCount(iI) * iChange);
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 
-			changeFreeSpecialistCount(((SpecialistTypes)iI), GC.getBuildingInfo(eBuilding).getFreeSpecialistCount(iI) * iChange);
+			for (int iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
+			{
+				changeMaxSpecialistCount((SpecialistTypes)iI, (kBuilding.getSpecialistCount(iI) + team.getBuildingSpecialistChange(eBuilding, (SpecialistTypes)iI)) * iChange);
+
+				changeFreeSpecialistCount((SpecialistTypes)iI, kBuilding.getFreeSpecialistCount(iI) * iChange);
+			}
 		}
-
 		{
 			PROFILE("CvCity::processBuilding.Part3");
-
-/************************************************************************************************/
-/* Afforess	                  Start		 12/7/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-		int iTechBuildingHealth = GET_TEAM(getTeam()).getTechExtraBuildingHealth(eBuilding);
-		if (iTechBuildingHealth > 0)
-		{
-			changeBuildingGoodHealth(iTechBuildingHealth * iChange);
-		}
-		else if (iTechBuildingHealth < 0)
-		{
-			changeBuildingBadHealth(iTechBuildingHealth * iChange);
-		}
-
-		int iTechBuildingHappiness = GET_TEAM(getTeam()).getTechExtraBuildingHappiness(eBuilding);
-		if (iTechBuildingHappiness > 0)
-		{
-			changeBuildingGoodHappiness(iTechBuildingHappiness * iChange);
-		}
-		else if (iTechBuildingHappiness < 0)
-		{
-			changeBuildingGoodHappiness(iTechBuildingHappiness * iChange);
-		}
-
-		for (iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
-		{
-			changeUnitCombatExtraStrength((UnitCombatTypes)iI, kBuilding.getUnitCombatExtraStrength(iI) * iChange);
-		}
-
-
-		changeInvasionChance(kBuilding.getInvasionChance() * iChange);
-		changeLineOfSight(kBuilding.getLineOfSight() * iChange);
-		changeAdjacentDamagePercent(kBuilding.getAdjacentDamagePercent() * iChange);
-		changeNumUnitFullHeal(kBuilding.getNumUnitFullHeal() * iChange);
-		changeNumPopulationEmployed(kBuilding.getNumPopulationEmployed() * iChange);
-		changeHealthPercentPerPopulation(kBuilding.getHealthPercentPerPopulation() * iChange);
-		changeHappinessPercentPerPopulation(kBuilding.getHappinessPercentPerPopulation() * iChange);
-
+			{
+				const int iTechBuildingHealth = team.getTechExtraBuildingHealth(eBuilding);
+				if (iTechBuildingHealth > 0)
+				{
+					changeBuildingGoodHealth(iTechBuildingHealth * iChange);
+				}
+				else if (iTechBuildingHealth < 0)
+				{
+					changeBuildingBadHealth(iTechBuildingHealth * iChange);
+				}
+			}
+			{
+				const int iTechBuildingHappiness = team.getTechExtraBuildingHappiness(eBuilding);
+				if (iTechBuildingHappiness > 0)
+				{
+					changeBuildingGoodHappiness(iTechBuildingHappiness * iChange);
+				}
+				else if (iTechBuildingHappiness < 0)
+				{
+					changeBuildingGoodHappiness(iTechBuildingHappiness * iChange);
+				}
+			}
+			for (int iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
+			{
+				changeUnitCombatExtraStrength((UnitCombatTypes)iI, kBuilding.getUnitCombatExtraStrength(iI) * iChange);
+			}
+			changeInvasionChance(kBuilding.getInvasionChance() * iChange);
+			changeLineOfSight(kBuilding.getLineOfSight() * iChange);
+			changeAdjacentDamagePercent(kBuilding.getAdjacentDamagePercent() * iChange);
+			changeNumUnitFullHeal(kBuilding.getNumUnitFullHeal() * iChange);
+			changeNumPopulationEmployed(kBuilding.getNumPopulationEmployed() * iChange);
+			changeHealthPercentPerPopulation(kBuilding.getHealthPercentPerPopulation() * iChange);
+			changeHappinessPercentPerPopulation(kBuilding.getHappinessPercentPerPopulation() * iChange);
 		}
 		{
 			PROFILE("CvCity::processBuilding.Part4");
 
-		int iMinBuildingDefenseLevel = kBuilding.getNoEntryDefenseLevel();
+			const int iMinBuildingDefenseLevel = kBuilding.getNoEntryDefenseLevel();
 
-		if (iMinBuildingDefenseLevel > 0)
-		{
-			int iCurrentMinDefenseLevel = getMinimumDefenseLevel();
-
-			if ( iChange > 0 )
+			if (iMinBuildingDefenseLevel > 0)
 			{
-				if ( iMinBuildingDefenseLevel > iCurrentMinDefenseLevel )
+				const int iCurrentMinDefenseLevel = getMinimumDefenseLevel();
+
+				if (iChange > 0)
 				{
-					setMinimumDefenseLevel(iMinBuildingDefenseLevel);
+					if (iMinBuildingDefenseLevel > iCurrentMinDefenseLevel)
+					{
+						setMinimumDefenseLevel(iMinBuildingDefenseLevel);
+					}
 				}
-			}
-			else
-			{
-				if ( iMinBuildingDefenseLevel == iCurrentMinDefenseLevel )
+				else if (iMinBuildingDefenseLevel == iCurrentMinDefenseLevel)
 				{
 					int iNewMinDefenseLevel = 0;
 
-					for( iJ = 0; iJ < GC.getNumBuildingInfos(); iJ++ )
+					for (int iJ = 0; iJ < GC.getNumBuildingInfos(); iJ++)
 					{
-						if ( getNumActiveBuilding((BuildingTypes)iJ) > 0 )
+						if (getNumActiveBuilding((BuildingTypes)iJ) > 0)
 						{
-							int iLevel = GC.getBuildingInfo((BuildingTypes)iJ).getNoEntryDefenseLevel();
+							const int iLevel = GC.getBuildingInfo((BuildingTypes)iJ).getNoEntryDefenseLevel();
 
-							if ( iLevel > iNewMinDefenseLevel )
+							if (iLevel > iNewMinDefenseLevel)
 							{
 								iNewMinDefenseLevel = iLevel;
 							}
 						}
 					}
-
 					setMinimumDefenseLevel(iNewMinDefenseLevel);
 				}
 			}
+			if (kBuilding.isZoneOfControl())
+			{
+				changeZoCCount(iChange);
+			}
+			if (kBuilding.isProtectedCulture())
+			{
+				changeProtectedCultureCount(iChange);
+			}
+			if (kBuilding.getWorkableRadius() > 0)
+			{
+				setWorkableRadiusOverride(iChange > 0 ? kBuilding.getWorkableRadius() : 0);
+			}
+			if (kBuilding.isProvidesFreshWater())
+			{
+				changeFreshWater(iChange);
+			}
 		}
-
-		if ( kBuilding.isZoneOfControl() )
-		{
-			changeZoCCount(iChange);
-		}
-
-		if (kBuilding.isProtectedCulture())
-		{
-			changeProtectedCultureCount(iChange > 0 ? 1 : -1 );
-		}
-		if (kBuilding.getWorkableRadius() > 0)
-		{
-			setWorkableRadiusOverride(iChange > 0 ? kBuilding.getWorkableRadius() : 0);
-		}
-		if (kBuilding.isProvidesFreshWater())
-		{
-			changeFreshWater(iChange);
-		}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-		}
-		for (iI = 0; iI < GC.getNumImprovementInfos(); ++iI)
 		{
 			PROFILE("CvCity::processBuilding.Improvements");
-			changeImprovementFreeSpecialists((ImprovementTypes)iI, GC.getBuildingInfo(eBuilding).getImprovementFreeSpecialist(iI) * iChange);
-		}
 
-		FAssertMsg((0 < GC.getNumBonusInfos()) && "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlotGroup::reset", "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlotGroup::reset");
-		for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
+			for (int iI = 0; iI < GC.getNumImprovementInfos(); ++iI)
+			{
+				changeImprovementFreeSpecialists((ImprovementTypes)iI, kBuilding.getImprovementFreeSpecialist(iI) * iChange);
+			}
+
+		}
 		{
 			PROFILE("CvCity::processBuilding.Bonuses2");
-			if (hasBonus((BonusTypes)iI))
+
+			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 			{
-				if (GC.getBuildingInfo(eBuilding).getBonusHealthChanges(iI) > 0)
+				if (hasBonus((BonusTypes)iI))
 				{
-					changeBonusGoodHealth(GC.getBuildingInfo(eBuilding).getBonusHealthChanges(iI) * iChange);
-				}
-				else
-				{
-					changeBonusBadHealth(GC.getBuildingInfo(eBuilding).getBonusHealthChanges(iI) * iChange);
-				}
-				if (GC.getBuildingInfo(eBuilding).getBonusHappinessChanges(iI) > 0)
-				{
-					changeBonusGoodHappiness(GC.getBuildingInfo(eBuilding).getBonusHappinessChanges(iI) * iChange);
-				}
-				else
-				{
-					changeBonusBadHappiness(GC.getBuildingInfo(eBuilding).getBonusHappinessChanges(iI) * iChange);
-				}
-
-				if (GC.getBuildingInfo(eBuilding).getPowerBonus() == iI)
-				{
-					changePowerCount(iChange, GC.getBuildingInfo(eBuilding).isDirtyPower());
-				}
-
-				for (iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
-				{
-					changeBonusYieldRateModifier(((YieldTypes)iJ), (GC.getBuildingInfo(eBuilding).getBonusYieldModifier(iI, iJ) * iChange));
-/************************************************************************************************/
-/* Afforess	                  Start		 12/7/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-					int iBonusChange = kBuilding.getBonusYieldChanges(iI, iJ);
-					if (hasVicinityBonus((BonusTypes)iI))
+					if (kBuilding.getBonusHealthChanges(iI) > 0)
 					{
-						iBonusChange += kBuilding.getVicinityBonusYieldChanges(iI, iJ);
+						changeBonusGoodHealth(kBuilding.getBonusHealthChanges(iI) * iChange);
 					}
-					updateYieldRate(eBuilding, ((YieldTypes)iJ), ((getBuildingYieldChange((BuildingClassTypes)(kBuilding.getBuildingClassType()), (YieldTypes)iJ)) + (iBonusChange * iChange)));
-				}
-				for (iJ = 0; iJ < NUM_COMMERCE_TYPES; iJ++)
-				{
-					changeBonusCommerceRateModifier(((CommerceTypes)iJ), (kBuilding.getBonusCommerceModifier(iI, iJ) * iChange));
-					changeBonusCommercePercentChanges(((CommerceTypes)iJ), (kBuilding.getBonusCommercePercentChanges(iI, iJ) * iChange));
-				}
+					else
+					{
+						changeBonusBadHealth(kBuilding.getBonusHealthChanges(iI) * iChange);
+					}
+					if (kBuilding.getBonusHappinessChanges(iI) > 0)
+					{
+						changeBonusGoodHappiness(kBuilding.getBonusHappinessChanges(iI) * iChange);
+					}
+					else
+					{
+						changeBonusBadHappiness(kBuilding.getBonusHappinessChanges(iI) * iChange);
+					}
 
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
+					if (kBuilding.getPowerBonus() == iI)
+					{
+						changePowerCount(iChange, kBuilding.isDirtyPower());
+					}
+
+					for (int iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
+					{
+						changeBonusYieldRateModifier((YieldTypes)iJ, (kBuilding.getBonusYieldModifier(iI, iJ) * iChange));
+
+						int iBonusChange = kBuilding.getBonusYieldChanges(iI, iJ);
+						if (hasVicinityBonus((BonusTypes)iI))
+						{
+							iBonusChange += kBuilding.getVicinityBonusYieldChanges(iI, iJ);
+						}
+						updateYieldRate(eBuilding, (YieldTypes)iJ, getBuildingYieldChange(eBuildingClass, (YieldTypes)iJ) + (iBonusChange * iChange));
+					}
+					for (int iJ = 0; iJ < NUM_COMMERCE_TYPES; iJ++)
+					{
+						changeBonusCommerceRateModifier(((CommerceTypes)iJ), (kBuilding.getBonusCommerceModifier(iI, iJ) * iChange));
+						changeBonusCommercePercentChanges(((CommerceTypes)iJ), (kBuilding.getBonusCommercePercentChanges(iI, iJ) * iChange));
+					}
+				}
 			}
 		}
 
-		for (iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
 		{
 			PROFILE("CvCity::processBuilding.UnitCombatFreeExp");
-			changeUnitCombatFreeExperience(((UnitCombatTypes)iI), GC.getBuildingInfo(eBuilding).getUnitCombatFreeExperience(iI) * iChange);
+
+			for (int iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
+			{
+				changeUnitCombatFreeExperience(((UnitCombatTypes)iI), kBuilding.getUnitCombatFreeExperience(iI) * iChange);
+			}
 		}
 
-		for (iI = 0; iI < NUM_DOMAIN_TYPES; iI++)
 		{
 			PROFILE("CvCity::processBuilding.Domains");
-			changeDomainFreeExperience(((DomainTypes)iI), GC.getBuildingInfo(eBuilding).getDomainFreeExperience(iI) * iChange);
-			changeDomainProductionModifier(((DomainTypes)iI), GC.getBuildingInfo(eBuilding).getDomainProductionModifier(iI) * iChange);
+
+			for (int iI = 0; iI < NUM_DOMAIN_TYPES; iI++)
+			{
+				changeDomainFreeExperience(((DomainTypes)iI), kBuilding.getDomainFreeExperience(iI) * iChange);
+				changeDomainProductionModifier(((DomainTypes)iI), kBuilding.getDomainProductionModifier(iI) * iChange);
+			}
 		}
-/************************************************************************************************/
-/* Afforess           ProductionModifier           10/13/09                                     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-		for (iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+
 		{
 			PROFILE("CvCity::processBuilding.UniClasses");
-			changeUnitClassProductionModifier(((UnitClassTypes)iI), kBuilding.getUnitClassProductionModifier(iI) * iChange);
+
+			for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+			{
+				changeUnitClassProductionModifier(((UnitClassTypes)iI), kBuilding.getUnitClassProductionModifier(iI) * iChange);
+			}
 		}
-		for (iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 		{
 			PROFILE("CvCity::processBuilding.BuildingClasses");
-			changeBuildingClassProductionModifier(((BuildingClassTypes)iI), kBuilding.getBuildingClassProductionModifier(iI) * iChange);
 
-			for(int iCommerce = 0; iCommerce < NUM_COMMERCE_TYPES; iCommerce++ )
+			for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 			{
-				int iCommerceChange = kBuilding.getGlobalBuildingCommerceChange(iI, iCommerce);
+				changeBuildingClassProductionModifier(((BuildingClassTypes)iI), kBuilding.getBuildingClassProductionModifier(iI) * iChange);
 
-				if ( iCommerceChange != 0 )
+				for (int iCommerce = 0; iCommerce < NUM_COMMERCE_TYPES; iCommerce++)
 				{
-					GET_PLAYER(getOwnerINLINE()).changeBuildingClassCommerceChange((BuildingClassTypes)iI, (CommerceTypes)iCommerce, iCommerceChange * iChange);
+					const int iCommerceChange = kBuilding.getGlobalBuildingCommerceChange(iI, iCommerce);
+
+					if (iCommerceChange != 0)
+					{
+						player.changeBuildingClassCommerceChange((BuildingClassTypes)iI, (CommerceTypes)iCommerce, iCommerceChange * iChange);
+					}
 				}
 			}
 		}
-/*		for (iI = 0; iI < GC.getNumImprovementInfos(); iI++)
-		{
-			for (iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
-			{
-				changeImprovementYieldChange(((ImprovementTypes)iI), ((YieldTypes)iJ), (GC.getBuildingInfo(eBuilding).getImprovementYieldChanges(iI, iJ) * iChange));
-			}
-		}
-/************************************************************************************************/
-/* Afforess	                         END                                                     */
-/************************************************************************************************/
+
 		{
 			PROFILE("CvCity::processBuilding.Part5");
+
 			updateExtraBuildingHappiness();
 			updateExtraBuildingHealth();
+			player.changeAssets(kBuilding.getAssetValue() * iChange);
 
-			GET_PLAYER(getOwnerINLINE()).changeAssets(GC.getBuildingInfo(eBuilding).getAssetValue() * iChange);
+			area()->changePower(getOwnerINLINE(), (kBuilding.getPowerValue() * iChange));
+			player.changePower(kBuilding.getPowerValue() * iChange);
 
-			area()->changePower(getOwnerINLINE(), (GC.getBuildingInfo(eBuilding).getPowerValue() * iChange));
-			GET_PLAYER(getOwnerINLINE()).changePower(GC.getBuildingInfo(eBuilding).getPowerValue() * iChange);
-
-		for (iI = 0; iI < MAX_PLAYERS; iI++)
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam())
+			for (int iI = 0; iI < MAX_PLAYERS; iI++)
 			{
-				if (GC.getBuildingInfo(eBuilding).isTeamShare() || (iI == getOwnerINLINE()))
+				if (GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam()
+				&& kBuilding.isTeamShare() || iI == getOwnerINLINE()
+				&& GET_PLAYER((PlayerTypes)iI).isAlive())
 				{
-					if ( GET_PLAYER((PlayerTypes)iI).isAlive() )
+					GET_PLAYER((PlayerTypes)iI).processBuilding(eBuilding, iChange, area());
+				}
+			}
+
+			if (kBuilding.getFreeTradeRegionBuildingClass() != NO_BUILDINGCLASS)
+			{
+				CvPlotGroup* plotGroup = plot()->getPlotGroup(getOwnerINLINE());
+
+				if (plotGroup != NULL)
+				{
+					const int iFreeBuilding = GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(kBuilding.getFreeTradeRegionBuildingClass());
+
+					if (iFreeBuilding > -1)
 					{
-						GET_PLAYER((PlayerTypes)iI).processBuilding(eBuilding, iChange, area());
+						plotGroup->changeNumFreeTradeRegionBuildings((BuildingTypes)iFreeBuilding, iChange);
 					}
 				}
 			}
 		}
-
-		if (GC.getBuildingInfo(eBuilding).getFreeTradeRegionBuildingClass() != NO_BUILDINGCLASS)
-		{
-			CvPlotGroup* plotGroup = plot()->getPlotGroup(getOwnerINLINE());
-
-			if ( plotGroup != NULL )
-			{
-				BuildingTypes eFreeBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(GC.getBuildingInfo(eBuilding).getFreeTradeRegionBuildingClass());
-
-					if (eFreeBuilding != NO_BUILDING)
-					{
-						plotGroup->changeNumFreeTradeRegionBuildings(eFreeBuilding, iChange);
-					}
-			}
-		}
-		}
-
-		GET_TEAM(getTeam()).processBuilding(eBuilding, iChange);
-
+		team.processBuilding(eBuilding, iChange);
 		GC.getGameINLINE().processBuilding(eBuilding, iChange);
 	}
 
@@ -6809,34 +6768,31 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 		PROFILE("CvCity::processBuilding.NotObsolete");
 		//TB DEFENSEBUG:  The following building defense line is allowing buildings that are replaced to continue to function!
 		//We can only assume this entire section therefore gets around replaced buildings, particularly after a recalc.
-		changeBuildingDefense(GC.getBuildingInfo(eBuilding).getDefenseModifier() * iChange);
-		changeBuildingBombardDefense(GC.getBuildingInfo(eBuilding).getBombardDefenseModifier() * iChange);
+		changeBuildingDefense(kBuilding.getDefenseModifier() * iChange);
+		changeBuildingBombardDefense(kBuilding.getBombardDefenseModifier() * iChange);
 
-		changeBaseGreatPeopleRate(GC.getBuildingInfo(eBuilding).getGreatPeopleRateChange() * iChange);
+		changeBaseGreatPeopleRate(kBuilding.getGreatPeopleRateChange() * iChange);
 
-		if (GC.getBuildingInfo(eBuilding).getGreatPeopleUnitClass() != NO_UNITCLASS)
+		if (kBuilding.getGreatPeopleUnitClass() != NO_UNITCLASS)
 		{
-			eGreatPeopleUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GC.getBuildingInfo(eBuilding).getGreatPeopleUnitClass())));
+			const int iGreatPeopleUnit = GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(kBuilding.getGreatPeopleUnitClass());
 
-			if (eGreatPeopleUnit != NO_UNIT)
+			if (iGreatPeopleUnit > -1)
 			{
-				changeGreatPeopleUnitRate(eGreatPeopleUnit, GC.getBuildingInfo(eBuilding).getGreatPeopleRateChange() * iChange);
+				changeGreatPeopleUnitRate((UnitTypes)iGreatPeopleUnit, kBuilding.getGreatPeopleRateChange() * iChange);
 			}
 		}
 
-		GET_TEAM(getTeam()).changeBuildingClassCount((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType(), iChange);
-		GET_PLAYER(getOwnerINLINE()).changeBuildingClassCount((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType(), iChange);
+		team.changeBuildingClassCount(eBuildingClass, iChange);
+		player.changeBuildingClassCount(eBuildingClass, iChange);
 
-		GET_PLAYER(getOwnerINLINE()).changeWondersScore(getWonderScore((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())) * iChange);
+		player.changeWondersScore(getWonderScore(eBuildingClass) * iChange);
 
-		for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
+		for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 		{
-			if (hasBonus((BonusTypes)iI))
+			if (hasBonus((BonusTypes)iI) && kBuilding.getBonusDefenseChanges(iI) != 0)
 			{
-				if (kBuilding.getBonusDefenseChanges(iI) != 0)
-				{
-					changeBonusDefenseChanges((BonusTypes)iI, kBuilding.getBonusDefenseChanges(iI) * iChange);
-				}
+				changeBonusDefenseChanges((BonusTypes)iI, kBuilding.getBonusDefenseChanges(iI) * iChange);
 			}
 		}
 	}
