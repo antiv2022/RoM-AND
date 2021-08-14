@@ -80,14 +80,22 @@
 	</TEXT>
 	<!-- f1rpo: end -->
 	<!-- Toffer -->
-    <TEXT>
-        <Tag>TXT_KEY_HELP_CITY_CRIME</Tag>
-        <English>Total crime: %d1</English>
-    </TEXT>
-    <TEXT>
-        <Tag>TXT_KEY_MISSION_VOLLEY_HELP</Tag>
-        <English>Damage your foe from afar.</English>
-    </TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HELP_BUILDING_CRIME</Tag>
+		<English>[ICON_BULLET]Crime: %s1</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HELP_BUILDING_CRIME_PER_POP</Tag>
+		<English>[ICON_BULLET]Crime: %s1/Population</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HELP_CITY_CRIME</Tag>
+		<English>Total crime: %d1</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISSION_VOLLEY_HELP</Tag>
+		<English>Damage your foe from afar.</English>
+	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_INTERFACEMODE_VOLLEY_HELP</Tag>
 		<English>Volley is a ranged skirmish against a target, be it units, improvements or cities.[NEWLINE][NEWLINE]Collateral damage will be applied if unit is capable of it.</English>
@@ -108,10 +116,10 @@
 		<Tag>TXT_KEY_VOLLEY_EFFICIENCY</Tag>
 		<English>[ICON_BULLET]Volley Efficiency: %d1%%</English>
 	</TEXT>
-    <TEXT>
-        <Tag>TXT_KEY_VOLLEY_RANGE</Tag>
-        <English>[ICON_BULLET]Volley range: %d1</English>
-    </TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_RANGE</Tag>
+		<English>[ICON_BULLET]Volley range: %d1</English>
+	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_VOLLEY_DAMAGE</Tag>
 		<English>[ICON_BULLET]Damage: %d1 HP</English>
@@ -132,27 +140,27 @@
 		<Tag>TXT_KEY_VOLLEY_HIT_YOUR_UNIT</Tag>
 		<English>An enemy %s1 volley struck your %s2! (%d3 hit(s) dealt %d4%% damage)</English>
 	</TEXT>
-    <TEXT>
-        <Tag>TXT_KEY_VOLLEY_KILLED_ENEMY_UNIT</Tag>
-        <English>Your %s1 volley destroyed the %s2!</English>
-    </TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_VOLLEY_KILLED_ENEMY_UNIT</Tag>
+		<English>Your %s1 volley destroyed the %s2!</English>
+	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_VOLLEY_KILLED_YOUR_UNIT</Tag>
 		<English>Your %s1 was destroyed by a %s3_owner_adjective %s2 volley!</English>
 	</TEXT>
 	<!-- ! Toffer -->
-    <!-- DarkLunaPhantom begin-->
-    <TEXT>
+	<!-- DarkLunaPhantom begin-->
+	<TEXT>
 		<Tag>TXT_KEY_BUILDING_FREE_IN_CITY_00</Tag>
 		<English>[ICON_BULLET]Free [COLOR_BUILDING_TEXT][LINK=literal]%s1_Name[\LINK][COLOR_REVERT] in Every Current City</English>
 	</TEXT>
-    <TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_BUILDING_FREE_IN_CITY_10</Tag>
 		<English>[ICON_BULLET]Free Connected [COLOR_BUILDING_TEXT][LINK=literal]%s1_Name[\LINK][COLOR_REVERT] in Every Current City</English>
 	</TEXT>
-    <TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_BUILDING_FREE_IN_CITY_11</Tag>
 		<English>[ICON_BULLET]Free Connected [COLOR_BUILDING_TEXT][LINK=literal]%s1_Name[\LINK][COLOR_REVERT] in Every City</English>
 	</TEXT>
-    <!-- DarkLunaPhantom end-->
+	<!-- DarkLunaPhantom end-->
 </Civ4GameText>

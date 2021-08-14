@@ -13971,6 +13971,40 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_HEALTH_CHANGE_ALL_CITIES", abs(kBuilding.getGlobalHealth()), ((kBuilding.getGlobalHealth() > 0) ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR))));
 	}
+
+	{
+		const int iCrime = kBuilding.getCrime();
+		if (iCrime != 0)
+		{
+			szBuffer.append(NEWLINE);
+			CvWString szValue;
+			if (iCrime > 0)
+				szValue.Format(L"+%d", iCrime);
+			else szValue.Format(L"%d", iCrime);
+
+			szBuffer.append(gDLL->getText("TXT_KEY_HELP_BUILDING_CRIME", szValue.GetCString()));
+		}
+	}
+	{
+		const int iCrimePerPop = kBuilding.getCrimePerPop();
+		if (iCrimePerPop != 0)
+		{
+			szBuffer.append(NEWLINE);
+			CvWString szValue;
+			if (iCrimePerPop < 0)
+			{
+				if (iCrimePerPop / 100 == 0)
+				{
+					szValue.Format(L"-0.%02d", abs(iCrimePerPop) % 100);
+				}
+				else szValue.Format(L"%d.%02d", iCrimePerPop / 100, abs(iCrimePerPop) % 100);
+			}
+			else szValue.Format(L"+%d.%02d", iCrimePerPop / 100, iCrimePerPop % 100);
+
+			szBuffer.append(gDLL->getText("TXT_KEY_HELP_BUILDING_CRIME_PER_POP", szValue.GetCString()));
+		}
+	}
+
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       08/28/09                             jdog5000         */
 /*                                                                                              */
