@@ -13,6 +13,10 @@ Civ4UnitInfos.xml:--------------------------------------------------------------
 
 Civ4BuildingInfos.xml:--------------------------------------------------------------------------------------------------------------
 
+<iCrime>-1</iCrime> ///// Increases or decreases crime by this value.
+<iCrimePerPop>0</iCrimePerPop> /////
+
+
 List of free buildings the building will give to all cities upon being built.
 <ExtraFreeBuildings>
 	<ExtraFreeBuilding>
