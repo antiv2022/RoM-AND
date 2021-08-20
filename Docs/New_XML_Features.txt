@@ -14,7 +14,7 @@ Civ4UnitInfos.xml:--------------------------------------------------------------
 Civ4BuildingInfos.xml:--------------------------------------------------------------------------------------------------------------------------
 
 <iCrime>-1</iCrime> ///// Increases or decreases crime by this value.
-<iCrimePerPop>0</iCrimePerPop> ///// Gives crime points per population milestone. 100 means 1 crime per population and 50 gives 1 crime every 2 population
+<iCrimePerPop>0</iCrimePerPop> ///// Gives or takes crime points per population milestone. 100 means 1 crime per population and 50 gives 1 crime every 2 population
 
 
 List of free buildings the building will give to all cities upon being built.
