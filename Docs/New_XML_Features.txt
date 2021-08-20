@@ -11,7 +11,7 @@ Civ4UnitInfos.xml:--------------------------------------------------------------
 <iVolleyRounds>1</iVolleyRounds> /////How many shots fired using the same above stats.
 
 
-Civ4BuildingInfos.xml:--------------------------------------------------------------------------------------------------------------
+Civ4BuildingInfos.xml:--------------------------------------------------------------------------------------------------------------------------
 
 <iCrime>-1</iCrime> ///// Increases or decreases crime by this value.
 <iCrimePerPop>0</iCrimePerPop> ///// Gives crime points per population milestone. 100 means 1 crime per population and 50 gives 1 crime every 2 population
@@ -32,7 +32,7 @@ List of free buildings the building will give to all cities upon being built.
 </ExtraFreeBuildings>
 
 
-CIV4SpawnInfos.xml:--------------------------------------------------------------------------------
+CIV4SpawnInfos.xml:--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 iMinAreaPlotsPerPlayerUnit /////Minimum number of area plots per unit owned by spawning player within the area before spawn is disabled.
 iMinAreaPlotsPerUnitType /////Minimum number of area plots per "spawn unit type" within the area before spawn is disabled.
