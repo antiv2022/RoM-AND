@@ -30,7 +30,7 @@
 			e.g. a unit with 10 strength and no defense modifiers will be protected slightly more from volley than a strength 5 unit with 100% defense modifier.
 		-->
 		<DefineName>VOLLEY_STRENGTH</DefineName>
-		<iDefineIntVal>25</iDefineIntVal>
+		<iDefineIntVal>50</iDefineIntVal>
 	</Define>
 	<Define>
 		<!-- Enforced lower limit for volley accuracy -->
@@ -74,7 +74,7 @@
 	</Define>
 	<Define>
 		<DefineName>CRIME_MAX_LIMIT</DefineName>
-		<iDefineIntVal>1000</iDefineIntVal>
+		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>CRIME_MAX_COMMERCE_PERCENT_PENALTY</DefineName>
