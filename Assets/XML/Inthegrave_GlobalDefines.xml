@@ -72,5 +72,13 @@
 		<DefineName>CRIME_PER_100_POPULATION</DefineName>
 		<iDefineIntVal>99</iDefineIntVal>
 	</Define>
+	<Define>
+		<DefineName>CRIME_MAX_LIMIT</DefineName>
+		<iDefineIntVal>1000</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>CRIME_MAX_COMMERCE_PERCENT_PENALTY</DefineName>
+		<iDefineIntVal>75</iDefineIntVal>
+	</Define>
 	<!-- ! Toffer -->
 </Civ4Defines>

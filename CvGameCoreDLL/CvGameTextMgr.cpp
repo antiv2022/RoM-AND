@@ -22397,15 +22397,14 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 	setYieldHelp(szBuffer, city, YIELD_COMMERCE);
 
 	// Slider
-	int iBaseCommerceRate = city.getCommerceFromPercent(eCommerceType, city.getBaseYieldRate(YIELD_COMMERCE) * city.getBaseYieldRateModifier(YIELD_COMMERCE));
-	CvWString szRate = CvWString::format(L"%d.%02d", iBaseCommerceRate/100, iBaseCommerceRate%100);
-	CvWString szBaseYield = CvWString::format(L"%d.%02d", (city.getBaseYieldRate(YIELD_COMMERCE) * city.getBaseYieldRateModifier(YIELD_COMMERCE)) / 100, std::abs((city.getBaseYieldRate(YIELD_COMMERCE) * city.getBaseYieldRateModifier(YIELD_COMMERCE)) % 100));
+	const int iYieldRate100 = city.getYieldRate100(YIELD_COMMERCE);
+	int iCommerceRate = city.getCommerceFromPercent(eCommerceType, iYieldRate100);
+	CvWString szRate = CvWString::format(L"%d.%02d", iCommerceRate/100, iCommerceRate%100);
+	CvWString szBaseYield = CvWString::format(L"%d.%02d", iYieldRate100 / 100, std::abs(iYieldRate100 % 100));
 	szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_SLIDER_PERCENT_FLOAT", owner.getCommercePercent(eCommerceType), szBaseYield.GetCString(), szRate.GetCString(), info.getChar()));
 	szBuffer.append(NEWLINE);
 
-// BUG - Base Commerce - start
 	bool bNeedSubtotal = false;
-// BUG - Base Commerce - end
 
 	int iSpecialistCommerce = city.getSpecialistCommerce(eCommerceType)
 			+ (city.getSpecialistPopulation() + city.getNumGreatPeople())
@@ -22415,10 +22414,8 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_SPECIALIST_COMMERCE", iSpecialistCommerce, info.getChar(), L"TXT_KEY_CONCEPT_SPECIALISTS"));
 		szBuffer.append(NEWLINE);
-		iBaseCommerceRate += 100 * iSpecialistCommerce;
-// BUG - Base Commerce - start
+		iCommerceRate += 100 * iSpecialistCommerce;
 		bNeedSubtotal = true;
-// BUG - Base Commerce - end
 	}
 
 	int iReligionCommerce = city.getReligionCommerce(eCommerceType);
@@ -22426,10 +22423,8 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_RELIGION_COMMERCE", iReligionCommerce, info.getChar()));
 		szBuffer.append(NEWLINE);
-		iBaseCommerceRate += 100 * iReligionCommerce;
-// BUG - Base Commerce - start
+		iCommerceRate += 100 * iReligionCommerce;
 		bNeedSubtotal = true;
-// BUG - Base Commerce - end
 	}
 
 	int iCorporationCommerce = city.getCorporationCommerce(eCommerceType);
@@ -22437,36 +22432,19 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_CORPORATION_COMMERCE", iCorporationCommerce, info.getChar()));
 		szBuffer.append(NEWLINE);
-		iBaseCommerceRate += 100 * iCorporationCommerce;
-// BUG - Base Commerce - start
+		iCommerceRate += 100 * iCorporationCommerce;
 		bNeedSubtotal = true;
-// BUG - Base Commerce - end
 	}
-/************************************************************************************************/
-/* Afforess	                  Start		 09/07/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+
 	int iBuildingCommerce = city.getBuildingCommerce(eCommerceType) + (city.getBonusCommercePercentChanges(eCommerceType) / 100);
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
+
 	if (0 != iBuildingCommerce)
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_BUILDING_COMMERCE", iBuildingCommerce, info.getChar()));
 		szBuffer.append(NEWLINE);
-/************************************************************************************************/
-/* Afforess	                  Start		 09/07/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-		iBaseCommerceRate += (100 * (iBuildingCommerce - (city.getBonusCommercePercentChanges(eCommerceType) / 100))) + (city.getBonusCommercePercentChanges(eCommerceType));
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-// BUG - Base Commerce - start
+
+		iCommerceRate += 100 * (iBuildingCommerce - city.getBonusCommercePercentChanges(eCommerceType) / 100) + city.getBonusCommercePercentChanges(eCommerceType);
 		bNeedSubtotal = true;
-// BUG - Base Commerce - end
 	}
 
 	int iFreeCityCommerce = owner.getFreeCityCommerce(eCommerceType);
@@ -22474,22 +22452,16 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_FREE_CITY_COMMERCE", iFreeCityCommerce, info.getChar()));
 		szBuffer.append(NEWLINE);
-		iBaseCommerceRate += 100 * iFreeCityCommerce;
-// BUG - Base Commerce - start
+		iCommerceRate += 100 * iFreeCityCommerce;
 		bNeedSubtotal = true;
-// BUG - Base Commerce - end
 	}
-/************************************************************************************************/
-/* Afforess	                  Start		 06/15/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+
 	int iCommerceAttacks = city.getCommerceAttacks(eCommerceType);
 	if (0 != iCommerceAttacks)
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_COMMERE_ATTACKS", iCommerceAttacks, info.getChar()));
 		szBuffer.append(NEWLINE);
-		iBaseCommerceRate += 100 * iCommerceAttacks;
+		iCommerceRate += 100 * iCommerceAttacks;
 		bNeedSubtotal = true;
 	}
 	if (eCommerceType == COMMERCE_GOLD)
@@ -22501,25 +22473,16 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 			szBuffer.append(NEWLINE);
 			bNeedSubtotal = true;
 		}
-		iBaseCommerceRate += city.getMintedCommerceTimes100();
+		iCommerceRate += city.getMintedCommerceTimes100();
 	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-// BUG - Base Commerce - start
+
 	if (bNeedSubtotal && city.getCommerceRateModifier(eCommerceType) != 0 && getBugOptionBOOL("MiscHover__BaseCommerce", true, "BUG_CITY_SCREEN_BASE_COMMERCE_HOVER"))
 	{
-		CvWString szYield = CvWString::format(L"%d.%02d", iBaseCommerceRate/100, iBaseCommerceRate%100);
+		CvWString szYield = CvWString::format(L"%d.%02d", iCommerceRate/100, iCommerceRate%100);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_COMMERCE_SUBTOTAL_YIELD_FLOAT", info.getTextKeyWide(), szYield.GetCString(), info.getChar()));
 		szBuffer.append(NEWLINE);
 	}
-// BUG - Base Commerce - end
 
-/************************************************************************************************/
-/* Afforess                         12/7/09                                                     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
 	int iModifier = 100;
 
 	int iBonusCommerce = city.getBonusCommerceRateModifier(eCommerceType);
@@ -22531,10 +22494,7 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 		iModifier += iBonusCommerce;
 	}
 
-/************************************************************************************************/
-/* Afforess	                         END                                                        */
-/************************************************************************************************/
-	FAssertMsg(city.getBaseCommerceRateTimes100(eCommerceType) == iBaseCommerceRate, "Base Commerce rate does not agree with actual value");
+	FAssertMsg(city.getBaseCommerceRateTimes100(eCommerceType) == iCommerceRate, "Base Commerce rate does not agree with actual value");
 
 	// Buildings
 	int iBuildingMod = 0;
@@ -22543,35 +22503,24 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 		CvBuildingInfo& infoBuilding = GC.getBuildingInfo((BuildingTypes)i);
 		if (city.getNumBuilding((BuildingTypes)i) > 0 && !GET_TEAM(city.getTeam()).isObsoleteBuilding((BuildingTypes)i))
 		{
-			for (int iLoop = 0; iLoop < city.getNumBuilding((BuildingTypes)i); iLoop++)
+			for (int iI = 0; iI < city.getNumBuilding((BuildingTypes)i); iI++)
 			{
 				iBuildingMod += infoBuilding.getCommerceModifier(eCommerceType);
-/************************************************************************************************/
-/* Afforess                         12/7/09                                                     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
 				iBuildingMod += GET_TEAM(city.getTeam()).getBuildingCommerceModifier((BuildingTypes)i, eCommerceType);
-/************************************************************************************************/
-/* Afforess	                         END                                                        */
-/************************************************************************************************/
 			}
 		}
 		for (int j = 0; j < MAX_PLAYERS; j++)
 		{
-			if (GET_PLAYER((PlayerTypes)j).isAlive())
+			if (GET_PLAYER((PlayerTypes)j).isAlive() && GET_PLAYER((PlayerTypes)j).getTeam() == owner.getTeam())
 			{
-				if (GET_PLAYER((PlayerTypes)j).getTeam() == owner.getTeam())
+				int iLoop = 0;
+				for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)j).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)j).nextCity(&iLoop))
 				{
-					int iLoop = 0;
-					for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)j).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)j).nextCity(&iLoop))
+					if (pLoopCity->getNumBuilding((BuildingTypes)i) > 0 && !GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding((BuildingTypes)i))
 					{
-						if (pLoopCity->getNumBuilding((BuildingTypes)i) > 0 && !GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding((BuildingTypes)i))
+						for (int iI = 0; iI < pLoopCity->getNumBuilding((BuildingTypes)i); iI++)
 						{
-							for (int iLoop = 0; iLoop < pLoopCity->getNumBuilding((BuildingTypes)i); iLoop++)
-							{
-								iBuildingMod += infoBuilding.getGlobalCommerceModifier(eCommerceType);
-							}
+							iBuildingMod += infoBuilding.getGlobalCommerceModifier(eCommerceType);
 						}
 					}
 				}
@@ -22585,11 +22534,6 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 		iModifier += iBuildingMod;
 	}
 
-/************************************************************************************************/
-/* Afforess	                  Start		 01/05/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
 	//projects
 	int iProjectMod = 0;
 	for (int j = 0; j < GC.getNumProjectInfos(); j++)
@@ -22608,9 +22552,6 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 		szBuffer.append(NEWLINE);
 		iModifier += iProjectMod;
 	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 
 	// Trait
 	for (int i = 0; i < GC.getNumTraitInfos(); i++)
@@ -22637,7 +22578,6 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 		iModifier += iCapitalMod;
 	}
 
-
 	// Civics
 	int iCivicMod = 0;
 	for (int i = 0; i < GC.getNumCivicOptionInfos(); i++)
@@ -22659,15 +22599,14 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 	int iModYield;
 	//	Modifiers apply inversely against a negative base to avoid counter-intuitive
 	//	situations like intelligence agencies making negative espionag worse
-	if ( iBaseCommerceRate > 0 )
+	if (iCommerceRate > 0)
 	{
-		iModYield = (iModifier * iBaseCommerceRate) / 100;
+		iModYield = iModifier * iCommerceRate / 100;
 	}
 	else
 	{
-		iModYield = (100 * iBaseCommerceRate) / iModifier;
+		iModYield = 100 * iCommerceRate / iModifier;
 	}
-
 	int iProductionToCommerce = city.getProductionToCommerceModifier(eCommerceType) * city.getYieldRate(YIELD_PRODUCTION);
 	if (0 != iProductionToCommerce)
 	{
@@ -22766,38 +22705,27 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 			for (int iLoop = 0; iLoop < city.getNumBuilding((BuildingTypes)i); iLoop++)
 			{
 				iBuildingMod += infoBuilding.getYieldModifier(eYieldType);
-/************************************************************************************************/
-/* Afforess                         12/7/09                                                     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+
 				iBuildingMod += GET_TEAM(city.getTeam()).getBuildingYieldModifier((BuildingTypes)i, eYieldType);
-				// valergrad bugfix (YIELD_COMMERCE commerce from buildings already included in iBaseProduction) - START
+
 				if (eYieldType != YIELD_COMMERCE)
 				{
 					iBaseProduction += GET_TEAM(city.getTeam()).getBuildingYieldChange((BuildingTypes)i, eYieldType);
 				}
-				// valergrad bugfix - END
-/************************************************************************************************/
-/* Afforess	                         END                                                        */
-/************************************************************************************************/
 			}
 		}
 		for (int j = 0; j < MAX_PLAYERS; j++)
 		{
-			if (GET_PLAYER((PlayerTypes)j).isAlive())
+			if (GET_PLAYER((PlayerTypes)j).isAlive() && GET_PLAYER((PlayerTypes)j).getTeam() == owner.getTeam())
 			{
-				if (GET_PLAYER((PlayerTypes)j).getTeam() == owner.getTeam())
+				int iLoop = 0;
+				for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)j).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)j).nextCity(&iLoop))
 				{
-					int iLoop = 0;
-					for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)j).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)j).nextCity(&iLoop))
+					if (pLoopCity->getNumBuilding((BuildingTypes)i) > 0 && !GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding((BuildingTypes)i))
 					{
-						if (pLoopCity->getNumBuilding((BuildingTypes)i) > 0 && !GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding((BuildingTypes)i))
+						for (int iLoop = 0; iLoop < pLoopCity->getNumBuilding((BuildingTypes)i); iLoop++)
 						{
-							for (int iLoop = 0; iLoop < pLoopCity->getNumBuilding((BuildingTypes)i); iLoop++)
-							{
-								iBuildingMod += infoBuilding.getGlobalYieldModifier(eYieldType);
-							}
+							iBuildingMod += infoBuilding.getGlobalYieldModifier(eYieldType);
 						}
 					}
 				}
@@ -22914,7 +22842,6 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 		szBuffer.append(NEWLINE);
 		iBaseProduction -= iSeizedConnectednessCommerceTimes100 / 100;
 	}
-
 	//Afforess: end
 	if (NULL != city.area())
 	{
@@ -22975,15 +22902,27 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldT
 		szBuffer.append(NEWLINE);
 		iBaseModifier += iCivicMod;
 	}
+	int iCalcFinalYield = iBaseModifier * iBaseProduction;
+	const int iYieldPreCrime = city.getYieldRate100(eYieldType, false);
 
-	FAssertMsg((iBaseModifier * iBaseProduction) / 100 == city.getYieldRate(eYieldType), "Yield Modifier in setProductionHelp does not agree with actual value");
+	FAssertMsg(iCalcFinalYield == iYieldPreCrime, "Yield Modifier in setProductionHelp does not agree with actual value");
 
-
-	CvWString szYield = CvWString::format(L"%d.%02d", (iBaseModifier * iBaseProduction) / 100, std::abs((iBaseModifier * iBaseProduction) % 100));
+	if (eYieldType == YIELD_COMMERCE)
+	{
+		const int iCrimePenalty = city.getCrimePenaltyValue(iYieldPreCrime);
+		if (iCrimePenalty != 0)
+		{
+			CvWString szYield = CvWString::format(L"%d.%02d", iCrimePenalty / 100, std::abs(iCrimePenalty % 100));
+			szBuffer.append(gDLL->getText("TXT_KEY_HELP_CITY_CRIME_LOST_TO_CRIME", szYield.GetCString(), info.getChar()));
+			szBuffer.append(NEWLINE);
+			iCalcFinalYield -= iCrimePenalty;
+		}
+	}
+	CvWString szYield = CvWString::format(L"%d.%02d", iCalcFinalYield / 100, std::abs(iCalcFinalYield % 100));
 	szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_COMMERCE_FINAL_YIELD_FLOAT", info.getTextKeyWide(), szYield.GetCString(), info.getChar()));
 	szBuffer.append(NEWLINE);
-
 }
+
 
 void CvGameTextMgr::setConvertHelp(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, ReligionTypes eReligion)
 {

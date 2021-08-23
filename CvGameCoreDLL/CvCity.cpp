@@ -10295,6 +10295,16 @@ int CvCity::getCrimeFinal() const
 	return getCrime() + (getCrimePerPop() + GC.getDefineINT("CRIME_PER_100_POPULATION", 99)) * getPopulation() / 100;
 }
 
+int CvCity::getCrimeRate() const
+{
+	return range(100 * getCrimeFinal() / GC.getDefineINT("CRIME_MAX_LIMIT", 1000), 0, 100);
+}
+
+int CvCity::getCrimePenaltyValue(const int iValue) const
+{
+	return std::max(0, iValue * range(GC.getDefineINT("CRIME_MAX_COMMERCE_PERCENT_PENALTY", 75) * getCrimeRate(), 0 , 10000) / 10000);
+}
+
 
 int CvCity::getEspionageHealthCounter() const
 {
@@ -10313,18 +10323,11 @@ void CvCity::changeEspionageHealthCounter(int iChange)
 
 int CvCity::getEspionageHappinessCounter() const
 {
-/************************************************************************************************/
-/* Afforess	                  Start		 06/29/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/*
+/* Afforess - 06/29/10
 	return m_iEspionageHappinessCounter;
 */
 	return std::min(8, m_iEspionageHappinessCounter);
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
+	// ! Afforess
 }
 
 
@@ -10648,19 +10651,15 @@ int CvCity::getAdditionalStarvation(int iSpoiledFood, int iFoodAdjust) const
 		{
 			return iSpoiledFood;
 		}
-		else if (iSpoiledFood > iFood)
+		if (iSpoiledFood > iFood)
 		{
 			return iSpoiledFood - iFood;
 		}
 	}
-	else if (iSpoiledFood < 0)
+	else if (iSpoiledFood < 0 && iFood < 0)
 	{
-		if (iFood < 0)
-		{
-			return std::max(iFood, iSpoiledFood);
-		}
+		return std::max(iFood, iSpoiledFood);
 	}
-
 	return 0;
 }
 // BUG - Actual Effects - start
@@ -14419,11 +14418,22 @@ int CvCity::getConnectedForeignCities() const
 }
 
 
-int CvCity::getYieldRate(YieldTypes eIndex) const
+int CvCity::getYieldRate(YieldTypes eYield) const
+{
+	return getYieldRate100(eYield) / 100;
+}
+
+int CvCity::getYieldRate100(YieldTypes eYield, const bool bCrime) const
 {
 	PROFILE_FUNC();
 
-	return ((getBaseYieldRate(eIndex) * getBaseYieldRateModifier(eIndex)) / 100) + GET_PLAYER(getOwnerINLINE()).getFreeCityYield(eIndex);
+	const int iRate = getBaseYieldRate(eYield) * getBaseYieldRateModifier(eYield) + 100 * GET_PLAYER(getOwnerINLINE()).getFreeCityYield(eYield);
+
+	if (eYield == YIELD_COMMERCE && bCrime)
+	{
+		return iRate - getCrimePenaltyValue(iRate);
+	}
+	return iRate;
 }
 
 
@@ -14909,7 +14919,7 @@ int CvCity::getCommerceRateTimes100(CommerceTypes eIndex) const
 	FAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
 	FAssertMsg(eIndex < NUM_COMMERCE_TYPES, "eIndex expected to be < NUM_COMMERCE_TYPES");
 
-	if ( m_abCommerceRateDirty[eIndex] )
+	if (m_abCommerceRateDirty[eIndex])
 	{
 		updateCommerce(eIndex);
 	}
@@ -14926,7 +14936,6 @@ int CvCity::getCommerceRateTimes100(CommerceTypes eIndex) const
 			iRate = 0;
 		}
 	}
-
 	return iRate;
 }
 
@@ -14955,61 +14964,36 @@ int CvCity::getBaseCommerceRateTimes100(CommerceTypes eIndex) const
 {
 	PROFILE_FUNC();
 
-	int iBaseCommerceRate;
-
 	if (m_abCommerceRateDirty[eIndex])
 	{
 		updateCommerce(eIndex);
 	}
+	int iBaseCommerceRate = getCommerceFromPercent(eIndex, getYieldRate100(YIELD_COMMERCE));
 
-	iBaseCommerceRate = getCommerceFromPercent(eIndex, getBaseYieldRate(YIELD_COMMERCE) * getBaseYieldRateModifier(YIELD_COMMERCE)); //Afforess: use fractional yields when calculating commerce
-
-	iBaseCommerceRate += 100 * ((getSpecialistPopulation() + getNumGreatPeople()) * GET_PLAYER(getOwnerINLINE()).getSpecialistExtraCommerce(eIndex));
+	iBaseCommerceRate += 100 * (getSpecialistPopulation() + getNumGreatPeople()) * GET_PLAYER(getOwnerINLINE()).getSpecialistExtraCommerce(eIndex);
 	iBaseCommerceRate += 100 * (getBuildingCommerce(eIndex) + getSpecialistCommerce(eIndex) + getReligionCommerce(eIndex) + getCorporationCommerce(eIndex) + GET_PLAYER(getOwnerINLINE()).getFreeCityCommerce(eIndex));
-/************************************************************************************************/
-/* Afforess	                  Start		 06/15/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	int iTemp = 0;
-	iTemp += 100 * getCommerceAttacks(eIndex);
-	iTemp += getBonusCommercePercentChanges(eIndex);
+
+	iBaseCommerceRate += 100 * getCommerceAttacks(eIndex) + getBonusCommercePercentChanges(eIndex);
+
 	if (eIndex == COMMERCE_GOLD)
 	{
-		iTemp += getMintedCommerceTimes100();
+		iBaseCommerceRate += getMintedCommerceTimes100();
 	}
-	iBaseCommerceRate += iTemp;
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	return iBaseCommerceRate;
 }
 
-/************************************************************************************************/
-/* Afforess	                  Start		 12/7/09                                                */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-/*Was:
-int CvCity::getTotalCommerceRateModifier(CommerceTypes eIndex) const
-{
-	return std::max(0, (getCommerceRateModifier(eIndex) + GET_PLAYER(getOwnerINLINE()).getCommerceRateModifier(eIndex) + ((isCapital()) ? GET_PLAYER(getOwnerINLINE()).getCapitalCommerceRateModifier(eIndex) : 0) + 100));
-}
-*/
+
 int CvCity::getTotalCommerceRateModifier(CommerceTypes eIndex) const
 {
 	PROFILE_FUNC();
 
-	if ( m_totalCommerceRateModifier[eIndex] == MIN_INT )
+	if (m_totalCommerceRateModifier[eIndex] == MIN_INT)
 	{
 		m_totalCommerceRateModifier[eIndex] = std::max(1, (calculateBuildingCommerceModifier(eIndex) + getCommerceRateModifier(eIndex) + getBonusCommerceRateModifier(eIndex) + GET_PLAYER(getOwnerINLINE()).getCommerceRateModifier(eIndex) + calculateBonusCommerceRateModifier(eIndex) + ((isCapital()) ? GET_PLAYER(getOwnerINLINE()).getCapitalCommerceRateModifier(eIndex) : 0) + 100));
 	}
-
 	return m_totalCommerceRateModifier[eIndex];
 }
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
+
 
 void CvCity::setCommerceModifierDirty(CommerceTypes eCommerce)
 {
@@ -15039,71 +15023,72 @@ void CvCity::setCommerceDirty(CommerceTypes eCommerce)
 
 void CvCity::updateCommerce(CommerceTypes eIndex, bool bForce) const
 {
-	int iOldCommerce;
-	int iNewCommerce;
-
-	if ( !GC.getGameINLINE().isRecalculatingModifiers() )
+	if (GC.getGameINLINE().isRecalculatingModifiers())
 	{
-		if ( eIndex == NO_COMMERCE )
-		{
-			GET_PLAYER(getOwnerINLINE()).invalidateYieldRankCache();
+		return;
+	}
+	if (eIndex == NO_COMMERCE)
+	{
+		GET_PLAYER(getOwnerINLINE()).invalidateYieldRankCache();
 
-			for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
-			{
-				updateCommerce((CommerceTypes)iI, bForce);
-			}
+		for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+		{
+			updateCommerce((CommerceTypes)iI, bForce);
 		}
-		else
+	}
+	else
+	{
+		FAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
+		FAssertMsg(eIndex < NUM_COMMERCE_TYPES, "eIndex expected to be < NUM_COMMERCE_TYPES");
+
+		if (bForce || m_abCommerceRateDirty[eIndex])
 		{
-			FAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
-			FAssertMsg(eIndex < NUM_COMMERCE_TYPES, "eIndex expected to be < NUM_COMMERCE_TYPES");
+			m_abCommerceRateDirty[eIndex] = false;
 
-			if (bForce || m_abCommerceRateDirty[eIndex])
+			const int iOldCommerce = m_aiCommerceRate[eIndex];
+
+			int iNewCommerce;
+			if (isDisorder())
 			{
-				m_abCommerceRateDirty[eIndex] = false;
+				iNewCommerce = 0;
+			}
+			else
+			{
+				iNewCommerce = getBaseCommerceRateTimes100(eIndex);
 
-				iOldCommerce = m_aiCommerceRate[eIndex];
-
-				if (isDisorder())
+				// Don't apply rate modifiers to negative commerce or you get counter-intuitive results
+				//	like intelligence agencies making your negative espionage worse!
+				if (iNewCommerce > 0)
 				{
-					iNewCommerce = 0;
+					iNewCommerce *= getTotalCommerceRateModifier(eIndex);
+					iNewCommerce /= 100;
 				}
 				else
 				{
-					iNewCommerce = getBaseCommerceRateTimes100(eIndex);
-
-					//	Don't apply rate modifiers to negative commerce or you get counter-intuitive results
-					//	like intelligence agencies makign your negative espionage worse!
-					if ( iNewCommerce > 0 )
-					{
-						iNewCommerce = (iNewCommerce * getTotalCommerceRateModifier(eIndex)) / 100;
-					}
-					else
-					{
-						iNewCommerce = (iNewCommerce * 100) / getTotalCommerceRateModifier(eIndex);
-					}
-					iNewCommerce += getYieldRate(YIELD_PRODUCTION) * getProductionToCommerceModifier(eIndex);
+					iNewCommerce *= 100;
+					iNewCommerce /= getTotalCommerceRateModifier(eIndex);
 				}
+				iNewCommerce += getYieldRate(YIELD_PRODUCTION) * getProductionToCommerceModifier(eIndex);
+			}
 
-				//	Culture and science cannot be negative
-				if ( iNewCommerce < 0 && (eIndex == COMMERCE_CULTURE || eIndex == COMMERCE_RESEARCH) )
+			//	Culture and science cannot be negative
+			if (iNewCommerce < 0 && (eIndex == COMMERCE_CULTURE || eIndex == COMMERCE_RESEARCH))
+			{
+				iNewCommerce = 0;
+			}
+
+			if (iOldCommerce != iNewCommerce)
+			{
+				m_aiCommerceRate[eIndex] = iNewCommerce;
+
+				GET_PLAYER(getOwnerINLINE()).invalidateCommerceRankCache(eIndex);
+
+				GET_PLAYER(getOwnerINLINE()).changeCommerceRate(eIndex, (iNewCommerce - iOldCommerce));
+
+				if (isCitySelected())
 				{
-					iNewCommerce = 0;
-				}
-
-				if (iOldCommerce != iNewCommerce)
-				{
-					m_aiCommerceRate[eIndex] = iNewCommerce;
-
-					GET_PLAYER(getOwnerINLINE()).invalidateCommerceRankCache(eIndex);
-
-					GET_PLAYER(getOwnerINLINE()).changeCommerceRate(eIndex, (iNewCommerce - iOldCommerce));
-
-					if (isCitySelected())
-					{
-						gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true );
-						gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
-					}
+					gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true );
+					gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
 				}
 			}
 		}
@@ -15686,12 +15671,9 @@ int CvCity::getReligionCommerceByReligion(CommerceTypes eIndex, ReligionTypes eR
 // XXX can this be simplified???
 void CvCity::updateReligionCommerce(CommerceTypes eIndex)
 {
-	int iNewReligionCommerce;
-	int iI;
+	int iNewReligionCommerce = 0;
 
-	iNewReligionCommerce = 0;
-
-	for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
 	{
 		iNewReligionCommerce += getReligionCommerceByReligion(eIndex, ((ReligionTypes)iI));
 	}
@@ -15708,9 +15690,7 @@ void CvCity::updateReligionCommerce(CommerceTypes eIndex)
 
 void CvCity::updateReligionCommerce()
 {
-	int iI;
-
-	for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+	for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
 	{
 		updateReligionCommerce((CommerceTypes)iI);
 	}

@@ -864,6 +864,19 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 			szBuffer.append(DOUBLE_SEPARATOR);
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_HELP_CITY_CRIME_SUM", iCrimeFinal));
+			bFirst = true;
+			{
+				const int iCommercePenalty = city->getCrimePenaltyValue(city->getYieldRate100(YIELD_COMMERCE, false));
+				if (iCommercePenalty != 0)
+				{
+					CvWString szYield = CvWString::format(L"%d.%02d", iCommercePenalty / 100, std::abs(iCommercePenalty % 100));
+					CvYieldInfo& info = GC.getYieldInfo(YIELD_COMMERCE);
+					szBuffer.append(DOUBLE_SEPARATOR);
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_HELP_CITY_CRIME_GENERIC_PENALTY", info.getTextKeyWide(), szYield.GetCString(), info.getChar()));
+					bFirst = false;
+				}
+			}
 		}
 	}
 }

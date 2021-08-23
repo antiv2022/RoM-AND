@@ -93,6 +93,14 @@
 		<English>Crime overview[NEWLINE]* Base: %s1</English>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_HELP_CITY_CRIME_LOST_TO_CRIME</Tag>
+		<English>Lost to crime: %s1%F2</English>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HELP_CITY_CRIME_GENERIC_PENALTY</Tag>
+		<English>%s1 penalty: %s2%F3</English>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_HELP_CITY_CRIME_BUILDINGS</Tag>
 		<English>* Buildings: %d1</English>
 	</TEXT>

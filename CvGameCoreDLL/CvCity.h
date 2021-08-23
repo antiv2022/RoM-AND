@@ -629,6 +629,8 @@ public:
 	int getCrimePerPop() const;
 	void changeCrimePerPop(int iChange);
 	int getCrimeFinal() const;
+	int getCrimeRate() const;
+	int getCrimePenaltyValue(const int iValue) const;
 
 	int getEspionageHealthCounter() const;														// Exposed to Python
 	void changeEspionageHealthCounter(int iChange);													// Exposed to Python
@@ -974,7 +976,8 @@ public:
 
 	int getBaseYieldRate(YieldTypes eIndex) const;															// Exposed to Python
 	int getBaseYieldRateModifier(YieldTypes eIndex, int iExtra = 0) const;			// Exposed to Python
-	int getYieldRate(YieldTypes eIndex) const;												// Exposed to Python
+	int getYieldRate(YieldTypes eIndex) const; // Exposed to Python
+	int getYieldRate100(YieldTypes eIndex, const bool bCrime = true) const;
 	void setBaseYieldRate(YieldTypes eIndex, int iNewValue);												// Exposed to Python
 	void changeBaseYieldRate(YieldTypes eIndex, int iChange);												// Exposed to Python
 
@@ -1011,7 +1014,7 @@ public:
 	void updateExtraSpecialistYield();
 
 	int getCommerceRate(CommerceTypes eIndex) const;									// Exposed to Python
-	int getCommerceRateTimes100(CommerceTypes eIndex) const;									// Exposed to Python
+	int getCommerceRateTimes100(CommerceTypes eIndex) const; // Exposed to Python
 	int getCommerceFromPercent(CommerceTypes eIndex, int iYieldRate) const;			// Exposed to Python
 	int getBaseCommerceRate(CommerceTypes eIndex) const;												// Exposed to Python
 	int getBaseCommerceRateTimes100(CommerceTypes eIndex) const;												// Exposed to Python
