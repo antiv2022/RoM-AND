@@ -5356,7 +5356,7 @@ int CvPlayerAI::AI_goldTarget() const
 	const int iModGS = GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getConstructPercent();
 	const int iEra = GC.getGame().getCurrentEra() + 1;
 
-	int iGold = iEra * iEra * (4 * getNumCities() + getTotalPopulation()) * iModGS / 3;
+	int iGold = iEra * /*iEra **/ (4 * getNumCities() + getTotalPopulation()) * iModGS / 4;
 
 	iGold *= 100 + calculateInflationRate();
 	iGold /= 100;
