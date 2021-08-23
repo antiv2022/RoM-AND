@@ -73,6 +73,7 @@
 		<iDefineIntVal>99</iDefineIntVal>
 	</Define>
 	<Define>
+		<!-- What value of crime the max penalty is given, crime points can still go higher than this value -->
 		<DefineName>CRIME_MAX_LIMIT</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
