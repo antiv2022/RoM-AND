@@ -1155,8 +1155,12 @@ void CvPlayerAI::AI_doPeace()
 								bool bConsiderPeace;
 								if (GC.getGameINLINE().isOption(GAMEOPTION_ADVANCED_DIPLOMACY))
 								{
-									bConsiderPeace = ((GET_TEAM(getTeam()).AI_getAtWarCounter(GET_PLAYER((PlayerTypes)iI).getTeam()) > 10) || (GET_TEAM(getTeam()).getAtWarCount(false, true) > 1) ||
-														(GET_TEAM(GET_PLAYER((PlayerTypes)iI).getTeam()).AI_getWarSuccess(getTeam()) > (GET_TEAM(getTeam()).AI_getWarSuccess(GET_PLAYER((PlayerTypes)iI).getTeam()) * 2)));
+									bConsiderPeace =
+											((GET_TEAM(getTeam()).AI_getAtWarCounter(GET_PLAYER((PlayerTypes)iI).getTeam()) > 10) ||
+											(GET_TEAM(getTeam()).getAtWarCount(false, true) > 1) ||
+											GET_TEAM(GET_PLAYER((PlayerTypes)iI).getTeam()).AI_getWarSuccess(getTeam()) >
+											std::max(GC.getWAR_SUCCESS_CITY_CAPTURING(), // f1rpo: cf. AI_isWillingToTalk
+											GET_TEAM(getTeam()).AI_getWarSuccess(GET_PLAYER((PlayerTypes)iI).getTeam()) * 2));
 								}
 								else
 								{
@@ -1227,7 +1231,10 @@ void CvPlayerAI::AI_doPeace()
 
 										if (!bOffered)
 										{
-											if (!GET_PLAYER((PlayerTypes)iI).isHuman() || GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_PEACE_TREATY), "AI Diplo Peace Treaty") == 0)
+											/*	f1rpo: Commented out; don't know how that got here.
+												ContactRands should apply to all diplo, not just AI-to-human. */
+											if (//!GET_PLAYER((PlayerTypes)iI).isHuman() ||
+												GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_PEACE_TREATY), "AI Diplo Peace Treaty") == 0)
 											{
 												setTradeItem(&item, TRADE_PEACE_TREATY);
 
@@ -8262,7 +8269,9 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 
 		int iOurSuccess = 1 + GET_TEAM(getTeam()).AI_getWarSuccess(GET_PLAYER(ePlayer).getTeam());
 		int iTheirSuccess = 1 + GET_TEAM(GET_PLAYER(ePlayer).getTeam()).AI_getWarSuccess(getTeam());
-		if (iTheirSuccess > iOurSuccess * 2)
+		/*	f1rpo (from AdvCiv): Lower bound added - killing a single unit
+			before the real action starts should not shorten the RTT duration. */
+		if (iTheirSuccess > std::max(GC.getWAR_SUCCESS_CITY_CAPTURING(), iOurSuccess * 2))
 		{
 			iRefuseDuration *= 20 + ((80 * iOurSuccess * 2) / iTheirSuccess);
 			iRefuseDuration /= 100;
