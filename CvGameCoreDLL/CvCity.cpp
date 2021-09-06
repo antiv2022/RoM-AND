@@ -3967,7 +3967,7 @@ bool CvCity::canConstructInternal(BuildingTypes eBuilding, bool bContinue, bool 
 
 	if (kBuilding.isPrereqReligion())
 	{
-		if (getReligionCount() > 0)
+		if (getReligionCount() <= 0) // f1rpo (bugfix from K-Mod): was > 0
 		{
 			if ( probabilityEverConstructable != NULL )
 			{
