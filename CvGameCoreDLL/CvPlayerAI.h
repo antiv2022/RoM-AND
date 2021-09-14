@@ -729,7 +729,8 @@ public:
 protected:
 	void AI_doReligion();
 	void AI_doDiplo();
-
+	// f1rpo:
+	int AI_chooseReparations(PlayerTypes eEnemy, int iTargetValue, TechTypes& eBestTech, int& iBestGold, CvCity*& pBestCity);
 /************************************************************************************************/
 /* REVOLUTIONDCM_MOD                         02/04/08                            Glider1        */
 /*                                                                                              */
