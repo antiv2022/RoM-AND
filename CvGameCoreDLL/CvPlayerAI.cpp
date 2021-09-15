@@ -1122,31 +1122,32 @@ void CvPlayerAI::AI_doPeace() // f1rpo: refactored
 		}
 
 		// Afforess	(04/06/10): START
-		bool bConsiderPeace;
-		if (GC.getGameINLINE().isOption(GAMEOPTION_ADVANCED_DIPLOMACY))
 		{
-			bConsiderPeace =
-					(GET_TEAM(getTeam()).AI_getAtWarCounter(kEnemy.getTeam()) > 10
-					|| GET_TEAM(getTeam()).getAtWarCount(false, true) > 1
-					|| GET_TEAM(kEnemy.getTeam()).AI_getWarSuccess(getTeam()) >
-					std::max(GC.getWAR_SUCCESS_CITY_CAPTURING(), // f1rpo: cf. AI_isWillingToTalk
-					GET_TEAM(getTeam()).AI_getWarSuccess(kEnemy.getTeam()) * 2));
+			bool bConsiderPeace;
+			if (GC.getGameINLINE().isOption(GAMEOPTION_ADVANCED_DIPLOMACY))
+			{
+				bConsiderPeace =
+						(GET_TEAM(getTeam()).AI_getAtWarCounter(kEnemy.getTeam()) > 10
+						|| GET_TEAM(getTeam()).getAtWarCount(false, true) > 1
+						|| GET_TEAM(kEnemy.getTeam()).AI_getWarSuccess(getTeam()) >
+						// f1rpo: cf. AI_isWillingToTalk
+						std::max(GC.getWAR_SUCCESS_CITY_CAPTURING(),
+						GET_TEAM(getTeam()).AI_getWarSuccess(kEnemy.getTeam()) * 2));
+			}
+			else
+			{
+				bConsiderPeace = (GET_TEAM(getTeam()).AI_getAtWarCounter(kEnemy.getTeam()) > 10);
+			}
+			if (!bConsiderPeace)
+				continue;
 		}
-		else
-		{
-			bConsiderPeace = (GET_TEAM(getTeam()).AI_getAtWarCounter(kEnemy.getTeam()) > 10);
-		}
-		if (!bConsiderPeace)
-			continue;
 		// Afforess: END
 
 		TradeData item;
 
-		bool bOffered = false;
 		setTradeItem(&item, TRADE_SURRENDER);
 		if (canTradeItem(kEnemy.getID(), item, true))
 		{
-			bOffered = true;
 			CLinkList<TradeData> weGive;
 			CLinkList<TradeData> theyGive;
 			weGive.insertAtEnd(item);
@@ -1172,9 +1173,8 @@ void CvPlayerAI::AI_doPeace() // f1rpo: refactored
 					GC.getGameINLINE().implementDeal(getID(), kEnemy.getID(), &weGive, &theyGive);
 				} // BETTER_BTS_AI_MOD: END
 			}
-		}
-		if (bOffered)
 			continue;
+		}
 		/*	f1rpo: Commented out; don't know how that got here.
 			ContactRands should apply to all diplo, not just AI-to-human. */
 		if (//!kEnemy.isHuman() ||

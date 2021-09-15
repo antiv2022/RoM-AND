@@ -28081,7 +28081,7 @@ bool CvUnitAI::AI_nuke()
 	int const iWarRating = kTeam.AI_getWarSuccessRating();
 	int const iOurNukes = kOwner.getNumNukeUnits();
 	int const iOurCities = kOwner.getNumCities();
-	// Player-independant part of the weight for civilian damage evaluation
+	// Target-independent part of the weight for civilian damage evaluation
 	int const iBaseDestrWeight = kOwner.AI_nukeBaseDestructionWeight();
 
 	CvPlot* pBestTarget = NULL;
