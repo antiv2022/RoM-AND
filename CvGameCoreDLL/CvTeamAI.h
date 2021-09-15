@@ -94,6 +94,7 @@ public:
 
 	int AI_startWarVal(TeamTypes eTeam) const;
 	int AI_endWarVal(TeamTypes eTeam) const;
+	bool AI_rejectPeace(TeamTypes eEnemy) const; // f1rpo
 /********************************************************************************/
 /**		REVOLUTION_MOD							6/9/08				jdog5000	*/
 /**																				*/

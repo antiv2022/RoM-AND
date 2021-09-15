@@ -1190,6 +1190,12 @@ void CvPlayerAI::AI_doPeace() // f1rpo: refactored
 		{
 			continue;
 		}
+		// <f1rpo>
+		if (GET_TEAM(getTeam()).AI_rejectPeace(kEnemy.getTeam())
+			|| GET_TEAM(kEnemy.getTeam()).AI_rejectPeace(getTeam()))
+		{
+			continue;
+		} // </f1rpo>
 
 		int iWeReceive = GET_TEAM(getTeam()).AI_endWarVal(kEnemy.getTeam());
 		int iTheyReceive = GET_TEAM(kEnemy.getTeam()).AI_endWarVal(getTeam());

@@ -1549,6 +1549,56 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const
 	return iValue;
 }
 
+/*	f1rpo: Unlike CvPlayer::getTradeDenial, this check is not (intended to be)
+	applied to human-proposed peace. (And since AI-to-human peace is broken,
+	it's really only for AI-AI peace negotiations.) */
+bool CvTeamAI::AI_rejectPeace(TeamTypes eEnemy) const
+{
+	if (getAtWarCount(true, true) > 1)
+		return false;
+	CvTeamAI const& kEnemy = GET_TEAM(eEnemy);
+	/*	Don't prolong wars where nothing is happening.
+		(War success rating isn't going to capture that situation well.) */
+	if (AI_getAtWarCounter(eEnemy) >= 9
+		&& kEnemy.AI_getWarSuccess(getID()) + AI_getWarSuccess(eEnemy)
+		< GC.getWAR_SUCCESS_CITY_CAPTURING())
+	{
+		return false;
+	}
+	int const iWSRating = AI_getWarSuccessRating()
+			+ (kEnemy.getAtWarCount(true, true) - 1) * 14;
+	// This caps the probability at 72%
+	scaled rRejectProb = per100(iWSRating + 25) * fixp(0.58);
+	int iBasePeaceWeight = 0;
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
+		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)i);
+		if (kMember.isAlive() && kMember.getTeam() == getID())
+		{
+			iBasePeaceWeight += GC.getLeaderHeadInfo(kMember.getPersonalityType())
+					.getBasePeaceWeight();
+		}
+	}
+	iBasePeaceWeight /= getNumMembers();
+	iBasePeaceWeight = std::max(0, iBasePeaceWeight);
+	/*	This formula maps a base peace weight of w=0 to a multiplier of 1.25,
+		w=5 to 0.75, w=10 to 0.25. */
+	rRejectProb *= 1 - (iBasePeaceWeight - fixp(2.5)) / 10;
+	logBBAI("    Team %d (%S) rejecting peace with team %d (%S) on account of "
+			"war success rating %d and base peace weight %d has odds of %d percent",
+			getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0),
+			eEnemy, GET_PLAYER(kEnemy.getLeaderID()).getCivilizationDescription(0),
+			iWSRating, iBasePeaceWeight, range(rRejectProb.getPercent(), 0, 100));
+	bool bReject = rRejectProb.bernoulliSuccess(GC.getGameINLINE().getSorenRand(),
+			"CvTeamAI:AI_rejectPeace");
+#ifdef LOG_AI
+	if (bReject)
+		logBBAI("    Peace rejected.");
+	else logBBAI("    Peace not rejected.");
+#endif
+	return bReject;
+}
+
 /********************************************************************************/
 /**		REVOLUTION_MOD							6/9/08				jdog5000	*/
 /**																				*/
