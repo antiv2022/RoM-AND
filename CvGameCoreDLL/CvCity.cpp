@@ -24626,8 +24626,9 @@ void CvCity::updateImprovementHealth()
 		m_iImprovementBadHealth = iNewBadHealthPercent;*/
 	if ((getImprovementGoodHealth() != iNewHealthPercent) || (getImprovementBadHealth() != iNewHealthPercent))
 	{
-		m_iImprovementGoodHealth = iNewHealthPercent;
-		m_iImprovementBadHealth = iNewHealthPercent;
+		// <f1rpo> Bounds added. Not sure if that's the intended behavior.
+		m_iImprovementGoodHealth = std::max(0, iNewHealthPercent);
+		m_iImprovementBadHealth = std::min(0, iNewHealthPercent); // </f1rpo>
 		FAssert(getImprovementGoodHealth() >= 0);
 		FAssert(getImprovementBadHealth() <= 0);
 
