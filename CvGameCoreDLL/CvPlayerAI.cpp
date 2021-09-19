@@ -1112,6 +1112,8 @@ void CvPlayerAI::AI_doPeace() // f1rpo: refactored
 			|| kEnemy.getTeam() == getTeam()
 			|| !canContact(kEnemy.getID())
 			|| !AI_isWillingToTalk(kEnemy.getID())
+			// f1rpo: (Note that this largely counteracts Afforess's change below)
+			|| !kEnemy.AI_isWillingToTalk(getID())
 			|| GET_TEAM(getTeam()).isHuman()
 			|| (!kEnemy.isHuman() && GET_TEAM(kEnemy.getTeam()).isHuman())
 			|| !GET_TEAM(getTeam()).isAtWar(kEnemy.getTeam())
@@ -1121,27 +1123,16 @@ void CvPlayerAI::AI_doPeace() // f1rpo: refactored
 			continue;
 		}
 
-		// Afforess	(04/06/10): START
-		{
-			bool bConsiderPeace;
-			if (GC.getGameINLINE().isOption(GAMEOPTION_ADVANCED_DIPLOMACY))
-			{
-				bConsiderPeace =
-						(GET_TEAM(getTeam()).AI_getAtWarCounter(kEnemy.getTeam()) > 10
-						|| GET_TEAM(getTeam()).getAtWarCount(false, true) > 1
-						|| GET_TEAM(kEnemy.getTeam()).AI_getWarSuccess(getTeam()) >
-						// f1rpo: cf. AI_isWillingToTalk
-						std::max(GC.getWAR_SUCCESS_CITY_CAPTURING(),
-						GET_TEAM(getTeam()).AI_getWarSuccess(kEnemy.getTeam()) * 2));
-			}
-			else
-			{
-				bConsiderPeace = (GET_TEAM(getTeam()).AI_getAtWarCounter(kEnemy.getTeam()) > 10);
-			}
-			if (!bConsiderPeace)
-				continue;
+		if (GET_TEAM(getTeam()).AI_getAtWarCounter(kEnemy.getTeam()) <= 10
+			// Afforess (04/06/10): START
+			&& !(GC.getGameINLINE().isOption(GAMEOPTION_ADVANCED_DIPLOMACY)
+			&& (GET_TEAM(getTeam()).getAtWarCount(false, true) > 1
+			|| GET_TEAM(kEnemy.getTeam()).AI_getWarSuccess(getTeam()) >
+			std::max(GC.getWAR_SUCCESS_CITY_CAPTURING(), // f1rpo: cf. AI_isWillingToTalk
+			GET_TEAM(getTeam()).AI_getWarSuccess(kEnemy.getTeam()) * 2))))
+		{	// Afforess: END
+			continue;
 		}
-		// Afforess: END
 
 		TradeData item;
 

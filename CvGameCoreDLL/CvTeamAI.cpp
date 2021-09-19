@@ -1569,29 +1569,29 @@ bool CvTeamAI::AI_rejectPeace(TeamTypes eEnemy) const
 			+ (kEnemy.getAtWarCount(true, true) - 1) * 14;
 	// This caps the probability at 72%
 	scaled rRejectProb = per100(iWSRating + 25) * fixp(0.58);
-	int iBasePeaceWeight = 0;
+	scaled rBasePeaceWeight;
 	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
 		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)i);
 		if (kMember.isAlive() && kMember.getTeam() == getID())
 		{
-			iBasePeaceWeight += GC.getLeaderHeadInfo(kMember.getPersonalityType())
+			rBasePeaceWeight += GC.getLeaderHeadInfo(kMember.getPersonalityType())
 					.getBasePeaceWeight();
 		}
 	}
-	iBasePeaceWeight /= getNumMembers();
-	iBasePeaceWeight = std::max(0, iBasePeaceWeight);
+	rBasePeaceWeight /= getNumMembers();
+	rBasePeaceWeight.increaseTo(0);
 	/*	This formula maps a base peace weight of w=0 to a multiplier of 1.25,
 		w=5 to 0.75, w=10 to 0.25. */
-	rRejectProb *= 1 - (iBasePeaceWeight - fixp(2.5)) / 10;
+	rRejectProb *= 1 - (rBasePeaceWeight - fixp(2.5)) / 10;
+	bool bReject = rRejectProb.bernoulliSuccess(GC.getGameINLINE().getSorenRand(),
+			"CvTeamAI:AI_rejectPeace");
+#ifdef LOG_AI
 	logBBAI("    Team %d (%S) rejecting peace with team %d (%S) on account of "
 			"war success rating %d and base peace weight %d has odds of %d percent",
 			getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0),
 			eEnemy, GET_PLAYER(kEnemy.getLeaderID()).getCivilizationDescription(0),
-			iWSRating, iBasePeaceWeight, range(rRejectProb.getPercent(), 0, 100));
-	bool bReject = rRejectProb.bernoulliSuccess(GC.getGameINLINE().getSorenRand(),
-			"CvTeamAI:AI_rejectPeace");
-#ifdef LOG_AI
+			iWSRating, rBasePeaceWeight.uround(), range(rRejectProb.getPercent(), 0, 100));
 	if (bReject)
 		logBBAI("    Peace rejected.");
 	else logBBAI("    Peace not rejected.");
