@@ -10724,7 +10724,7 @@ bool CvUnit::build(BuildTypes eBuild)
 */ //temporarily removed in AND2 by 45deg as we don't use it for the moment (while C2C does)
 		if (GC.getBuildInfo(eBuild).isKill())
 		{
-			if ( plot()->getWorkingCity() != NULL )
+			if (plot() && plot()->getWorkingCity() != NULL)
 			{
 				OutputDebugString(CvString::format("Worker at (%d,%d) consumed by build for city %S\n", plot()->getX_INLINE(), plot()->getY_INLINE(), plot()->getWorkingCity()->getName().GetCString()).c_str());
 				//plot()->getWorkingCity()->AI_changeWorkersHave(-1);
