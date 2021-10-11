@@ -4079,12 +4079,12 @@ int CvCityAI::AI_buildingValueThresholdOriginalUncached(BuildingTypes eBuilding,
 
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
-		if ( iPass == 1 )
+		if (iPass == 1)
 		{
 			iPass1Value = iValue;
 		}
 
-		if ((iFocusFlags == 0) || (iValue > 0) || (iPass == 0))
+		if (iFocusFlags == 0 || iValue > 0 || iPass == 0)
 		{
 			if (((iFocusFlags & BUILDINGFOCUS_WORLDWONDER) || iPass > 0)
 			&& isWorldWonderClass(eBuildingClass) && aiYieldRank[YIELD_PRODUCTION] <= 3)
@@ -4676,6 +4676,15 @@ int CvCityAI::AI_buildingValueThresholdOriginalUncached(BuildingTypes eBuilding,
 					}
 				}
 
+				// Toffer - simple crime evaluation
+				{
+					const int iCrime = kBuilding.getCrime() + kBuilding.getCrimePerPop() * getPopulation();
+					if (iCrime != 0)
+					{
+						iValue -= iCrime * getCrimeRate();
+					}
+				}
+
 				if (kBuilding.getDomesticGreatGeneralRateModifier() != 0)
 				{
 					iValue += (kBuilding.getDomesticGreatGeneralRateModifier() / 10);
@@ -4784,11 +4793,11 @@ int CvCityAI::AI_buildingValueThresholdOriginalUncached(BuildingTypes eBuilding,
 
 				iValue += kBuilding.getAirUnitCapacity() * (getPopulation() * 2 + 10);
 
-				iValue += (-(kBuilding.getNukeModifier()) / ((iHasMetCount > 0) ? 10 : 20));
+				iValue -= kBuilding.getNukeModifier() / ((iHasMetCount > 0) ? 10 : 20);
 
-				iValue += (kBuilding.getFreeSpecialist() * 16);
-				iValue += (kBuilding.getAreaFreeSpecialist() * iNumCitiesInArea * 12);
-				iValue += (kBuilding.getGlobalFreeSpecialist() * iNumCities * 12);
+				iValue += kBuilding.getFreeSpecialist() * 16;
+				iValue += kBuilding.getAreaFreeSpecialist() * iNumCitiesInArea * 12;
+				iValue += kBuilding.getGlobalFreeSpecialist() * iNumCities * 12;
 
 				iValue += ((kBuilding.getWorkerSpeedModifier() * kOwner.AI_getNumAIUnits(UNITAI_WORKER)) / 10);
 
@@ -5163,10 +5172,7 @@ int CvCityAI::AI_buildingValueThresholdOriginalUncached(BuildingTypes eBuilding,
 						iValue += (iTempValue * (GET_PLAYER(getOwnerINLINE()).AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY1) ? 5 : 1));
 					}
 				}
-			}
 
-			if (iPass > 0)
-			{
 				for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
 				{
 					iTempValue = 0;
@@ -5257,6 +5263,62 @@ int CvCityAI::AI_buildingValueThresholdOriginalUncached(BuildingTypes eBuilding,
 						}
 						iValue += iTempValue;
 					}
+				}
+
+				// Deal with properties
+				iValue += buildingPropertiesValue(kBuilding);
+
+				for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+				{
+					iTempValue = getBuildingCommerceValue(eBuilding, iI, aiFreeSpecialistYield, aiFreeSpecialistCommerce, aiBaseCommerceRate, aiPlayerCommerceRate);
+
+					if (iTempValue != 0)
+					{
+						//	Make sure we don't reduce 1 to 0!
+						if ( iTempValue >= 2 )
+						{
+							iTempValue /= 2;
+						}
+
+						if (bFinancialTrouble && iI == COMMERCE_GOLD)
+						{
+							iTempValue *= 2;
+						}
+
+						iTempValue *= kOwner.AI_commerceWeight(((CommerceTypes)iI), this);
+						iTempValue = (iTempValue + 99) / 100;
+
+						// if this is a limited wonder, and we are not one of the top 4 in this category, subtract the value
+						// we do _not_ want to build this here (unless the value was small anyway)
+						if (MAX_INT == aiCommerceRank[iI])
+						{
+							aiCommerceRank[iI] = findCommerceRateRank((CommerceTypes) iI);
+						}
+						if (bIsLimitedWonder && ((aiCommerceRank[iI] > (3 + iLimitedWonderLimit)))
+							|| (bCulturalVictory1 && (iI == COMMERCE_CULTURE) && (aiCommerceRank[iI] == 1)))
+						{
+							iTempValue *= -1;
+
+							// for culture, just set it to zero, not negative, just about every wonder gives culture
+							if (iI == COMMERCE_CULTURE)
+							{
+								iTempValue = 0;
+							}
+						}
+						iValue += iTempValue;
+					}
+				}
+
+				for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
+				{
+					if (kBuilding.getReligionChange(iI) > 0 && GET_TEAM(getTeam()).hasHolyCity((ReligionTypes)iI))
+					{
+						iValue += (kBuilding.getReligionChange(iI) * ((eStateReligion == iI) ? 10 : 1));
+					}
+				}
+				if (NO_VOTESOURCE != kBuilding.getVoteSourceType())
+				{
+					iValue += 100;
 				}
 			}
 			else
@@ -5380,68 +5442,7 @@ int CvCityAI::AI_buildingValueThresholdOriginalUncached(BuildingTypes eBuilding,
 
 					iValue += iTempValue;
 				}
-			}
 
-			if (iPass > 0)
-			{
-				// Deal with properties
-				iValue += buildingPropertiesValue(kBuilding);
-
-				for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
-				{
-					iTempValue = getBuildingCommerceValue(eBuilding, iI, aiFreeSpecialistYield, aiFreeSpecialistCommerce, aiBaseCommerceRate, aiPlayerCommerceRate);
-
-					if (iTempValue != 0)
-					{
-						//	Make sure we don't reduce 1 to 0!
-						if ( iTempValue >= 2 )
-						{
-							iTempValue /= 2;
-						}
-
-						if (bFinancialTrouble && iI == COMMERCE_GOLD)
-						{
-							iTempValue *= 2;
-						}
-
-						iTempValue *= kOwner.AI_commerceWeight(((CommerceTypes)iI), this);
-						iTempValue = (iTempValue + 99) / 100;
-
-						// if this is a limited wonder, and we are not one of the top 4 in this category, subtract the value
-						// we do _not_ want to build this here (unless the value was small anyway)
-						if (MAX_INT == aiCommerceRank[iI])
-						{
-							aiCommerceRank[iI] = findCommerceRateRank((CommerceTypes) iI);
-						}
-						if (bIsLimitedWonder && ((aiCommerceRank[iI] > (3 + iLimitedWonderLimit)))
-							|| (bCulturalVictory1 && (iI == COMMERCE_CULTURE) && (aiCommerceRank[iI] == 1)))
-						{
-							iTempValue *= -1;
-
-							// for culture, just set it to zero, not negative, just about every wonder gives culture
-							if (iI == COMMERCE_CULTURE)
-							{
-								iTempValue = 0;
-							}
-						}
-						iValue += iTempValue;
-					}
-				}
-
-				for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
-				{
-					if (kBuilding.getReligionChange(iI) > 0 && GET_TEAM(getTeam()).hasHolyCity((ReligionTypes)iI))
-					{
-						iValue += (kBuilding.getReligionChange(iI) * ((eStateReligion == iI) ? 10 : 1));
-					}
-				}
-				if (NO_VOTESOURCE != kBuilding.getVoteSourceType())
-				{
-					iValue += 100;
-				}
-			}
-			else
-			{
 				if (iFocusFlags & BUILDINGFOCUS_GOLD)
 				{
 					iValue += (getBuildingCommerceValue(eBuilding, COMMERCE_GOLD, aiFreeSpecialistYield, aiFreeSpecialistCommerce, aiBaseCommerceRate, aiPlayerCommerceRate)*iGoldValueAssessmentModifier)/100;
@@ -5480,7 +5481,7 @@ int CvCityAI::AI_buildingValueThresholdOriginalUncached(BuildingTypes eBuilding,
 				{
 					for (int iI = 0; iI < GC.getNumFlavorTypes(); iI++)
 					{
-						iValue += (kOwner.AI_getFlavorValue((FlavorTypes)iI) * kBuilding.getFlavorValue(iI));
+						iValue += kOwner.AI_getFlavorValue((FlavorTypes)iI) * kBuilding.getFlavorValue(iI);
 					}
 				}
 			}
@@ -16406,6 +16407,15 @@ void CvCityAI::CalculateAllBuildingValues(int iFocusFlags)
 									iValue += 12;
 								}
 							}
+						}
+					}
+
+					// Toffer - simple crime evaluation
+					{
+						const int iCrime = kBuilding.getCrime() + kBuilding.getCrimePerPop() * getPopulation();
+						if (iCrime != 0)
+						{
+							iValue -= iCrime * getCrimeRate();
 						}
 					}
 
