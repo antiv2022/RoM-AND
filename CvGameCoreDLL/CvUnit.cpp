@@ -665,7 +665,7 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 			m_paiExtraFeatureDefensePercent[iI] = 0;
 		}
 		*/
-		
+
 		/*
 		FAssertMsg((0 < GC.getNumUnitCombatInfos()), "GC.getNumUnitCombatInfos() is not greater than zero but an array is being allocated in CvUnit::reset");
 		m_paiExtraUnitCombatModifier = new int[GC.getNumUnitCombatInfos()];
@@ -914,11 +914,11 @@ void CvUnit::killUnconditional(bool bDelay, PlayerTypes ePlayer, bool bMessaged)
 										if (!pAdjacentPlot->isVisibleEnemyUnit(pLoopUnit))
 										{
 											if (!pAdjacentPlot->isImpassable(pLoopUnit->getTeam()))	//45deg: units cannot be saved from drowning by climbing a mountain if you don't have the right tech or if playing without mountain option
-											{	
+											{
 												pRescuePlot = pAdjacentPlot;
 												bAdjacentLand = true;
 												break;
-											}	
+											}
 										}
 									}
 								}
@@ -2205,14 +2205,14 @@ void CvUnit::updateCombat(bool bQuick)
 			setMadeAttack(true);
 
 			//rotate to face plot
-			DirectionTypes newDirection = estimateDirection(this->plot(), pDefender->plot());
+			DirectionTypes newDirection = estimateDirection(plot(), pDefender->plot());
 			if (newDirection != NO_DIRECTION)
 			{
 				setFacingDirection(newDirection);
 			}
 
 			//rotate enemy to face us
-			newDirection = estimateDirection(pDefender->plot(), this->plot());
+			newDirection = estimateDirection(pDefender->plot(), plot());
 			if (newDirection != NO_DIRECTION)
 			{
 				pDefender->setFacingDirection(newDirection);
@@ -2301,7 +2301,7 @@ void CvUnit::updateCombat(bool bQuick)
 /* Great Commanders                                                                             */
 /************************************************************************************************/
 			//USE commanders here (so their command points will be decreased) for attacker and defender:
-			this->tryUseCommander();
+			tryUseCommander();
 			pDefender->tryUseCommander();
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
@@ -3694,68 +3694,19 @@ bool CvUnit::willRevealByMove(const CvPlot* pPlot) const
 			}
 		}
 	}
-
 	return false;
 }
-/************************************************************************************************/
-/* Afforess	                  Start		 06/17/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+
+
 bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bool bIgnoreLoad, bool bIgnoreTileLimit, bool bIgnoreLocation, bool bIgnoreAttack) const
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 {
-	bool	bFailWithAttack = false;
-	bool	bFailWithoutAttack = false;
-
 	PROFILE_FUNC();
-
 	FAssertMsg(pPlot != NULL, "Plot is not assigned a valid value");
-/************************************************************************************************/
-/* Afforess	                  Start		 06/22/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	static int iHill = -1;
-	static int iPeak = -1;
 
-	if ( iHill == -1 )
+	if (!bIgnoreLocation && atPlot(pPlot))
 	{
-		iHill = GC.getInfoTypeForString("TERRAIN_HILL");
+		return false;
 	}
-	if ( iPeak == -1 )
-	{
-		iPeak = GC.getInfoTypeForString("TERRAIN_PEAK");
-	}
-
-	if (!bIgnoreLocation)
-	{
-		if (atPlot(pPlot))
-		{
-			return false;
-		}
-	}
-
-	//ls612: This code was sticky tape for the earlier AI shortcomings in this area, It was bad,
-	//It wasted a ton of time, It was in the wrong file, and it didn't even do anything!
-	//if (!isHuman())
-	//{
-	//	if (plot()->getTerrainTurnDamage() <= 0)
-	//	{
-	//		if (getDamage() > 50)
-	//		{
-	//			if (pPlot->getTerrainTurnDamage() > 0)
-	//			{
-	//				return false;
-	//			}
-	//		}
-	//	}
-	//}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 
 	// Cannot move around in unrevealed land freely
 	if (m_pUnitInfo->isNoRevealMap() && willRevealByMove(pPlot))
@@ -3763,215 +3714,111 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 		return false;
 	}
 
-	if (GC.getUSE_SPIES_NO_ENTER_BORDERS())
+	if (GC.getUSE_SPIES_NO_ENTER_BORDERS() && isSpy() && NO_PLAYER != pPlot->getOwnerINLINE()
+	&& !GET_PLAYER(getOwnerINLINE()).canSpiesEnterBorders(pPlot->getOwnerINLINE()))
 	{
-		if (isSpy() && NO_PLAYER != pPlot->getOwnerINLINE())
+		return false;
+	}
+
+	// 45deg - Movement Limits
+	if (GC.getGameINLINE().isOption(GAMEOPTION_MOVEMENT_LIMITS)
+	&& !GC.getGameINLINE().isModderGameOption(MODDERGAMEOPTION_TERRAIN_DAMAGE)
+	&& !isInsideMovementLimits(pPlot))
+	{
+		return false;
+	}
+
+	CvArea *pPlotArea = pPlot->area();
+	const TeamTypes ePlotTeam = pPlot->getTeam();
+	bool bCanEnterArea = canEnterArea(ePlotTeam, pPlotArea);
+
+	if (bCanEnterArea)
+	{
+		if (pPlot->getFeatureType() != NO_FEATURE && m_pUnitInfo->getFeatureImpassable(pPlot->getFeatureType()))
 		{
-			if (!GET_PLAYER(getOwnerINLINE()).canSpiesEnterBorders(pPlot->getOwnerINLINE()))
+			const TechTypes eTech = (TechTypes)m_pUnitInfo->getFeaturePassableTech(pPlot->getFeatureType());
+			if ((NO_TECH == eTech || !GET_TEAM(getTeam()).isHasTech(eTech))
+			// sea units can enter impassable in own cultural borders
+			&& (DOMAIN_SEA != getDomainType() || ePlotTeam != getTeam()))
+			{
+				return false;
+			}
+		}
+
+		if (m_pUnitInfo->getTerrainImpassable(pPlot->getTerrainType())
+		|| pPlot->isPeak() && m_pUnitInfo->getTerrainImpassable(GC.getInfoTypeForString("TERRAIN_PEAK"))
+		|| pPlot->isHills() && m_pUnitInfo->getTerrainImpassable(GC.getInfoTypeForString("TERRAIN_HILL")))
+		{
+			const TechTypes eTech = (TechTypes)m_pUnitInfo->getTerrainPassableTech(pPlot->getTerrainType());
+			if ((NO_TECH == eTech || !GET_TEAM(getTeam()).isHasTech(eTech))
+			// sea units can enter impassable in own cultural borders
+			&& (DOMAIN_SEA != getDomainType() || ePlotTeam != getTeam())
+			&& (bIgnoreLoad || !canLoad(pPlot)))
 			{
 				return false;
 			}
 		}
 	}
-// // Movement Limits by 45deg - START
-	if (GC.getGameINLINE().isOption(GAMEOPTION_MOVEMENT_LIMITS) && (!GC.getGameINLINE().isModderGameOption(MODDERGAMEOPTION_TERRAIN_DAMAGE)))
-	{
-		if (!isInsideMovementLimits(pPlot))
-		{
-			return false;
-		}
-	}	
-// Movement Limits by 45deg - END	
-
-	CvArea *pPlotArea = pPlot->area();
-	TeamTypes ePlotTeam = pPlot->getTeam();
-	bool bCanEnterArea = canEnterArea(ePlotTeam, pPlotArea);
-	if (bCanEnterArea)
-	{
-		if (pPlot->getFeatureType() != NO_FEATURE)
-		{
-			if (m_pUnitInfo->getFeatureImpassable(pPlot->getFeatureType()))
-			{
-				TechTypes eTech = (TechTypes)m_pUnitInfo->getFeaturePassableTech(pPlot->getFeatureType());
-				if (NO_TECH == eTech || !GET_TEAM(getTeam()).isHasTech(eTech))
-				{
-					if (DOMAIN_SEA != getDomainType() || pPlot->getTeam() != getTeam())  // sea units can enter impassable in own cultural borders
-					{
-						return false;
-					}
-				}
-			}
-		}
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       09/17/09                         TC01 & jdog5000      */
-/*                                                                                              */
-/* Bugfix				                                                                        */
-/************************************************************************************************/
-/* original bts code
-		else
-*/
-		// always check terrain also
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
-		{
-/************************************************************************************************/
-/* Afforess	                  Start		 02/14/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-			bool bPeak = false;
-			bool bHill = false;
-			if (m_pUnitInfo->getTerrainImpassable(iHill))
-				bHill = true;
-			if (m_pUnitInfo->getTerrainImpassable(iPeak))
-				bPeak = true;
-			if (m_pUnitInfo->getTerrainImpassable(pPlot->getTerrainType()) || (pPlot->isPeak() && bPeak) || (pPlot->isHills() && bHill))
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-			{
-				TechTypes eTech = (TechTypes)m_pUnitInfo->getTerrainPassableTech(pPlot->getTerrainType());
-				if (NO_TECH == eTech || !GET_TEAM(getTeam()).isHasTech(eTech))
-				{
-					if (DOMAIN_SEA != getDomainType() || pPlot->getTeam() != getTeam())  // sea units can enter impassable in own cultural borders
-					{
-						if (bIgnoreLoad || !canLoad(pPlot))
-						{
-							return false;
-						}
-					}
-				}
-			}
-		}
-	}
+	bool bFailWithoutAttack = false;
 
 	switch (getDomainType())
 	{
-	case DOMAIN_SEA:
-/************************************************************************************************/
-/* JOOYO_ADDON, Added by Jooyo, 07/07/09                                                        */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-		if (!pPlot->isWater() && !canMoveAllTerrain() && !pPlot->isCanMoveSeaUnits())
-/************************************************************************************************/
-/* JOOYO_ADDON                          END                                                     */
-/************************************************************************************************/
+		case DOMAIN_SEA:
 		{
-			if (!pPlot->isFriendlyCity(*this, true) || !pPlot->isCoastalLand())
+			if (!pPlot->isWater() && !canMoveAllTerrain() && !pPlot->isCanMoveSeaUnits()
+			&& (!pPlot->isFriendlyCity(*this, true) || !pPlot->isCoastalLand()))
 			{
 				return false;
 			}
+			break;
 		}
-		break;
-
-	case DOMAIN_AIR:
-		if (!bAttack)
+		case DOMAIN_AIR:
 		{
-			bool bValid = false;
-
-			if (pPlot->isFriendlyCity(*this, true))
+			if (!bAttack)
 			{
-				bValid = true;
-
-				if (m_pUnitInfo->getAirUnitCap() > 0)
+				if ((!pPlot->isFriendlyCity(*this, true) || m_pUnitInfo->getAirUnitCap() > 0 && pPlot->airUnitSpaceAvailable(getTeam()) < 1)
+				&& (bIgnoreLoad || !canLoad(pPlot)))
 				{
-					if (pPlot->airUnitSpaceAvailable(getTeam()) <= 0)
-					{
-						bValid = false;
-					}
-				}
-			}
-
-			if (!bValid)
-			{
-				if (bIgnoreLoad || !canLoad(pPlot))
-				{
-					if ( !bIgnoreAttack )
+					if (!bIgnoreAttack)
 					{
 						return false;
 					}
-					else
-					{
-						bFailWithoutAttack = true;
-					}
+					bFailWithoutAttack = true;
 				}
-			}
-/************************************************************************************************/
-/* Afforess	                  Start		 03/7/10                                                */
-/*                                                                                              */
-/*  Rebase Limit                                                                                */
-/************************************************************************************************/
-			if (!bFailWithoutAttack && !GET_TEAM(getTeam()).isRebaseAnywhere())
-			{
-				if ((GC.getGameINLINE().isModderGameOption(MODDERGAMEOPTION_AIRLIFT_RANGE)))
+
+				if (!bFailWithoutAttack && !GET_TEAM(getTeam()).isRebaseAnywhere()
+				&& GC.getGameINLINE().isModderGameOption(MODDERGAMEOPTION_AIRLIFT_RANGE)
+				&& plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), getX_INLINE(), getY_INLINE()) > GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_AIRLIFT_RANGE))
 				{
-					if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), getX_INLINE(), getY_INLINE()) > (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_AIRLIFT_RANGE)))
+					if (!bIgnoreAttack)
 					{
-						if ( !bIgnoreAttack )
-						{
-							return false;
-						}
-						else
-						{
-							bFailWithoutAttack = true;
-						}
+						return false;
 					}
+					bFailWithoutAttack = true;
 				}
 			}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
+			break;
 		}
-
-		break;
-
-	case DOMAIN_LAND:
-/************************************************************************************************/
-/* JOOYO_ADDON, Added by Jooyo, 07/07/09                                                        */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-		if (pPlot->isWater() && !canMoveAllTerrain() && !pPlot->isCanMoveLandUnits())
-/************************************************************************************************/
-/* JOOYO_ADDON                          END                                                     */
-/************************************************************************************************/
+		case DOMAIN_LAND:
 		{
-			if (!pPlot->isCity() || 0 == GC.getLAND_UNITS_CAN_ATTACK_WATER_CITIES())
+			if (pPlot->isWater() && !canMoveAllTerrain() && !pPlot->isCanMoveLandUnits()
+			&& (!pPlot->isCity() || 0 == GC.getLAND_UNITS_CAN_ATTACK_WATER_CITIES())
+			&& (bIgnoreLoad || !isHuman() || plot()->isWater() || !canLoad(pPlot)))
 			{
-				if (bIgnoreLoad || !isHuman() || plot()->isWater() || !canLoad(pPlot))
-				{
-					return false;
-				}
+				return false;
 			}
+			break;
 		}
-		break;
-
-	case DOMAIN_IMMOBILE:
-		return false;
-		break;
-
-	default:
-		FAssert(false);
-		break;
+		case DOMAIN_IMMOBILE: return false;
+		default: FAssert(false);
 	}
 
-/************************************************************************************************/
-/* Afforess   Route Restricter   Start       08/03/09                                		     */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if (m_pUnitInfo->getPassableRouteNeeded(0) || m_pUnitInfo->getPassableRouteNeeded(1))
+	// Afforess - Route Restricter
+	if ((m_pUnitInfo->getPassableRouteNeeded(0) || m_pUnitInfo->getPassableRouteNeeded(1))
+	&& (!m_pUnitInfo->getPassableRouteNeeded(pPlot->getRouteType()) || !pPlot->isRoute()))
 	{
-		if (!(m_pUnitInfo->getPassableRouteNeeded(pPlot->getRouteType()) && pPlot->isRoute()))
-		{
-			return false;
-		}
+		return false;
 	}
-/************************************************************************************************/
-/* Afforess   Route Restricter End               END                                            */
-/************************************************************************************************/
 
 	//ls612: For units that can't enter non-Owned Cities
 	if (m_pUnitInfo->isNoNonOwnedEntry() && pPlot->isCity() && (pPlot->getOwnerINLINE() != getOwnerINLINE()))
@@ -3979,188 +3826,85 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 		return false;
 	}
 
-	if (isAnimal())
+	if (isBarbarian() && isAnimal())
 	{
-		if (pPlot->isOwned() && pPlot->getOwnerINLINE() != BARBARIAN_PLAYER)
+		// Cannot move into non-barb owned land
+		if (pPlot->isOwned() && pPlot->getOwnerINLINE() != BARBARIAN_PLAYER
+		// If I'm currently in neutral or barb owned land
+		&& (!plot()->isOwned() || plot()->getOwnerINLINE() == BARBARIAN_PLAYER))
 		{
 			return false;
 		}
 
-		if (!bAttack && !bFailWithoutAttack)
+		if (!bAttack && !bFailWithoutAttack && pPlot->getNumUnits() > 0)
 		{
-			if (pPlot->getBonusType() != NO_BONUS)
-			{
-				if ( !bIgnoreAttack )
-				{
-					return false;
-				}
-				else
-				{
-					bFailWithoutAttack = true;
-				}
-			}
-
-			if (pPlot->getImprovementType() != NO_IMPROVEMENT)
-			{
-				if ( !bIgnoreAttack )
-				{
-					return false;
-				}
-				else
-				{
-					bFailWithoutAttack = true;
-				}
-			}
-
-			if (pPlot->getNumUnits() > 0)
-			{
-				if ( !bIgnoreAttack )
-				{
-					return false;
-				}
-				else
-				{
-					bFailWithoutAttack = true;
-				}
-			}
-		}
-	}
-
-	if (!bAttack && !bFailWithoutAttack)
-	{
-		if (isNoCapture())
-		{
-			if (pPlot->isEnemyCity(*this))
-			{
-				if ( !bIgnoreAttack )
-				{
-					return false;
-				}
-				else
-				{
-					bFailWithoutAttack = true;
-				}
-			}
-		}
-	}
-
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       07/23/09                                jdog5000      */
-/*                                                                                              */
-/* Consistency                                                                                  */
-/************************************************************************************************/
-/* original bts code
-	if (bAttack)
-	{
-		if (isMadeAttack() && !isBlitz())
-		{
-			return false;
-		}
-	}
-*/
-	// The following change makes capturing an undefended city like a attack action, it
-	// cannot be done after another attack or a paradrop
-	/*
-	if (bAttack || (pPlot->isEnemyCity(*this) && !canCoexistWithEnemyUnit(NO_TEAM)) )
-	{
-		if (isMadeAttack() && !isBlitz())
-		{
-			return false;
-		}
-	}
-	*/
-
-	// The following change makes it possible to capture defenseless units after having
-	// made a previous attack or paradrop
-	if( bAttack )
-	{
-		if (isMadeAttack() && !isBlitz() && (pPlot->getNumVisibleEnemyDefenders(this) > 0))
-		{
-			if ( !bIgnoreAttack || bFailWithoutAttack )
+			if (!bIgnoreAttack)
 			{
 				return false;
 			}
-			else
-			{
-				bFailWithAttack = true;
-			}
+			bFailWithoutAttack = true;
 		}
 	}
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
 
-	if (getDomainType() == DOMAIN_AIR)
+	if (!bAttack && !bFailWithoutAttack && isNoCapture())
 	{
-		if (bAttack && !bFailWithAttack)
+		if (pPlot->isEnemyCity(*this))
 		{
-			if (!canAirStrike(pPlot))
+			if (!bIgnoreAttack)
 			{
-				if ( !bIgnoreAttack || bFailWithoutAttack )
-				{
-					return false;
-				}
-				else
-				{
-					bFailWithAttack = true;
-				}
+				return false;
 			}
+			bFailWithoutAttack = true;
 		}
 	}
-	else
+
+	bool bFailWithAttack = false;
+	// The following change makes it possible to capture defenseless units after having made a previous attack or paradrop
+	if (bAttack && isMadeAttack() && !isBlitz() && pPlot->getNumVisibleEnemyDefenders(this) > 0)
+	{
+		if (!bIgnoreAttack || bFailWithoutAttack)
+		{
+			return false;
+		}
+		bFailWithAttack = true;
+	}
+
+	if (getDomainType() != DOMAIN_AIR)
 	{
 		if (canAttack())
 		{
 			if (!isHuman() || (pPlot->isVisible(getTeam(), false)))
 			{
-				if ( bIgnoreAttack )
+				if (bIgnoreAttack)
 				{
-					if ( !bFailWithoutAttack )
+					if (!bFailWithoutAttack
+					&& !canCoexistWithEnemyUnit(NO_TEAM)
+					&& pPlot->isVisibleEnemyUnit(this)
+					&& (!bDeclareWar || pPlot->isVisibleOtherUnit(getOwnerINLINE())))
 					{
-						if (!canCoexistWithEnemyUnit(NO_TEAM))
+						if (bFailWithAttack)
 						{
-							if (pPlot->isVisibleEnemyUnit(this))
-							{
-								//FAssertMsg(isHuman() || (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwnerINLINE()) != bAttack)), "hopefully not an issue, but tracking how often this is the case when we dont want to really declare war");
-								if (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwnerINLINE())))
-								{
-									if ( bFailWithAttack )
-									{
-										return false;
-									}
-
-									bFailWithoutAttack = true;
-								}
-							}
+							return false;
 						}
+						bFailWithoutAttack = true;
 					}
-					if ( !bFailWithAttack )
-					{
-						if (!pPlot->isVisibleEnemyUnit(this))
-						{
-							//FAssertMsg(isHuman() || (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwnerINLINE()) != bAttack)), "hopefully not an issue, but tracking how often this is the case when we dont want to really declare war");
-							if (!bDeclareWar || (!pPlot->isVisibleOtherUnit(getOwnerINLINE()) && !(pPlot->getPlotCity() && !isNoCapture())))
-							{
-								if ( bFailWithoutAttack )
-								{
-									return false;
-								}
 
-								bFailWithAttack = true;
-							}
+					if (!bFailWithAttack && !pPlot->isVisibleEnemyUnit(this)
+					&& (!bDeclareWar || !pPlot->isVisibleOtherUnit(getOwnerINLINE()) && (!pPlot->getPlotCity() || isNoCapture())))
+					{
+						if (bFailWithoutAttack)
+						{
+							return false;
 						}
+						bFailWithAttack = true;
 					}
 				}
 				else if (bAttack || !canCoexistWithEnemyUnit(NO_TEAM))
 				{
-					if (pPlot->isVisibleEnemyUnit(this) != bAttack)
-					//if ((pPlot->isVisibleEnemyUnit(this) || pPlot->isEnemyCity(*this)) != bAttack)
+					if (pPlot->isVisibleEnemyUnit(this) != bAttack
+					&& (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwnerINLINE()) != bAttack && !(bAttack && pPlot->getPlotCity() && !isNoCapture()))))
 					{
-						//FAssertMsg(isHuman() || (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwnerINLINE()) != bAttack)), "hopefully not an issue, but tracking how often this is the case when we dont want to really declare war");
-						if (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwnerINLINE()) != bAttack && !(bAttack && pPlot->getPlotCity() && !isNoCapture())))
-						{
-							return false;
-						}
+						return false;
 					}
 				}
 			}
@@ -4168,19 +3912,13 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 			if (bAttack && !bFailWithAttack)
 			{
 				CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-				if (NULL != pDefender)
+				if (NULL != pDefender && !canAttack(*pDefender))
 				{
-					if (!canAttack(*pDefender))
+					if (!bIgnoreAttack || bFailWithoutAttack)
 					{
-						if ( !bIgnoreAttack || bFailWithoutAttack )
-						{
-							return false;
-						}
-						else
-						{
-							bFailWithAttack = true;
-						}
+						return false;
 					}
+					bFailWithAttack = true;
 				}
 			}
 		}
@@ -4188,44 +3926,34 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 		{
 			if (bAttack && !bFailWithAttack)
 			{
-				if ( !bIgnoreAttack || bFailWithoutAttack )
+				if (!bIgnoreAttack || bFailWithoutAttack)
 				{
 					return false;
 				}
-				else
-				{
-					bFailWithAttack = true;
-				}
+				bFailWithAttack = true;
 			}
 
-			if (!canCoexistWithEnemyUnit(NO_TEAM))
+			if (!canCoexistWithEnemyUnit(NO_TEAM)
+			&& (!isHuman() || pPlot->isVisible(getTeam(), false))
+			&& (pPlot->isEnemyCity(*this) || pPlot->isVisibleEnemyUnit(this)))
 			{
-				if (!isHuman() || pPlot->isVisible(getTeam(), false))
-				{
-					if (pPlot->isEnemyCity(*this))
-					{
-						return false;
-					}
-
-					if (pPlot->isVisibleEnemyUnit(this))
-					{
-						return false;
-					}
-				}
+				return false;
 			}
 		}
 
+		TeamTypes eRevealedPlotTeam = ePlotTeam;
+
 		if (isHuman())
 		{
-			ePlotTeam = pPlot->getRevealedTeam(getTeam(), false);
-			bCanEnterArea = canEnterArea(ePlotTeam, pPlotArea);
+			eRevealedPlotTeam = pPlot->getRevealedTeam(getTeam(), false);
+			bCanEnterArea = canEnterArea(eRevealedPlotTeam, pPlotArea);
 		}
 
 		if (!bCanEnterArea)
 		{
-			FAssert(ePlotTeam != NO_TEAM);
+			FAssert(eRevealedPlotTeam != NO_TEAM);
 
-			if (!(GET_TEAM(getTeam()).canDeclareWar(ePlotTeam)))
+			if (!GET_TEAM(getTeam()).canDeclareWar(eRevealedPlotTeam))
 			{
 				return false;
 			}
@@ -4237,195 +3965,155 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 					return false;
 				}
 			}
-			else
+			else if (GET_TEAM(getTeam()).AI_isSneakAttackReady(eRevealedPlotTeam))
 			{
-				if (GET_TEAM(getTeam()).AI_isSneakAttackReady(ePlotTeam))
-				{
-					if (!(getGroup()->AI_isDeclareWar(pPlot)))
-					{
-						return false;
-					}
-				}
-				else
+				if (!getGroup()->AI_isDeclareWar(pPlot))
 				{
 					return false;
 				}
 			}
-		}
-	}
-/************************************************************************************************/
-/* Afforess	                  Start		 08/18/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	bool bValid = false;
-	if (pPlot->isImpassable(getTeam()))
-	{
-		//Check our current tile
-		if (plot()->isPeak())
-		{
-			//	Can this unit move through peaks regardless?
-			if ( isCanMovePeaks() )
-			{
-				bValid = true;
-			}
 			else
 			{
-				//	If not we need a peak leader to be present
-				bValid = plot()->getHasMountainLeader(getTeam());
+				return false;
 			}
 		}
-		if (pPlot->isPeak())
+	}
+	else if (bAttack && (!bIgnoreAttack || bFailWithoutAttack) && !bFailWithAttack && !canAirStrike(pPlot))
+	{
+		return false;
+	}
+
+	if (pPlot->isImpassable(getTeam()) && !isCanMovePeaks() && !canMoveImpassable()
+	&& (!plot()->isPeak() || !plot()->getHasMountainLeader(getTeam()))
+	&& (!pPlot->isPeak() || !pPlot->getHasMountainLeader(getTeam())))
+	{
+		return false;
+	}
+
+	// xUPT: unit-per-tile main code rewritten in 2015-02 (dbkblk)
+	if (!bIgnoreTileLimit
+	&& GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) > 0)
+	{
+		if (isMilitaryLandUnit()) // Land military units are limited to xUPT.
 		{
-			//Check the impassible tile
-			if (!bValid)
+			int iCount = 0;
+			CLLNode<IDInfo>* pUnitNode;
+			CvUnit* pLoopUnit;
+
+			//Check our current tile
+			pUnitNode = pPlot->headUnitNode();
+
+			while (pUnitNode != NULL)
 			{
-				//	Can this unit move through peaks regardless?
-				if ( isCanMovePeaks() )
+				pLoopUnit = ::getUnit(pUnitNode->m_data);
+				pUnitNode = pPlot->nextUnitNode(pUnitNode);
+				if (pLoopUnit->getTeam() == getTeam()) // Count only if it's the same team
 				{
-					bValid = true;
-				}
-				else
-				{
-					//	If not we need a peak leader to be present
-					bValid = pPlot->getHasMountainLeader(getTeam());
+					// Just count military land units
+					if (pLoopUnit->isMilitaryLandUnit())
+					{
+						iCount++;
+					}
 				}
 			}
+			// Special case: unit has cargo and want to enter a city, so count his military loading (naval can't be transported)
+			if (hasCargo() && pPlot->isCity()){
+				std::vector<CvUnit*> aCargoUnits;
+				getCargoUnits(aCargoUnits);
+				int civilian_units = 0;
+				for (uint i = 0; i < aCargoUnits.size(); ++i)
+				{
+					CvUnit* pCargoUnit = aCargoUnits[i];
+					if (pCargoUnit->isMilitaryLandUnit()){
+						iCount++;
+					}
+					else if (!pCargoUnit->isMilitaryAirUnit()){ // Exclude air units from the check
+						civilian_units++;
+					}
+				}
+				if (civilian_units > 0){ // Check if the civilian loading can enter the zone
+					if ((pPlot->getNumCivilianLandUnits(getOwner()) + civilian_units) >= pPlot->getUnitsPerTilesLimit(false)){
+						return false;
+					}
+				}
+			}
+
+			//Unit is already on the tile, ignore it in the count
+			if (bIgnoreLocation)
+			{
+				iCount--;
+			}
+			// Apply limitation on land units
+			if (iCount >= pPlot->getUnitsPerTilesLimit(true))
+			{
+				return false;
+			}
 		}
-		if (!bValid)
+		else if (isMilitaryNavalUnit()) // Special limit for naval units
 		{
-			if (!canMoveImpassable())
+			int iCount = 0;
+			CLLNode<IDInfo>* pUnitNode;
+			CvUnit* pLoopUnit;
+
+			//Check our current tile
+			pUnitNode = pPlot->headUnitNode();
+
+			while (pUnitNode != NULL)
+			{
+				pLoopUnit = ::getUnit(pUnitNode->m_data);
+				pUnitNode = pPlot->nextUnitNode(pUnitNode);
+				if (pLoopUnit->getTeam() == getTeam()) // Count only if it's the same team
+				{
+					// Just count naval units.
+					if (pLoopUnit->isMilitaryNavalUnit())
+					{
+						iCount++;
+					}
+				}
+			}
+			// Special case: unit has cargo and want to enter a city, so count his land military and civilian loading (exclude air)
+			if (hasCargo() && pPlot->isCity())
+			{
+				std::vector<CvUnit*> aCargoUnits;
+				getCargoUnits(aCargoUnits);
+				int civilian_units = 0;
+				int land_units = 0;
+				for (uint i = 0; i < aCargoUnits.size(); ++i)
+				{
+					CvUnit* pCargoUnit = aCargoUnits[i];
+					if (pCargoUnit->isMilitaryLandUnit()){
+						land_units++;
+					}
+					else if (!pCargoUnit->isMilitaryAirUnit()){ // Exclude air units from the check
+						civilian_units++;
+					}
+				}
+				if (civilian_units > 0){ // Check if civilians units can enter the tile
+					if ((pPlot->getNumCivilianLandUnits(getOwner()) + civilian_units) >= pPlot->getUnitsPerTilesLimit(false)){
+						return false;
+					}
+				}
+				if (land_units > 0){ // Check if land units can enter the tile
+					if (pPlot->getNumMilitaryLandUnits(getOwner()) + land_units >= pPlot->getUnitsPerTilesLimit(true)){
+						return false;
+					}
+				}
+			}
+
+			//Unit is already on the tile, ignore it in the count
+			if (bIgnoreLocation)
+			{
+				iCount--;
+			}
+			// Apply the same limitation than land units, but a different counter (can have 4 land + 4 air + 4 naval).
+			if (pPlot->getUnitsPerTilesLimit(true) <= iCount)
 			{
 				return false;
 			}
 		}
 	}
 
-	// xUPT: unit-per-tile main code rewritten in 2015-02 (dbkblk)
-	if (GC.getGameINLINE().getModderGameOption(MODDERGAMEOPTION_MAX_UNITS_PER_TILES) > 0)
-	{
-		if (!bIgnoreTileLimit)
-		{
-			if (this->isMilitaryLandUnit()) // Land military units are limited to xUPT.
-			{
-				int iCount = 0;
-				CLLNode<IDInfo>* pUnitNode;
-				CvUnit* pLoopUnit;
-
-				//Check our current tile
-				pUnitNode = pPlot->headUnitNode();
-
-				while (pUnitNode != NULL)
-				{
-					pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pPlot->nextUnitNode(pUnitNode);
-					if (pLoopUnit->getTeam() == getTeam()) // Count only if it's the same team
-					{
-						// Just count military land units
-						if (pLoopUnit->isMilitaryLandUnit())
-						{
-							iCount++;
-						}
-					}
-				}
-				// Special case: unit has cargo and want to enter a city, so count his military loading (naval can't be transported)
-				if (this->hasCargo() && pPlot->isCity()){
-					std::vector<CvUnit*> aCargoUnits;
-					this->getCargoUnits(aCargoUnits);
-					int civilian_units = 0;
-					for (uint i = 0; i < aCargoUnits.size(); ++i)
-					{
-						CvUnit* pCargoUnit = aCargoUnits[i];
-						if (pCargoUnit->isMilitaryLandUnit()){
-							iCount++;
-						}
-						else if (!pCargoUnit->isMilitaryAirUnit()){ // Exclude air units from the check
-							civilian_units++;
-						}
-					}
-					if (civilian_units > 0){ // Check if the civilian loading can enter the zone
-						if ((pPlot->getNumCivilianLandUnits(this->getOwner()) + civilian_units) >= pPlot->getUnitsPerTilesLimit(false)){
-							return false;
-						}
-					}
-				}
-
-				//Unit is already on the tile, ignore it in the count
-				if (bIgnoreLocation)
-				{
-					iCount--;
-				}
-				// Apply limitation on land units
-				if (iCount >= pPlot->getUnitsPerTilesLimit(true))
-				{
-					return false;
-				}
-			}
-			else if (this->isMilitaryNavalUnit()) // Special limit for naval units
-			{
-				int iCount = 0;
-				CLLNode<IDInfo>* pUnitNode;
-				CvUnit* pLoopUnit;
-
-				//Check our current tile
-				pUnitNode = pPlot->headUnitNode();
-
-				while (pUnitNode != NULL)
-				{
-					pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pPlot->nextUnitNode(pUnitNode);
-					if (pLoopUnit->getTeam() == getTeam()) // Count only if it's the same team
-					{
-						// Just count naval units.
-						if (pLoopUnit->isMilitaryNavalUnit())
-						{
-							iCount++;
-						}
-					}
-				}
-				// Special case: unit has cargo and want to enter a city, so count his land military and civilian loading (exclude air)
-				if (this->hasCargo() && pPlot->isCity()){
-					std::vector<CvUnit*> aCargoUnits;
-					this->getCargoUnits(aCargoUnits);
-					int civilian_units = 0;
-					int land_units = 0;
-					for (uint i = 0; i < aCargoUnits.size(); ++i)
-					{
-						CvUnit* pCargoUnit = aCargoUnits[i];
-						if (pCargoUnit->isMilitaryLandUnit()){
-							land_units++;
-						}
-						else if (!pCargoUnit->isMilitaryAirUnit()){ // Exclude air units from the check
-							civilian_units++;
-						}
-					}
-					if (civilian_units > 0){ // Check if civilians units can enter the tile
-						if ((pPlot->getNumCivilianLandUnits(this->getOwner()) + civilian_units) >= pPlot->getUnitsPerTilesLimit(false)){
-							return false;
-						}
-					}
-					if (land_units > 0){ // Check if land units can enter the tile
-						if (pPlot->getNumMilitaryLandUnits(this->getOwner()) + land_units >= pPlot->getUnitsPerTilesLimit(true)){
-							return false;
-						}
-					}
-				}
-
-				//Unit is already on the tile, ignore it in the count
-				if (bIgnoreLocation)
-				{
-					iCount--;
-				}
-				// Apply the same limitation than land units, but a different counter (can have 4 land + 4 air + 4 naval).
-				if (pPlot->getUnitsPerTilesLimit(true) <= iCount)
-				{
-					return false;
-				}
-			}
-		}
-	}
-
-	if ( !bIgnoreLocation )
+	if (!bIgnoreLocation)
 	{
 		//	ZOCs don't apply into cities of the unit owner
 		if ( pPlot->getPlotCity() == NULL || pPlot->getPlotCity()->getTeam() != getTeam() )
@@ -4451,35 +4139,24 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 				return false;
 			}
 		}
-	}
 
-	//City Minimum Defense Level
-	if (!bIgnoreLocation && pPlot->getPlotCity() != NULL && !isSpy())
-	{
-		if (GET_TEAM(getTeam()).isAtWar(pPlot->getTeam()))
+		//City Minimum Defense Level
+		if (pPlot->getPlotCity() != NULL && !isSpy()
+		&& GET_TEAM(getTeam()).isAtWar(ePlotTeam)
+		&& !pPlot->getPlotCity()->isDirectAttackable())
 		{
-			if ( !pPlot->getPlotCity()->isDirectAttackable() )
-			{
-				return false;
-			}
+			return false;
+		}
+
+		//Promotion ZoC
+		if (!m_pUnitInfo->isHiddenNationality() && !isAlwaysHostile(NULL)
+		&& plot()->isInUnitZoneOfControl(getOwnerINLINE())
+		&& pPlot->isInUnitZoneOfControl(getOwnerINLINE())
+		&& (!pPlot->hasAUnitWithZoneOfControl(getOwnerINLINE()) || !bAttack && (!canAttack() || isMadeAttack() && !isBlitz())))
+		{
+			return false;
 		}
 	}
-	//Promotion ZoC
-	if (!bIgnoreLocation && !m_pUnitInfo->isHiddenNationality() && !isAlwaysHostile(NULL))
-	{
-		if (!bIgnoreLocation && plot()->isInUnitZoneOfControl(getOwnerINLINE()) && pPlot->isInUnitZoneOfControl(getOwnerINLINE()))
-		{
-			bool bCanAttackInto = canAttack() && (!isMadeAttack() || isBlitz());
-			if (!(bAttack  || bCanAttackInto) || !pPlot->hasAUnitWithZoneOfControl(getOwnerINLINE()))
-			{
-				return false;
-			}
-		}
-	}
-
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
 	return true;
 }
 
@@ -4545,14 +4222,14 @@ void CvUnit::attackForDamage(CvUnit *pDefender, int attackerDamageChange, int de
 	}
 
 	//rotate to face plot
-	DirectionTypes newDirection = estimateDirection(this->plot(), pDefender->plot());
+	DirectionTypes newDirection = estimateDirection(plot(), pDefender->plot());
 	if(newDirection != NO_DIRECTION)
 	{
 		setFacingDirection(newDirection);
 	}
 
 	//rotate enemy to face us
-	newDirection = estimateDirection(pDefender->plot(), this->plot());
+	newDirection = estimateDirection(pDefender->plot(), plot());
 	if(newDirection != NO_DIRECTION)
 	{
 		pDefender->setFacingDirection(newDirection);
@@ -6734,7 +6411,7 @@ bool CvUnit::canRecon(const CvPlot* pPlot) const
 	{
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -6742,7 +6419,6 @@ bool CvUnit::canRecon(const CvPlot* pPlot) const
 
 bool CvUnit::canReconAt(const CvPlot* pPlot, int iX, int iY) const
 {
-	
 	if (!canRecon(pPlot))
 	{
 		return false;
@@ -6768,12 +6444,12 @@ bool CvUnit::canReconAt(const CvPlot* pPlot, int iX, int iY) const
 					if ((!GET_TEAM(GET_PLAYER(getOwnerINLINE()).getTeam()).isOpenBorders((GET_PLAYER(tPlot->getOwnerINLINE()).getTeam()))) && (!GET_TEAM(tPlot->getTeam()).isVassal(getTeam())) && (!atWar(getTeam(), (GET_PLAYER(tPlot->getOwnerINLINE()).getTeam()))) && !(isRivalTerritory()))
 					{
 						return false;
-					}	
+					}
 				}
-			}		
-		}	
+			}
+		}
 	}
-	
+
 	return true;
 }
 
@@ -6940,21 +6616,11 @@ bool CvUnit::paradrop(int iX, int iY)
 
 bool CvUnit::canAirBomb(const CvPlot* pPlot) const
 {
-/************************************************************************************************/
-/* DCM                                     04/19/09                                Johny Smith  */
-/************************************************************************************************/
-	// Dale - AB: Bombing START
-	if (GC.isDCM_AIR_BOMBING())
+	if (isHuman() && GC.isDCM_AIR_BOMBING())
 	{
-		if (isHuman())
-		{
-			return false;
-		}
+		return false;
 	}
-	// Dale - AB: Bombing END
-/************************************************************************************************/
-/* DCM                                     END                                                  */
-/************************************************************************************************/
+
 	if (getDomainType() != DOMAIN_AIR)
 	{
 		return false;
@@ -7183,7 +6849,7 @@ bool CvUnit::canForcePeace() const
 	{
 		return false;
 	}
-	
+
 	if (isBarbarian())
 	{
 		return false;
@@ -10307,7 +9973,7 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 		{
 			//PB Mod
 			//For espionage popup bugfix: Store turn slice
-			pInfo->setFlags(GC.getGameINLINE().getTurnSlice());		
+			pInfo->setFlags(GC.getGameINLINE().getTurnSlice());
 			gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE(), true);
 		}
 	}
@@ -14392,7 +14058,7 @@ void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, 
 		if (bRemoveSelected && IsSelected())
 		{
 			gDLL->getInterfaceIFace()->removeFromSelectionList(this);
-		}	
+		}
 	}
 }
 
@@ -15842,7 +15508,7 @@ int CvUnit::getExtraChanceFirstStrikes() const
 			if (pCommander != NULL)
 			{
 				return	m_iExtraChanceFirstStrikes + pCommander->getExtraChanceFirstStrikes();
-			}			
+			}
 		}
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
@@ -16543,7 +16209,7 @@ bool CvUnit::isCombatFocus() const
 
 bool CvUnit::isMilitaryUnit() const
 { // xUPT: useful for unit-per-tile check (dbkblk, 2015-02)
-	if (GC.getUnitInfo(this->getUnitType()).getUnitCombatType() != NO_UNITCOMBAT && this->baseCombatStr() > 0){
+	if (GC.getUnitInfo(getUnitType()).getUnitCombatType() != NO_UNITCOMBAT && baseCombatStr() > 0){
 		return true;
 	}
 
@@ -16552,7 +16218,7 @@ bool CvUnit::isMilitaryUnit() const
 
 bool CvUnit::isMilitaryAirUnit() const
 { // xUPT: useful for unit-per-tile check (dbkblk, 2015-02)
-	if (GC.getUnitInfo(this->getUnitType()).getDomainType() == DOMAIN_AIR && this->baseCombatStr() > 0){
+	if (GC.getUnitInfo(getUnitType()).getDomainType() == DOMAIN_AIR && baseCombatStr() > 0){
 		return true;
 	}
 
@@ -16561,7 +16227,7 @@ bool CvUnit::isMilitaryAirUnit() const
 
 bool CvUnit::isMilitaryNavalUnit() const
 { // xUPT: useful for unit-per-tile check (dbkblk, 2015-02)
-	if (GC.getUnitInfo(this->getUnitType()).getDomainType() == DOMAIN_SEA && this->baseCombatStr() > 0){
+	if (GC.getUnitInfo(getUnitType()).getDomainType() == DOMAIN_SEA && baseCombatStr() > 0){
 		return true;
 	}
 
@@ -16570,7 +16236,7 @@ bool CvUnit::isMilitaryNavalUnit() const
 
 bool CvUnit::isMilitaryLandUnit() const
 { // xUPT: useful for unit-per-tile check (dbkblk, 2015-02)
-	if (GC.getUnitInfo(this->getUnitType()).getDomainType() == DOMAIN_LAND && this->baseCombatStr() > 0){
+	if (GC.getUnitInfo(getUnitType()).getDomainType() == DOMAIN_LAND && baseCombatStr() > 0){
 		return true;
 	}
 
@@ -16809,7 +16475,7 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 		else
 		{
 			setCombatFirstStrikes((pCombatUnit->immuneToFirstStrikes()) ? 0 : (firstStrikes()));
-		}	
+		}
 	}
 	else
 	{
@@ -18203,7 +17869,7 @@ void CvUnit::read(FDataStreamBase* pStream)
 	WRAPPER_READ_STRING(wrapper, "CvUnit", m_szScriptData);
 
 	WRAPPER_READ_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_PROMOTIONS, GC.getNumPromotionInfos(), m_pabHasPromotion);
-	
+
 	if (uiFlag <= 3)
 	{
 		SAFE_DELETE_ARRAY(m_paiTerrainDoubleMoveCount);
@@ -18242,7 +17908,7 @@ void CvUnit::read(FDataStreamBase* pStream)
 
 	//WRAPPER_READ_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_TERRAINS, GC.getNumTerrainInfos(), m_paiTerrainDoubleMoveCount);
 	//WRAPPER_READ_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_FEATURES, GC.getNumFeatureInfos(), m_paiFeatureDoubleMoveCount);
-	
+
 	if (uiFlag <= 3)
 	{
 		SAFE_DELETE_ARRAY(m_paiFeatureDoubleMoveCount);
@@ -18278,7 +17944,7 @@ void CvUnit::read(FDataStreamBase* pStream)
 			WRAPPER_READ_CLASS_ARRAY_ALLOW_MISSING(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_FEATURES, cCount, m_paiFeatureDoubleMoveCount);
 		}
 	}
-	
+
 	if (uiFlag <= 3)
 	{
 		SAFE_DELETE_ARRAY(m_paiExtraTerrainAttackPercent);
@@ -18314,10 +17980,10 @@ void CvUnit::read(FDataStreamBase* pStream)
 			WRAPPER_READ_CLASS_ARRAY_ALLOW_MISSING(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_TERRAINS, cCount, m_paiExtraTerrainAttackPercent);
 		}
 	}
-	
+
 	//WRAPPER_READ_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_TERRAINS, GC.getNumTerrainInfos(), m_paiExtraTerrainAttackPercent);
 	//WRAPPER_READ_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_TERRAINS, GC.getNumTerrainInfos(), m_paiExtraTerrainDefensePercent);
-	
+
 	if (uiFlag <= 3)
 	{
 		SAFE_DELETE_ARRAY(m_paiExtraTerrainDefensePercent);
@@ -18353,9 +18019,9 @@ void CvUnit::read(FDataStreamBase* pStream)
 			WRAPPER_READ_CLASS_ARRAY_ALLOW_MISSING(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_TERRAINS, cCount, m_paiExtraTerrainDefensePercent);
 		}
 	}
-	
+
 	//WRAPPER_READ_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_FEATURES, GC.getNumFeatureInfos(), m_paiExtraFeatureAttackPercent);
-	
+
 	if (uiFlag <= 3)
 	{
 		SAFE_DELETE_ARRAY(m_paiExtraFeatureAttackPercent);
@@ -18391,9 +18057,9 @@ void CvUnit::read(FDataStreamBase* pStream)
 			WRAPPER_READ_CLASS_ARRAY_ALLOW_MISSING(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_FEATURES, cCount, m_paiExtraFeatureAttackPercent);
 		}
 	}
-	
+
 	//WRAPPER_READ_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_FEATURES, GC.getNumFeatureInfos(), m_paiExtraFeatureDefensePercent);
-	
+
 	if (uiFlag <= 3)
 	{
 		SAFE_DELETE_ARRAY(m_paiExtraFeatureDefensePercent);
@@ -18429,7 +18095,7 @@ void CvUnit::read(FDataStreamBase* pStream)
 			WRAPPER_READ_CLASS_ARRAY_ALLOW_MISSING(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_FEATURES, cCount, m_paiExtraFeatureDefensePercent);
 		}
 	}
-	
+
 	//WRAPPER_READ_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_COMBATINFOS, GC.getNumUnitCombatInfos(), m_paiExtraUnitCombatModifier);
 	if (uiFlag <= 3)
 	{
@@ -18573,7 +18239,7 @@ void CvUnit::write(FDataStreamBase* pStream)
 		WRAPPER_WRITE_DECORATED(wrapper, "CvUnit", (char)GC.getNumTerrainInfos(), "cConditional");
 		WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_TERRAINS, GC.getNumTerrainInfos(), m_paiTerrainProtected);
 	}
-	
+
 	WRAPPER_WRITE(wrapper, "CvUnit", m_shadowUnit.eOwner);
 	WRAPPER_WRITE(wrapper, "CvUnit", m_shadowUnit.iID);
 	WRAPPER_WRITE_CLASS_ENUM(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_TECHS, m_eDesiredDiscoveryTech);
@@ -18704,7 +18370,7 @@ void CvUnit::write(FDataStreamBase* pStream)
 		WRAPPER_WRITE_DECORATED(wrapper, "CvUnit", (char)GC.getNumFeatureInfos(), "cConditional"); // f1rpo (bugfix): was TerrainInfos
 		WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_FEATURES, GC.getNumFeatureInfos(), m_paiExtraFeatureDefensePercent);
 	}
-	
+
 	//WRAPPER_WRITE_CLASS_ARRAY(wrapper, "CvUnit", REMAPPED_CLASS_TYPE_COMBATINFOS, GC.getNumUnitCombatInfos(), m_paiExtraUnitCombatModifier);
 	if (NULL == m_paiExtraUnitCombatModifier)
 	{
@@ -21002,14 +20668,14 @@ void CvUnit::updateStackCombat(bool bQuick)
 			setMadeAttack(true);
 
 			//rotate to face plot
-			DirectionTypes newDirection = estimateDirection(this->plot(), pDefender->plot());
+			DirectionTypes newDirection = estimateDirection(plot(), pDefender->plot());
 			if (newDirection != NO_DIRECTION)
 			{
 				setFacingDirection(newDirection);
 			}
 
 			//rotate enemy to face us
-			newDirection = estimateDirection(pDefender->plot(), this->plot());
+			newDirection = estimateDirection(pDefender->plot(), plot());
 			if (newDirection != NO_DIRECTION)
 			{
 				pDefender->setFacingDirection(newDirection);
@@ -23269,7 +22935,7 @@ bool CvUnit::spyNuke(int iX, int iY, bool bCaught)
 			}
 		}
 	}
-	const CvWString szBuffer = 
+	const CvWString szBuffer =
 	(
 		bCaught
 		?
@@ -24198,7 +23864,7 @@ void CvUnit::doBattleFieldPromotions(CvUnit* pDefender, CombatDetails cdDefender
 						AddMessage(
 							getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 							GC.getPromotionInfo((PromotionTypes)0).getSound(), MESSAGE_TYPE_INFO, NULL,
-							(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), this->plot()->getX_INLINE(), this->plot()->getY_INLINE());
+							(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), plot()->getX_INLINE(), plot()->getY_INLINE());
 					}
 				}
 			}
@@ -24416,7 +24082,7 @@ void CvUnit::setMADEnabled(bool bValue)
 				{
 					GET_PLAYER(getMADTargetPlotOwner()).changeMADIncoming(-1);
 					getMADTargetPlot()->getPlotCity()->changeMADIncoming(-1);
-				}	
+				}
 			}
 
 			setMADTargetPlot(NULL);
