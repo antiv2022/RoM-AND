@@ -25337,6 +25337,7 @@ void CvPlayer::read(FDataStreamBase* pStream)
 		}
 
 		WRAPPER_READ(wrapper, "CvPlayer", &m_iAllowsAmbassadorsCount);
+		WRAPPER_READ(wrapper, "CvPlayer", &m_iFractionalXPEarnedInCity);
 	}
 	else
 	{
@@ -26046,6 +26047,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 			}
 		}
 		WRAPPER_WRITE(wrapper, "CvPlayer", m_iAllowsAmbassadorsCount);
+		WRAPPER_WRITE(wrapper, "CvPlayer", m_iFractionalXPEarnedInCity);
 	}
 
 	WRAPPER_WRITE_OBJECT_END(wrapper);
@@ -26157,6 +26159,7 @@ void CvPlayer::resync(bool bWrite, ByteBuffer* pBuffer)
 	RESYNC_FLOAT(bWrite, pBuffer, m_fRevIdxGoodReligionMod);
 	RESYNC_BOOL(bWrite, pBuffer, m_bInquisitionConditions);
 	RESYNC_INT(bWrite, pBuffer, m_iUnitUpgradePriceModifier);
+	RESYNC_INT(bWrite, pBuffer, m_iFractionalXPEarnedInCity);
 	RESYNC_INT(bWrite, pBuffer, m_iNumNukeUnits);
 	RESYNC_INT(bWrite, pBuffer, m_iNumOutsideUnits);
 	RESYNC_INT(bWrite, pBuffer, m_iBaseFreeUnits);
@@ -35131,6 +35134,7 @@ void CvPlayer::clearModifierTotals()
 	m_iForeignTradeRouteModifier = 0;
 	m_iTaxRateUnhappiness = 0;
 	m_iCivicHappiness = 0;
+	m_iFractionalXPEarnedInCity = 0;
 	m_iUnitUpgradePriceModifier = 0;
 	m_iAnarchyModifier = 0;
 	m_iGoldenAgeModifier = 0;
@@ -36352,7 +36356,7 @@ int CvPlayer::getFractionalXPEarnedInCity() const
 
 void CvPlayer::changeFractionalXPEarnedInCity(int iChange)
 {
-	m_iFractionalXPEarnedInCity = std::max(0, m_iFractionalXPEarnedInCity + iChange);
+	m_iFractionalXPEarnedInCity += iChange;
 }
 
 //Calculates the tribute percent paid out to the strongest players

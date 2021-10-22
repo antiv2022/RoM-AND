@@ -1360,12 +1360,21 @@ void CvUnit::doTurn()
 		CvCity* pCity = plot()->getPlotCity();
 		if (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE())
 		{
-			float fXP = (float)GET_PLAYER(getOwnerINLINE()).getFractionalXPEarnedInCity();
 			//Normal game speed train percent != 100, try to use it instead of 100 to scale by as the base modifier
-			int iNormal = GC.getInfoTypeForString("GAMESPEED_NORMAL");
-			fXP *= (iNormal == -1 ? 100 : GC.getGameSpeedInfo((GameSpeedTypes)iNormal).getTrainPercent());
-			fXP /= GC.getGameSpeedInfo((GameSpeedTypes)GC.getGameINLINE().getGameSpeedType()).getTrainPercent();
-			setExperience100(getExperience100() + std::max(1, (int)fXP));
+			const GameSpeedTypes eNormal = (GameSpeedTypes)GC.getInfoTypeForString("GAMESPEED_NORMAL");
+
+			setExperience100(
+				getExperience100()
+				+
+				std::max(
+					1,
+					GET_PLAYER(getOwnerINLINE()).getFractionalXPEarnedInCity()
+					*
+					(eNormal == -1 ? 100 : GC.getGameSpeedInfo(eNormal).getTrainPercent())
+					/
+					GC.getGameSpeedInfo((GameSpeedTypes)GC.getGameINLINE().getGameSpeedType()).getTrainPercent()
+				)
+			);
 		}
 	}
 	//Afforess earned xp end
@@ -17196,16 +17205,13 @@ bool CvUnit::isPromotionValid(PromotionTypes ePromotion) const
 
 bool CvUnit::canAcquirePromotionAny() const
 {
-	int iI;
-
-	for (iI = 0; iI < GC.getNumPromotionInfos(); iI++)
+	for (int iI = GC.getNumPromotionInfos() - 1; iI > -1; iI--)
 	{
 		if (canAcquirePromotion((PromotionTypes)iI))
 		{
 			return true;
 		}
 	}
-
 	return false;
 }
 
