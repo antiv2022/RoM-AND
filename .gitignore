@@ -14,6 +14,7 @@ CvGameCoreDLL/project/temp_files/
 
 CvGameCoreDLL/project/Debug/
 CvGameCoreDLL/project/Debug-fast/
+CvGameCoreDLL/project/Debug-opt/
 CvGameCoreDLL/project/Assert/
 CvGameCoreDLL/project/Assert-fast/
 CvGameCoreDLL/project/Release/

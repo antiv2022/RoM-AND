@@ -5,9 +5,12 @@ SOURCE_DIR = ..
 PROJECT_CFLAGS = /WX /W3 /DLOG_AI /D_MOD_FRACTRADE /D_MOD_GOVWORKERS /DQC_MASTERY_VICTORY /D_MOD_GWARM /D_MOD_SHAM_SPOILER /DC2C_BUILD /DUSE_RAPID_XML
 # Allow inline expansion of functions with an inline keyword even for debug builds
 PROJECT_Debug_CFLAGS = /Ob1 /DVALIDATE_CAN_TRAIN_CACHE_CONSISTENCY /DVALIDATE_CAN_CONSTRUCT_CACHE /DVERIFY_YIELD_CACHE_RESULTS /DVERIFY_PLOT_DANGER_CACHE_RESULTS
-# Should _not_ be set when inspecting disassembly as it will disable __forceinline
+# Should use these extra flags for debugging (i.e. when debugging errors that
+# aren't reproducible with non-optimizing debug builds). Replacing /O2
+# with just e.g. /Oi /Ot /Ob1 is also worth a try, or a debug build without /RTC1;
+# that would have to be done through the actual Makefile.
 #PROJECT_DebugOpt_CFLAGS = /DFASSERT_ENABLE /Oy-
-# Can use global optimizations along with debug symbols; it's just slow to compile.
+# Can use whole-program optimization along with debug symbols; it's just slow to compile.
 #PROJECT_DebugOpt_CFLAGS = /GL
 # DLL-internal profiler: /DUSE_INTERNAL_PROFILER
 # External profiler, e.g. Very Sleepy: No profile flags needed; profile builds always use Z7.
