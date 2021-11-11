@@ -28212,10 +28212,10 @@ bool CvUnitAI::AI_nuke()
 				}
 			}
 		}
-		for (size_t i = 0; i < apiPotentialTargets.size(); i++)
+		for (size_t j = 0; j < apiPotentialTargets.size(); j++)
 		{
-			CvPlot& kCenter = *apiPotentialTargets[i].first;
-			int iSearchRange = apiPotentialTargets[i].second;
+			CvPlot& kCenter = *apiPotentialTargets[j].first;
+			int iSearchRange = apiPotentialTargets[j].second;
 			CvPlot* pTarget;
 			int iValue = AI_nukeValue(kCenter, iSearchRange, pTarget,
 					iDestructionWeight);

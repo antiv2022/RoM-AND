@@ -9741,7 +9741,7 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 		}
 
 // Thomas SG - AC: Advanced Cargo START
-		CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
+		//CvUnitInfo& kUnit = GC.getUnitInfo(eUnit); // f1rpo: redundant
 		{
 			if (kUnit.getNumSpecialUnitTypes() > 0 && !((kUnit.getTotalCargoSpace() - kUnit.getTotalSpecialCargoSpace()) > 0))
 			{
@@ -23821,7 +23821,7 @@ void CvPlayer::processCivics(CivicTypes eCivic, int iChange, bool bLimited)
 	//Speed Optimizations
 	if (bLimited)
 	{
-		CvCivicInfo& kCivic = GC.getCivicInfo(eCivic);
+		//CvCivicInfo& kCivic = GC.getCivicInfo(eCivic); // f1rpo: redundant
 
 		changeCivicHappiness(kCivic.getCivicHappiness() * iChange);
 		changeNoCapitalUnhappiness(kCivic.isNoCapitalUnhappiness() ? iChange : 0);

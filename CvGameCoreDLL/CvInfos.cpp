@@ -1893,6 +1893,7 @@ m_iEra(NO_ERA),
 m_iTradeRoutes(0),
 m_iFeatureProductionModifier(0),
 m_iWorkerSpeedModifier(0),
+m_iNumTechArrowOverrides(0), // f1rpo: Better initialize this
 //DPII < Maintenance Modifier >
 m_iMaintenanceModifier(0),
 m_iDistanceMaintenanceModifier(0),
@@ -14324,6 +14325,7 @@ m_iOccupationTimePopulationPercent(0),
 //ls612: End
 m_iVictoryDelayPercent(0),
 m_iNumTurnIncrements(0),
+m_iTraitGainPercent(0), // f1rpo: Better initialize this
 m_pGameTurnInfo(NULL),
 m_bEndDatesCalculated(false)
 /************************************************************************************************/
@@ -24957,6 +24959,7 @@ m_iDomesticGreatGeneralRateModifier(0),
 m_iMaxGlobalBuildingProductionModifier(0),	
 m_iMaxTeamBuildingProductionModifier(0),		
 m_iMaxPlayerBuildingProductionModifier(0),
+m_eEditedTrait(NO_TRAIT), // f1rpo: better initialize
 
 /********************************************************************************/
 /**		REVDCM									2/16/10				phungus420	*/

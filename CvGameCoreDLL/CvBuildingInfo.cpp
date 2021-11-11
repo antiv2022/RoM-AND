@@ -198,6 +198,9 @@ m_bFreeFromStateReligion(false),
 m_bCenterInCity(false),
 m_bStateReligion(false),
 m_bAllowsNukes(false),
+// <f1rpo> Better initialize these
+m_bEnablesOtherBuildingsValue(false),
+m_bEnablesUnits(false), // </f1rpo>
 m_piPrereqAndTechs(NULL),
 m_piPrereqOrBonuses(NULL),
 m_piProductionTraits(NULL),
@@ -350,6 +353,9 @@ m_ppaiBonusYieldModifier(NULL)
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
+// <f1rpo> Better initialize these
+,m_ppaiTechHappinessChanges(NULL)
+,m_ppaiTechHealthChanges(NULL) // </f1rpo>
 ,m_PropertyManipulators()
 ,m_pExprNewCityFree(NULL)
 ,m_pExprConstructCondition(NULL),

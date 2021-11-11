@@ -1662,9 +1662,11 @@ void CvCityAI::AI_chooseProduction()
 				FAssert(false);
 			}
 		}
-		if (!bInhibitMilitaryUnits && !bInhibitUnits && iUnitCostPercentage < iMaxUnitSpending + 15 && !bFinancialTrouble)
-		{
-			int iMaxUnitSpending = (bAggressiveAI ? 6 : 3) + iBuildUnitProb / 3;
+
+		if (!bInhibitMilitaryUnits && !bInhibitUnits
+			&& iUnitCostPercentage < iMaxUnitSpending + 15 && !bFinancialTrouble)
+		{	// f1rpo: I think reusing iMaxUnitSpending is intended here
+			/*int*/ iMaxUnitSpending = (bAggressiveAI ? 6 : 3) + iBuildUnitProb / 3;
 
 			if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
 			{
@@ -1686,7 +1688,8 @@ void CvCityAI::AI_chooseProduction()
 			UnitTypes eBestAttackAircraft = NO_UNIT;
 			UnitTypes eBestMissile = NO_UNIT;
 
-			if (!bInhibitMilitaryUnits && !bInhibitUnits && iUnitCostPercentage < (iMaxUnitSpending + 15) && (!bImportantCity || bDefenseWar))
+			if (!bInhibitMilitaryUnits && !bInhibitUnits
+				&& iUnitCostPercentage < iMaxUnitSpending + 15 && (!bImportantCity || bDefenseWar))
 			{
 				if (bLandWar || bAssault || (iFreeAirExperience > 0) || (getCitySorenRandNum(2, "AI train air") == 0))
 				{
@@ -3416,7 +3419,6 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 	BuildingTypes eBestBuilding;
 	bool bAreaAlone;
 	int iProductionRank;
-	int iTurnsLeft;
 	int iValue;
 	int iTempValue;
 	int iBestValue;
@@ -3679,7 +3681,7 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 
 							if (iValue > 0)
 							{
-								iTurnsLeft = getProductionTurnsLeft(eLoopBuilding, 0);
+								int iTurnsLeft = getProductionTurnsLeft(eLoopBuilding, 0);
 
 								if (isWorldWonderClass((BuildingClassTypes)iI))
 								{
@@ -8776,8 +8778,6 @@ void CvCityAI::AI_doHurry(bool bForce)
 	int iHurryAngerLength;
 	int iHurryPopulation;
 	int iMinTurns;
-	bool bDanger;
-	bool bWait;
 	bool bEssential;
 	bool bGrowth;
 	int iI, iJ;
@@ -8809,7 +8809,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 		}
 	}
 
-	bDanger = AI_isDanger();
+	bool const bDanger = AI_isDanger();
 
 	for (iI = 0; iI < GC.getNumHurryInfos(); iI++)
 	{
@@ -8907,7 +8907,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 							int iHurryGold = hurryGold((HurryTypes)iI);
 							if( iHurryGold > 0 && iHurryAngerLength == 0 )
 							{
-								bool bDanger = AI_isDanger();
+								//bool bDanger = AI_isDanger(); // f1rpo: redundant
 								bool bWait = true;
 
 								if( GET_PLAYER(getOwnerINLINE()).AI_isDoStrategy(AI_STRATEGY_TURTLE) )
@@ -9324,7 +9324,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 /************************************************************************************************/
 				if (getProductionTurnsLeft() > iMinTurns)
 				{
-					bWait = isHuman();
+					bool bWait = isHuman();
 
 					if ((iHurryPopulation * 3) > (getProductionTurnsLeft() * 2))
 					{

@@ -2184,7 +2184,9 @@ protected:
 class CvCityTurnPipelineWorkItem : public CvPipelineWorkItem
 {
 public:
-	CvCityTurnPipelineWorkItem(CvCity* pCity) : m_proposedOrderType( NO_ORDER )
+	CvCityTurnPipelineWorkItem(CvCity* pCity) : m_proposedOrderType( NO_ORDER ),
+		// f1rpo: Better initialize these
+		m_proposedOrderInstanceId(-1), m_proposedData2(-1)
 	{
 		SetRandSeed(GC.getGameINLINE().getSorenRand().getSeed() + pCity->getID());
 		m_pCity = pCity;

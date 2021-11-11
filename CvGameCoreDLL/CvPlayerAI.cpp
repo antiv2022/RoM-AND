@@ -5289,48 +5289,52 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bIgnoreCost, bool bAs
 /*                                                                                              */
 /*  Forces AI to Beeline for Religious Techs if they have no religions                          */
 /************************************************************************************************/
-	bool bValid = GC.getGameINLINE().isOption(GAMEOPTION_RUTHLESS_AI);
-	if (!bValid)
 	{
-		for (int iI = 0; iI < GC.getNumTraitInfos(); iI++)
+		bool bValid = GC.getGameINLINE().isOption(GAMEOPTION_RUTHLESS_AI);
+		if (!bValid)
 		{
-			if (hasTrait((TraitTypes)iI))
+			for (int iI = 0; iI < GC.getNumTraitInfos(); iI++)
 			{
-				if (GC.getTraitInfo((TraitTypes)iI).getMaxAnarchy() >= 0)
+				if (hasTrait((TraitTypes)iI))
 				{
-					bValid = true;
-					break;
+					if (GC.getTraitInfo((TraitTypes)iI).getMaxAnarchy() >= 0)
+					{
+						bValid = true;
+						break;
+					}
 				}
 			}
 		}
-	}
-	if (bValid)
-	{
-		if (getCommercePercent(COMMERCE_RESEARCH) < 90)
+		if (bValid)
 		{
-			bValid = false;
+			if (getCommercePercent(COMMERCE_RESEARCH) < 90)
+			{
+				bValid = false;
+			}
+			if (countHolyCities() > 0 &&
+				(!GC.getGameINLINE().isOption(GAMEOPTION_NO_REVOLUTION)
+				|| GC.getGameINLINE().isOption(GAMEOPTION_LIMITED_RELIGIONS)))
+			{
+				bValid = false;
+			}
+			if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) == 0)
+			{
+				bValid = false;
+			}
+			if (getNumCities() == 1)
+			{
+				bValid = false;
+			}
 		}
-		if (countHolyCities() > 0 && (!GC.getGameINLINE().isOption(GAMEOPTION_NO_REVOLUTION) || GC.getGameINLINE().isOption(GAMEOPTION_LIMITED_RELIGIONS)))
+		if (bValid)
 		{
-			bValid = false;
-		}
-		if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) == 0)
-		{
-			bValid = false;
-		}
-		if (getNumCities() == 1)
-		{
-			bValid = false;
-		}
-	}
-	if (bValid)
-	{
-		eBestTech = AI_bestReligiousTech(iMaxPathLength * 3, eIgnoreTech, eIgnoreAdvisor);
-		if (eBestTech != NO_TECH)
-		{
-			//	Don't retain the beeline persistently since we need to re-evaluate
-			//	each turn in case someone has beaten us to it for religions
-			return eBestTech;
+			eBestTech = AI_bestReligiousTech(iMaxPathLength * 3, eIgnoreTech, eIgnoreAdvisor);
+			if (eBestTech != NO_TECH)
+			{
+				//	Don't retain the beeline persistently since we need to re-evaluate
+				//	each turn in case someone has beaten us to it for religions
+				return eBestTech;
+			}
 		}
 	}
 /************************************************************************************************/
@@ -7510,14 +7514,14 @@ int CvPlayerAI::AI_techUnitValue( TechTypes eTech, int iPathLength, bool &bEnabl
 							bool bHasSettler = false;
 
 							for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
-							{
-								UnitTypes eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
+							{	// f1rpo: Renamed to avoid shadowing eLoopUnit
+								UnitTypes eSettler = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
 
-								if (eLoopUnit != NO_UNIT)
+								if (eSettler != NO_UNIT)
 								{
-									if (GC.getUnitInfo(eLoopUnit).getDefaultUnitAIType() == UNITAI_SETTLE)
+									if (GC.getUnitInfo(eSettler).getDefaultUnitAIType() == UNITAI_SETTLE)
 									{
-										if ( canTrain(eLoopUnit) )
+										if ( canTrain(eSettler) )
 										{
 											bHasSettler = true;
 											break;
@@ -11319,7 +11323,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, bool bForTrade) const
 				{
 					CvBuildingInfo& kLoopBuilding = GC.getBuildingInfo(eLoopBuilding);
 					int iBuildingTechDistance;
-					bool bCanConstruct;
+					bool bCanConstruct=false; // f1rpo: Ensure initialization
 
 					if ( bJustNonTradeBuildings || bForTrade )
 					{

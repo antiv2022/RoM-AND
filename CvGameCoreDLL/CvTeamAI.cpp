@@ -1220,8 +1220,8 @@ int CvTeamAI::AI_chooseElection(const VoteSelectionData& kVoteSelectionData) con
 				if (GET_PLAYER((PlayerTypes)iJ).isAlive())
 				{
 					if (GET_PLAYER((PlayerTypes)iJ).getTeam() == getID())
-					{
-						PlayerVoteTypes eVote = GET_PLAYER((PlayerTypes)iJ).AI_diploVote(kVoteSelectionData.aVoteOptions[iI], eVoteSource, true);
+					{	// f1rpo: Renamed to avoid shadowing eVote
+						PlayerVoteTypes ePlayerVote = GET_PLAYER((PlayerTypes)iJ).AI_diploVote(kVoteSelectionData.aVoteOptions[iI], eVoteSource, true);
 						// 45° Nuclear Winter fear - START
 						// added to take into consideration fear for nuclear winter, based on total nukes built and exploded, scaled by mapsize
 						if (GC.getVoteInfo(kVoteSelectionData.aVoteOptions[iI].eVote).isNoNukes())
@@ -1233,7 +1233,8 @@ int CvTeamAI::AI_chooseElection(const VoteSelectionData& kVoteSelectionData) con
 							}				
 						}	
 								// 45° Nuclear Winter fear - END
-						else if ((!GC.getVoteInfo(kVoteSelectionData.aVoteOptions[iI].eVote).isNoNukes()) && (eVote != PLAYER_VOTE_YES || eVote == GC.getGameINLINE().getVoteOutcome((VoteTypes)iI)))
+						else if ((!GC.getVoteInfo(kVoteSelectionData.aVoteOptions[iI].eVote).isNoNukes())
+							&& (ePlayerVote != PLAYER_VOTE_YES || ePlayerVote == GC.getGameINLINE().getVoteOutcome((VoteTypes)iI)))
 						{
 							bValid = false;
 							break;

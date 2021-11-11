@@ -3902,8 +3902,6 @@ bool CvCity::canConstructInternal(BuildingTypes eBuilding, bool bContinue, bool 
 /************************************************************************************************/
 
 	BuildingTypes ePrereqBuilding;
-	bool bRequiresBonus;
-	bool bNeedsBonus;
 	int iI;
 	CorporationTypes eCorporation;
 /************************************************************************************************/
@@ -4260,8 +4258,8 @@ bool CvCity::canConstructInternal(BuildingTypes eBuilding, bool bContinue, bool 
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
 
-		bRequiresBonus = false;
-		bNeedsBonus = true;
+		bool bRequiresBonus = false;
+		bool bNeedsBonus = true;
 
 		for (iI = 0; iI < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); iI++)
 		{
@@ -12021,11 +12019,11 @@ void CvCity::updateFeatureHappiness(bool bLimited)
 /*                                                                                              */
 /************************************************************************************************/
 				CvPlayer &kPlayer = GET_PLAYER(getOwnerINLINE());
-				for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
+				FOR_EACH_ENUM(CivicOption) // f1rpo: Don't shadow iI
 				{
-					if (kPlayer.getCivics((CivicOptionTypes)iI) != NO_CIVIC)
+					if (kPlayer.getCivics(eLoopCivicOption) != NO_CIVIC)
 					{
-						iHappy += GC.getCivicInfo(kPlayer.getCivics((CivicOptionTypes)iI)).getImprovementHappinessChanges(eImprovement);
+						iHappy += GC.getCivicInfo(kPlayer.getCivics(eLoopCivicOption)).getImprovementHappinessChanges(eImprovement);
 					}
 				}
 /************************************************************************************************/
@@ -17188,21 +17186,14 @@ void CvCity::alterSpecialistCount(SpecialistTypes eIndex, int iChange)
 						else
 						{
 							int iNumCanWorkPlots = 0;
-/************************************************************************************************/
-/* JOOYO_ADDON, Added by Jooyo, 06/17/09                                                        */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-							for (int iI = 0; iI < getNumCityPlots(); iI++)
-/************************************************************************************************/
-/* JOOYO_ADDON                          END                                                     */
-/************************************************************************************************/
+							// JOOYO_ADDON, Added by Jooyo, 06/17/09:  (f1rpo: Don't shadow iI)
+							for (int j = 0; j < getNumCityPlots(); j++)
 							{
-								if (iI != CITY_HOME_PLOT)
+								if (j != CITY_HOME_PLOT)
 								{
-									if (!isWorkingPlot(iI))
+									if (!isWorkingPlot(j))
 									{
-										CvPlot* pLoopPlot = getCityIndexPlot(iI);
+										CvPlot* pLoopPlot = getCityIndexPlot(j);
 
 										if (pLoopPlot != NULL)
 										{
@@ -17729,11 +17720,9 @@ void CvCity::setNumRealBuilding(BuildingTypes eIndex, int iNewValue)
 
 void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool bFirst, PlayerTypes eOriginalOwner, int iOriginalTime)
 {
-	CvCity* pLoopCity;
 	CvWString szBuffer;
 	int iOldNumBuilding;
 	int iChangeNumRealBuilding;
-	int iLoop = 0;
 	int iI;
 
 	FAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
@@ -17871,7 +17860,8 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 								{
 									if (GC.getBuildingInfo(eIndex).isTeamShare() || (iI == getOwnerINLINE()))
 									{
-										for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
+										int iLoop; // f1rpo: Declaration moved down; had been shadowed.
+										for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
 										{
 											pLoopCity->setPopulation(std::max(1, (pLoopCity->getPopulation() + iChangeNumRealBuilding * GC.getBuildingInfo(eIndex).getGlobalPopulationChange())));
 											pLoopCity->AI_updateAssignWork();  // so subsequent cities don't starve with the extra citizen working nothing
@@ -24587,12 +24577,15 @@ void CvCity::updateImprovementHealth()
 					if (eImprovement != NO_IMPROVEMENT)
 					{
 						iNewHealthPercent += GC.getImprovementInfo(eImprovement).getHealthPercent();
-						for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
+						FOR_EACH_ENUM(CivicOption) // f1rpo: Don't shadow iI
 						{
-							if (kPlayer.getCivics((CivicOptionTypes)iI) != NO_CIVIC)
+							if (kPlayer.getCivics(eLoopCivicOption) != NO_CIVIC)
 							{
-								iNewHealthPercent += std::max(0, GC.getCivicInfo(kPlayer.getCivics((CivicOptionTypes)iI)).getImprovementHealthPercentChanges(eImprovement));
-								iNewHealthPercent += std::min(0, GC.getCivicInfo(kPlayer.getCivics((CivicOptionTypes)iI)).getImprovementHealthPercentChanges(eImprovement));
+								int iChange = GC.getInfo(kPlayer.getCivics(eLoopCivicOption))
+										.getImprovementHealthPercentChanges(eImprovement);
+								/*iNewHealthPercent += std::max(0, iChange);
+								iNewHealthPercent += std::min(0, iChange);*/
+								iNewHealthPercent += iChange; // f1rpo: simplify
 							}
 						}
 /*						if (GC.getImprovementInfo(eImprovement).getHealthPercent() > 0)
