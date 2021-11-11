@@ -22926,7 +22926,11 @@ void CvCity::applyEvent(EventTypes eEvent, const EventTriggeredData* pTriggeredD
 	//	NULL pTriggeredData implies a replay after a reset of modifiers and only modifier effects
 	//	should be applied
 	bool	adjustModifiersOnly = (pTriggeredData == NULL);
-	const EventTriggeredData& kTriggeredData = *pTriggeredData;
+	//const EventTriggeredData& kTriggeredData = *pTriggeredData;
+	// <f1rpo> If pTriggeredData can indeed be NULL, then we can't just dereference it.
+	EventTriggeredData dummy;
+	const EventTriggeredData& kTriggeredData = (pTriggeredData == NULL ? dummy : *pTriggeredData);
+	// </f1rpo>
 
 	if ( !adjustModifiersOnly )
 	{

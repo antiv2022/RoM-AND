@@ -29588,7 +29588,9 @@ int CvPlayerAI::AI_getSpaceVictoryStage() const
 			return 3;
 		}
 
-		if( GET_TEAM(getTeam()).getBestKnownTechScorePercent() > (m_iVictoryStrategyHash & AI_VICTORY_SPACE3 ? 80 : 85) )
+		if( GET_TEAM(getTeam()).getBestKnownTechScorePercent() >
+			// f1rpo: parentheses
+			((m_iVictoryStrategyHash & AI_VICTORY_SPACE3) ? 80 : 85) )
 		{
 			return 3;
 		}
@@ -36174,13 +36176,17 @@ int CvPlayerAI::AI_promotionValue(PromotionTypes ePromotion, UnitTypes eUnit, co
 		if (kPromotion.getEvasionChange())
 		{
 			//Lean towards more deception if deception is already present
-			iValue += ((kPromotion.getEvasionChange() * 2) + pUnit == NULL ? 0 : pUnit->evasionProbability());
+			iValue += kPromotion.getEvasionChange() * 2 +
+					// f1rpo: Needs parentheses
+					(pUnit == NULL ? 0 : pUnit->evasionProbability());
 		}//total 20, 30, 40 points
 
 		//Security
 		iValue += (kPromotion.getVisibilityChange()*10);
 		//Lean towards more security if security is already present
-		iValue += (kPromotion.getInterceptChange() +  pUnit == NULL ? kUnit.getInterceptionProbability() : pUnit->currInterceptionProbability());
+		iValue += kPromotion.getInterceptChange() +
+				// f1rpo: Needs parentheses
+				(pUnit == NULL ? kUnit.getInterceptionProbability() : pUnit->currInterceptionProbability());
 		//total 20, 30, 40 points
 
 		//Escape

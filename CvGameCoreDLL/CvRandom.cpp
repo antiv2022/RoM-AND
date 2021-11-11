@@ -69,8 +69,8 @@ unsigned short CvRandom::get(unsigned short usNum, const TCHAR* pszLog)
 			TCHAR szOut[1024];
 			if (GC.getGameINLINE().getActivePlayer() != -1)
 				sprintf(szOut, "Player %d - Multiplayer RNG Log.log", GC.getGameINLINE().getActivePlayer());
-			else
-				sprintf(szOut, "Pitboss Multiplayer RNG Log.log", GC.getGameINLINE().getActivePlayer());
+			else	// f1rpo: Format string doesn't have an int param
+				sprintf(szOut, "Pitboss Multiplayer RNG Log.log"/*, GC.getGameINLINE().getActivePlayer()*/);
 			GC.getGameINLINE().logMsgTo(szOut, "Prev Rand Seed: %d, New Rand Seed: %d, RNG Result: %d -- usNum: (%d) on Turn Slice: %d (%s)\n", ulPrevRand, m_ulRandomSeed, us, usNum, GC.getGameINLINE().getTurnSlice(), pszLog);
 		}
 		else
@@ -78,8 +78,8 @@ unsigned short CvRandom::get(unsigned short usNum, const TCHAR* pszLog)
 		//	TCHAR szOut[1024];
 		//	if (GC.getGameINLINE().getActivePlayer() != -1)
 		//		sprintf(szOut, "Player %d - Multiplayer RNG Log.log", GC.getGameINLINE().getActivePlayer());
-		//	else
-		//		sprintf(szOut, "Pitboss Multiplayer RNG Log.log", GC.getGameINLINE().getActivePlayer());
+		//	else	// f1rpo: Format string doesn't have an int param
+		//		sprintf(szOut, "Pitboss Multiplayer RNG Log.log"/*, GC.getGameINLINE().getActivePlayer()*/);
 		//	GC.getGameINLINE().logMsgTo(szOut, "Prev Rand Seed: %d, New Rand Seed: %d, RNG Result: %d -- usNum: (%d) on Turn Slice: %d (%s)\n", ulPrevRand, m_ulRandomSeed, us, usNum, GC.getGameINLINE().getTurnSlice(), pszLog);
 		}
 	}
@@ -130,8 +130,8 @@ void CvRandom::read(FDataStreamBase* pStream)
 		TCHAR szOut[1024];
 		if (GC.getGameINLINE().getActivePlayer() != -1)
 			sprintf(szOut, "Player %d - Multiplayer RNG Log.log", GC.getGameINLINE().getActivePlayer());
-		else
-			sprintf(szOut, "Pitboss Multiplayer RNG Log.log", GC.getGameINLINE().getActivePlayer());
+		else	// f1rpo: Format string doesn't have an int param
+			sprintf(szOut, "Pitboss Multiplayer RNG Log.log"/*, GC.getGameINLINE().getActivePlayer()*/);
 		GC.getGameINLINE().logMsgTo(szOut, "!!! - Reading random seed from stream, value is %d - !!!\n", m_ulRandomSeed);
 	}
 //#endif
@@ -156,8 +156,8 @@ void CvRandom::write(FDataStreamBase* pStream)
 		TCHAR szOut[1024];
 		if (GC.getGameINLINE().getActivePlayer() != -1)
 			sprintf(szOut, "Player %d - Multiplayer RNG Log.log", GC.getGameINLINE().getActivePlayer());
-		else
-			sprintf(szOut, "Pitboss Multiplayer RNG Log.log", GC.getGameINLINE().getActivePlayer());
+		else	// f1rpo: Format string doesn't have an int param
+			sprintf(szOut, "Pitboss Multiplayer RNG Log.log"/*, GC.getGameINLINE().getActivePlayer()*/);
 		GC.getGameINLINE().logMsgTo(szOut, "!!! - Writing random seed to stream, value is %d - !!!\n", m_ulRandomSeed);
 	}
 //#endif

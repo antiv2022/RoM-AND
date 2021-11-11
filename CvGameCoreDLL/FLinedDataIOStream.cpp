@@ -81,7 +81,7 @@ unsigned int FLinedDataIOStream::WriteString(const wchar *szName)
 	char* tmp = new char[len+1];
 	wcstombs(tmp, szName, 0xfffffe);
 	WriteString(tmp);
-	delete tmp;
+	delete[] tmp; // f1rpo: was non-array delete
 	return 0;
 }
 

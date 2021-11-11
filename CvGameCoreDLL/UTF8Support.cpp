@@ -454,8 +454,9 @@ void setConversionTableUnicode()
 		}
 	}
 	else if (iCharset == 866)
-	{
-		for (int iIndex = 0; iIndex < 0x80; iIndex++)
+	{	/*	f1rpo: This array has only size 80, not 128. Don't know if that's
+			as intended. (Going out of bounds here surely wasn't intended.) */
+		for (int iIndex = 0; iIndex < /*0x80*/80; iIndex++)
 		{
 			conversion_table_unicode[iIndex] = cp866_2uni[iIndex];
 		}
