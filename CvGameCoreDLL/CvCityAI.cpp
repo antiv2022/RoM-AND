@@ -11431,11 +11431,9 @@ int CvCityAI::AI_plotValue(CvPlot* pPlot, bool bAvoidGrowth, bool bRemove, bool 
 int CvCityAI::AI_experienceWeight()
 {
 	//return ((getProductionExperience() + getDomainFreeExperience(DOMAIN_SEA)) * 2);
-	/*	<f1rpo> From K-Mod; the -4 is from AdvCiv (advc.017). Replacing the above.
-		(Rationale: Barracks are pretty ubiquitous; shouldn't add 6 to buildUnitProb.
-		Rather make cities w/o Barracks hesitant to train units.) */
+	// <f1rpo> From K-Mod; the -2 is from AdvCiv (advc.017). Replacing the above.
 	return 2 * getProductionExperience() + getDomainFreeExperience(DOMAIN_LAND)
-			+ getDomainFreeExperience(DOMAIN_SEA) - 4;
+			+ getDomainFreeExperience(DOMAIN_SEA) - 2; // </f1rpo>
 }
 
 
