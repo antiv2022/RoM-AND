@@ -92,4 +92,8 @@ protected:
 	int m_iGroupAttackY;
 };
 
+/*  f1rpo: If this fails, then you've probably added a data member (directly)
+	to CvSelectionGroupAI. See comment in CvSelectionGroup.h. */
+BOOST_STATIC_ASSERT(sizeof(CvSelectionGroupAI) == 36 + sizeof(CvSelectionGroup));
+
 #endif

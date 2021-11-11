@@ -388,6 +388,8 @@ protected:
 	unsigned int m_uiMapRandSeed;
 	PlayerTypes m_eActivePlayer;
 	GameMode m_eMode;
+	/*	f1rpo (caveat): Adding data below this line appears to be safe,
+		but, above, data must be neither added nor rearranged. */
 //45deg: Pitboss Mod START
 	bool m_bPitbossSave;
 	bool m_bPbemOrHotseatSave;

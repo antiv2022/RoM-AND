@@ -327,29 +327,35 @@ protected:
 
 	PlayerTypes m_eOwner;
 	ActivityTypes m_eActivityType;
-	AutomateTypes m_eAutomateType;
-
+	//AutomateTypes m_eAutomateType;
+	/*	<f1rpo> (from AdvCiv; advc.003k) Pointer to additional data members.
+		Changing the size of this class is not safe b/c the EXE calls the ctor
+		of the derived CvSelectionGroupAI class. The BBAI/ BUG additions seem
+		to have worked out OK, but a few byte more would've caused problems
+		(see Koshling's comment below). */
+	class Data
+	{
+		friend CvSelectionGroup;
+		AutomateTypes eAutomateType;
+		// BETTER_BTS_AI_MOD, 08/19/09, jdog5000: General AI
+		mutable bool bIsStrandedCache;
+		mutable bool bIsStrandedCacheValid;
+		// BETTER_BTS_AI_MOD: END
+		// BUG - Safe Move - start
+		bool bLastPathPlotChecked;
+		bool bLastPlotVisible;
+		bool bLastPlotRevealed;
+		// BUG - Safe Move - end
+	};
+	Data* m; // dial m for members
+	// </f1rpo>
 	CLinkList<IDInfo> m_units;
 
 	CLinkList<MissionData> m_missionQueue;
 	std::vector<CvUnit *> m_aDifferentUnitCache;
 	bool m_bIsBusyCache;
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/19/09                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
-	bool m_bIsStrandedCache;
-	bool m_bIsStrandedCacheValid;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 // BUG - Safe Move - start
-	bool m_bLastPathPlotChecked;
-	bool m_bLastPlotVisible;
-	bool m_bLastPlotRevealed;
-
 	void checkLastPathPlot(CvPlot* pPlot);
 	void clearLastPathPlot();
 	bool isLastPathPlotChecked() const;
@@ -384,5 +390,9 @@ public:
 	bool HaveCachedPathEdgeCosts(CvPlot* pFromPlot, CvPlot* pToPlot, bool bIsEndTurnElement, int& iResult, int& iBestMoveCost, int& iWorstMoveCost, int &iToPlotNodeCost);
 	void CachePathEdgeCosts(CvPlot* pFromPlot, CvPlot* pToPlot, bool bIsEndTurnElement, int iCost, int iBestMoveCost, int iWorstMoveCost, int iToPlotNodeCost);
 };
+
+/*  f1rpo: If this fails, then you've probably added a data member (directly)
+	to CvSelectionGroup. */
+BOOST_STATIC_ASSERT(sizeof(CvSelectionGroup) == 80);
 
 #endif

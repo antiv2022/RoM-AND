@@ -69,7 +69,7 @@ CvSelectionGroup::CvSelectionGroup()
 
 		g_cMissionSectionInitialized = true;
 	}
-
+	m = new Data(); // f1rpo
 	reset(0, NO_PLAYER, true);
 }
 
@@ -77,6 +77,7 @@ CvSelectionGroup::CvSelectionGroup()
 CvSelectionGroup::~CvSelectionGroup()
 {
 	uninit();
+	SAFE_DELETE(m); // f1rpo
 }
 
 
@@ -120,7 +121,7 @@ void CvSelectionGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 	m_eOwner = eOwner;
 
 	m_eActivityType = ACTIVITY_AWAKE;
-	m_eAutomateType = NO_AUTOMATE;
+	m->eAutomateType = NO_AUTOMATE;
 	m_bIsBusyCache = false;
 
 /************************************************************************************************/
@@ -128,15 +129,15 @@ void CvSelectionGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 /*                                                                                              */
 /* General AI                                                                                   */
 /************************************************************************************************/
-	m_bIsStrandedCache = false;
-	m_bIsStrandedCacheValid = false;
+	m->bIsStrandedCache = false;
+	m->bIsStrandedCacheValid = false;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 // BUG - Safe Move - start
-	m_bLastPathPlotChecked = false;
-	m_bLastPlotVisible = false;
-	m_bLastPlotRevealed = false;
+	m->bLastPathPlotChecked = false;
+	m->bLastPlotVisible = false;
+	m->bLastPlotRevealed = false;
 // BUG - Safe Move - end
 
 	if (!bConstructorCall)
@@ -4390,18 +4391,18 @@ bool CvSelectionGroup::isStranded()
 {
 	PROFILE_FUNC();
 
-	if( !(m_bIsStrandedCacheValid) )
+	if( !(m->bIsStrandedCacheValid) )
 	{
-		m_bIsStrandedCache = calculateIsStranded();
-		m_bIsStrandedCacheValid = true;
+		m->bIsStrandedCache = calculateIsStranded();
+		m->bIsStrandedCacheValid = true;
 	}
 		
-	return m_bIsStrandedCache;
+	return m->bIsStrandedCache;
 }
 
 void CvSelectionGroup::invalidateIsStrandedCache()
 {
-	m_bIsStrandedCacheValid = false;
+	m->bIsStrandedCacheValid = false;
 }
 
 bool CvSelectionGroup::calculateIsStranded()
@@ -6018,7 +6019,7 @@ void CvSelectionGroup::setActivityType(ActivityTypes eNewValue)
 
 AutomateTypes CvSelectionGroup::getAutomateType() const														
 {
-	return m_eAutomateType;
+	return m->eAutomateType;
 }
 
 
@@ -6034,7 +6035,7 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
 
 	if (getAutomateType() != eNewValue)
 	{
-		m_eAutomateType = eNewValue;
+		m->eAutomateType = eNewValue;
 
 		clearMissionQueue();
 		setActivityType(ACTIVITY_AWAKE);
@@ -7339,7 +7340,7 @@ void CvSelectionGroup::resync(bool bWrite, ByteBuffer* pBuffer)
 	RESYNC_BOOL(bWrite, pBuffer, m_bForceUpdate);
 	RESYNC_INT_WITH_CAST(bWrite, pBuffer, m_eOwner, PlayerTypes);
 	RESYNC_INT_WITH_CAST(bWrite, pBuffer, m_eActivityType, ActivityTypes);
-	RESYNC_INT_WITH_CAST(bWrite, pBuffer, m_eAutomateType, AutomateTypes);
+	RESYNC_INT_WITH_CAST(bWrite, pBuffer, m->eAutomateType, AutomateTypes);
 
 	if (bWrite)
 	{
@@ -7382,7 +7383,7 @@ void CvSelectionGroup::read(FDataStreamBase* pStream)
 
 	pStream->Read((int*)&m_eOwner);
 	pStream->Read((int*)&m_eActivityType);
-	pStream->Read((int*)&m_eAutomateType);
+	pStream->Read((int*)&m->eAutomateType);
 
 	m_units.Read(pStream);
 	m_missionQueue.Read(pStream);
@@ -7450,7 +7451,7 @@ void CvSelectionGroup::write(FDataStreamBase* pStream)
 
 	pStream->Write(m_eOwner);
 	pStream->Write(m_eActivityType);
-	pStream->Write(m_eAutomateType);
+	pStream->Write(m->eAutomateType);
 
 	m_units.Write(pStream);
 	m_missionQueue.Write(pStream);
@@ -7658,37 +7659,37 @@ bool CvSelectionGroup::allMatch(UnitTypes eUnit) const
 // BUG - Safe Move - start
 void CvSelectionGroup::checkLastPathPlot(CvPlot* pPlot)
 {
-	m_bLastPathPlotChecked = true;
+	m->bLastPathPlotChecked = true;
 	if (pPlot != NULL)
 	{
-		m_bLastPlotVisible = pPlot->isVisible(getTeam(), false);
-		m_bLastPlotRevealed = pPlot->isRevealed(getTeam(), false);
+		m->bLastPlotVisible = pPlot->isVisible(getTeam(), false);
+		m->bLastPlotRevealed = pPlot->isRevealed(getTeam(), false);
 	}
 	else
 	{
-		m_bLastPlotVisible = false;
-		m_bLastPlotRevealed = false;
+		m->bLastPlotVisible = false;
+		m->bLastPlotRevealed = false;
 	}
 }
 
 void CvSelectionGroup::clearLastPathPlot()
 {
-	m_bLastPathPlotChecked = false;
+	m->bLastPathPlotChecked = false;
 }
 
 bool CvSelectionGroup::isLastPathPlotChecked() const
 {
-	return m_bLastPathPlotChecked;
+	return m->bLastPathPlotChecked;
 }
 
 bool CvSelectionGroup::isLastPathPlotVisible() const
 {
-	return m_bLastPathPlotChecked ? m_bLastPlotVisible : false;
+	return m->bLastPathPlotChecked ? m->bLastPlotVisible : false;
 }
 
 bool CvSelectionGroup::isLastPathPlotRevealed() const
 {
-	return m_bLastPathPlotChecked ? m_bLastPlotRevealed : false;
+	return m->bLastPathPlotChecked ? m->bLastPlotRevealed : false;
 }
 // BUG - Safe Move - end
 
