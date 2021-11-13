@@ -28196,7 +28196,7 @@ bool CvUnitAI::AI_nuke()
 			{
 				if (pLoopGroup->getNumUnits() <= 4)
 					continue;
-				CvPlot const& kLoopPlot = *pLoopGroup->plot();
+				CvPlot& kLoopPlot = *pLoopGroup->plot();
 				if (kLoopPlot.isVisible(kTeam.getID(), false)
 					// Units in or near cities are already taken care of
 					&& aiPlotNumEvaluated.count(kMap.plotNum(
@@ -28206,7 +28206,7 @@ bool CvUnitAI::AI_nuke()
 					apiPotentialTargets.push_back(std::make_pair(
 							/*	0 search range - let's not bother with max damage to
 								improvements here (see also comment in previous loop) */
-							pLoopGroup->plot(), 0));
+							&kLoopPlot, 0));
 					aiPlotNumEvaluated.insert(kMap.plotNum(
 							kLoopPlot.getX_INLINE(), kLoopPlot.getY_INLINE()));
 				}
@@ -28219,6 +28219,8 @@ bool CvUnitAI::AI_nuke()
 			CvPlot* pTarget;
 			int iValue = AI_nukeValue(kCenter, iSearchRange, pTarget,
 					iDestructionWeight);
+			if (pTarget == NULL) // Can happen when friendly units surround kCenter
+				continue;
 			if (bLimited && iWarRating > -10)
 				iValue /= 2;
 			scaled rInterceptChance = scaled::max(0,
