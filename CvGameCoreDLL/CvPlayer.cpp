@@ -3752,40 +3752,27 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	{
 		PROFILE("CvPlayer::acquireCity.UpdatePlotGroups");
 
-		for(int iI = 0; iI < MAX_PLAYERS; iI++)
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			if ( GET_PLAYER((PlayerTypes)iI).isAlive() )
+			if (GET_PLAYER((PlayerTypes)iI).isAlive())
 			{
-				if ( originalTradeNetworkConnectivity[iI] == NULL )
-				{
-					if ( pCityPlot->isTradeNetwork(GET_PLAYER((PlayerTypes)iI).getTeam()) )
-					{
-						GET_PLAYER((PlayerTypes)iI).updatePlotGroups(pCityPlot->area());
-					}
-				}
-				else
+				if (originalTradeNetworkConnectivity[iI] != NULL)
 				{
 					originalTradeNetworkConnectivity[iI]->recalculatePlots();
+				}
+				else if (pCityPlot->isTradeNetwork(GET_PLAYER((PlayerTypes)iI).getTeam()))
+				{
+					GET_PLAYER((PlayerTypes)iI).updatePlotGroups(pCityPlot->area());
 				}
 			}
 		}
 	}
-
 	CvEventReporter::getInstance().cityAcquired(eOldOwner, eNewOwner, pNewCity, bConquest, bTrade);
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/*                                                                                              */
-/* AI logging                                                                                   */
-/************************************************************************************************/
-	if( gPlayerLogLevel >= 1 )
+	if (gPlayerLogLevel >= 1)
 	{
-		logBBAIForTeam(getTeam(), "  Player %d (%S) acquires city %S bConq %d bTrade %d", eNewOwner, getCivilizationDescription(0), pNewCity->getName(0).GetCString(), bConquest, bTrade );
+		logBBAIForTeam(getTeam(), "  Player %d (%S) acquires city %S bConq %d bTrade %d", eNewOwner, getCivilizationDescription(0), pNewCity->getName(0).GetCString(), bConquest, bTrade);
 	}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
 	SAFE_DELETE_ARRAY(pabHasReligion);
 	SAFE_DELETE_ARRAY(pabHolyCity);
 	SAFE_DELETE_ARRAY(pabHasCorporation);

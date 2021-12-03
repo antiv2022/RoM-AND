@@ -124,7 +124,6 @@ public:
 	void AI_conquerCity(CvCity* pCity);
 
 	bool AI_acceptUnit(CvUnit* pUnit) const;
-	bool AI_captureUnit(UnitTypes eUnit, CvPlot* pPlot) const;
 
 	DomainTypes AI_unitAIDomainType(UnitAITypes eUnitAI) const;
 
@@ -153,10 +152,8 @@ public:
 /************************************************************************************************/
 	bool AI_getAnyPlotDanger(CvPlot const* pPlot, int iRange = -1, bool bTestMoves = true) const;
 	bool AI_getVisiblePlotDanger(CvPlot* pPlot, int iRange, bool bAnimalOnly, CvSelectionGroup* group = NULL, int acceptableOdds = -1) const;
-	int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true) const;
-	//	Koshling - internal bypasses cache
-	int AI_getPlotDangerInternal(CvPlot* pPlot, int iRange, bool bTestMoves) const;
-	//int AI_getUnitDanger(CvUnit* pUnit, int iRange = -1, bool bTestMoves = true, bool bAnyDanger = true) const;
+	int AI_getPlotDanger(const CvPlot* pPlot, int iRange = -1, bool bTestMoves = true) const;
+	int AI_getPlotDangerInternal(const CvPlot* pPlot, int iRange, bool bTestMoves) const;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
