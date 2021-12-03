@@ -2186,17 +2186,11 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 				else iRazeValue += iPersonalityVal;
 
 
-				if (eStateReligion != NO_RELIGION)
+				if (eStateReligion != NO_RELIGION && pCity->isHasReligion(eStateReligion))
 				{
-					if (!pCity->isHasReligion(eStateReligion))
-					{
-						iRazeValue += 25;
-					}
-					else if (GET_TEAM(getTeam()).hasShrine(eStateReligion))
-					{
-						iRazeValue -= 50;
-					}
-					else
+					iRazeValue -= 10;
+
+					if (GET_TEAM(getTeam()).hasShrine(eStateReligion))
 					{
 						iRazeValue -= 10;
 					}
