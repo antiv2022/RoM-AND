@@ -23877,36 +23877,12 @@ int CvCity::getBestYieldAvailable(YieldTypes eYield) const
 
 bool CvCity::isAutoRaze() const
 {
-	if (!GC.getGameINLINE().isOption(GAMEOPTION_NO_CITY_RAZING))
-	{
-		if (getHighestPopulation() == 1)
-		{
-			return true;
-		}
-
-		if (GC.getGameINLINE().getMaxCityElimination() > 0)
-		{
-			return true;
-		}
-	}
-
-	if (GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
-	{
-		return true;
-	}
-/************************************************************************************************/
-/* Afforess	                  Start		 06/26/10                                               */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	if (GC.getGameINLINE().isOption(GAMEOPTION_BARBARIANS_ALWAYS_RAZE) && isBarbarian())
-	{
-		return true;
-	}
-/************************************************************************************************/
-/* Afforess	                     END                                                            */
-/************************************************************************************************/
-	return false;
+	return (
+			!GC.getGameINLINE().isOption(GAMEOPTION_NO_CITY_RAZING)
+		&&	(getHighestPopulation() == 1 || GC.getGameINLINE().getMaxCityElimination() > 0)
+		||	GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()
+		||	GC.getGameINLINE().isOption(GAMEOPTION_BARBARIANS_ALWAYS_RAZE) && isBarbarian()
+	);
 }
 
 int CvCity::getMusicScriptId() const
@@ -23919,12 +23895,9 @@ int CvCity::getMusicScriptId() const
 			bIsHappy = false;
 		}
 	}
-	else
+	else if (GET_TEAM(GC.getGameINLINE().getActiveTeam()).isAtWar(getTeam()))
 	{
-		if (GET_TEAM(GC.getGameINLINE().getActiveTeam()).isAtWar(getTeam()))
-		{
-			bIsHappy = false;
-		}
+		bIsHappy = false;
 	}
 
 	CvLeaderHeadInfo& kLeaderInfo = GC.getLeaderHeadInfo(GET_PLAYER(getOwnerINLINE()).getLeaderType());
@@ -23933,10 +23906,7 @@ int CvCity::getMusicScriptId() const
 	{
 		return (kLeaderInfo.getDiploPeaceMusicScriptIds(eCurEra));
 	}
-	else
-	{
-		return (kLeaderInfo.getDiploWarMusicScriptIds(eCurEra));
-	}
+	return (kLeaderInfo.getDiploWarMusicScriptIds(eCurEra));
 }
 
 int CvCity::getSoundscapeScriptId() const
