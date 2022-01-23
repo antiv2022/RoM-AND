@@ -3801,7 +3801,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		{
 			AI_conquerCity(pNewCity); // could delete the pNewCity pointer...
 		}
-		else // popup raze option
+		else if (GC.getLeaderHeadInfo(getPersonalityType()).getRazeCityProb()) // popup raze option
 		{
 			const bool bRaze = canRaze(pNewCity);
 			const bool bGift = (
@@ -8915,6 +8915,10 @@ bool CvPlayer::canRaze(CvCity* pCity) const
 				return false;
 			}
 		}
+	}
+	if (isHuman() && GC.getLeaderHeadInfo(getPersonalityType()).getRazeCityProb() < 16)
+	{
+		return false;
 	}
 	return true;
 }
