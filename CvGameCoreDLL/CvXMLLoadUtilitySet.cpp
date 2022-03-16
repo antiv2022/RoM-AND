@@ -33,6 +33,42 @@
 // Macro for Setting Global Art Defines
 #define INIT_XML_GLOBAL_LOAD(xmlInfoPath, infoArray, numInfos)  SetGlobalClassInfo(infoArray, xmlInfoPath, numInfos);
 
+namespace
+{
+	class CvXmlChildScope
+	{
+	public:
+		inline CvXmlChildScope(FXml* const pFXml) :
+			m_pFXml(pFXml),
+			m_isValid(GETXML->SetToChild(m_pFXml))
+		{
+		}
+
+		inline CvXmlChildScope(FXml* const pFXml, TCHAR const * const rootTagName) :
+			m_pFXml(pFXml),
+			m_isValid(GETXML->SetToChildByTagName(m_pFXml, rootTagName))
+		{
+		}
+
+		inline ~CvXmlChildScope()
+		{
+			if (m_isValid)
+			{
+				GETXML->SetToParent(m_pFXml);
+			}
+		}
+
+		inline bool isValid() const
+		{
+			return m_isValid;
+		}
+
+	private:
+		FXml* const m_pFXml;
+		bool const m_isValid;
+	};
+}
+
 bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache)
 {
 	bool bLoaded = false;	// used to make sure that the xml file was loaded correctly
@@ -3648,6 +3684,130 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 /* RevDCM	                                 END                                                */
 /************************************************************************************************/
 
+class CvXMLLoadUtility::Impl
+{
+public:
+	struct ListIndexerInfoClass
+	{
+		static int getIndex(CvXMLLoadUtility * const xmlLoader, std::string const &key)
+		{
+			return xmlLoader->FindInInfoClass(key.c_str());
+		}
+	};
+
+	struct ListIndexerEnum
+	{
+		static int getIndex(CvXMLLoadUtility const  * const, std::string const &key)
+		{
+			return GC.getTypesEnum(key.c_str());
+		}
+	};
+
+	
+	struct XmlValReaderRaw
+	{
+		template<typename T>
+		static inline T readValue(CvXMLLoadUtility *const xmlLoader, T defaultListVal)
+		{
+			T val;
+			xmlLoader->GetNextXmlVal(&val, defaultListVal);
+			return val;
+		}
+	};
+
+	struct XmlValReaderAudioRes
+	{
+		template<typename T>
+		static inline int readValue(CvXMLLoadUtility *const xmlLoader, int defaultListVal)
+		{
+			std::string valueRaw;
+			xmlLoader->GetNextXmlVal(valueRaw);
+			if (valueRaw.empty())
+			{
+				return -1;
+			}
+
+			return gDLL->getAudioTagIndex(valueRaw.c_str());
+		}
+	};
+
+
+	template<typename ListIndexer, typename XmlValueReader, typename T>
+	static void SetVariableListTagPair(CvXMLLoadUtility *const xmlLoader, CvDynamicArray<T> * const pList, TCHAR const * const rootTagName,
+		int const tagListLength, T const defaultListVal)
+	{
+		FAssertMsg(0 < tagListLength, GC.getCurrentXMLFile().c_str());
+		std::size_t const expectedListLength = tagListLength;
+
+		CvXmlChildScope rootNodeScope(xmlLoader->m_pFXml, rootTagName);
+
+		if (!rootNodeScope.isValid())
+		{
+			//Could not find named tag, skip reading
+			return;
+		}
+
+		if (!xmlLoader->SkipToNextVal())
+		{
+			//Could not skip to next val, skip reading
+			return;
+		}
+
+		int const numSibs = GETXML->GetNumChildren(xmlLoader->m_pFXml);
+		if (numSibs <= 0)
+		{
+			//No siblings available, return
+			return;
+		}
+
+		FAssertMsg(numSibs <= tagListLength, GC.getCurrentXMLFile().c_str());
+		std::size_t const currentListSize = pList->size();
+		if (currentListSize && expectedListLength > currentListSize)
+		{
+			std::cout << "WARNING: CvXMLLoadUtility::SetVariableListTagPair not enough memory in the existing list, old " << currentListSize << " new " << tagListLength << " file " << GC.getCurrentXMLFile().c_str() << " node " << rootTagName << std::endl;
+		}
+
+		pList->resize(expectedListLength, defaultListVal);
+
+		CvXmlChildScope valueXmlScope(xmlLoader->m_pFXml);
+		if (!valueXmlScope.isValid())
+		{
+			//Could not find children nodes, skipping read
+			return;
+		}
+
+		std::string key;
+
+		for (int i = 0; i < numSibs; ++i)
+		{
+			if (!xmlLoader->GetChildXmlVal(key))
+			{
+				//Could not read child value
+				continue;
+			}
+
+			int const indexVal = ListIndexer::getIndex(xmlLoader, key);
+			if (indexVal == -1)
+			{
+				std::cout << "WARNING: CvXMLLoadUtility::SetVariableListTagPair could not get index val for " << key << " file " << GC.getCurrentXMLFile().GetCString() << " node " << rootTagName << std::endl;
+			}
+			else
+			{
+				FAssertMsg((std::size_t)indexVal < pList->size(), GC.getCurrentXMLFile().c_str());
+				pList->set(indexVal, XmlValueReader::readValue<T>(xmlLoader, defaultListVal));
+			}
+
+			GETXML->SetToParent(xmlLoader->m_pFXml);
+
+			if (!GETXML->NextSibling(xmlLoader->m_pFXml))
+			{
+				break;
+			}
+		}
+	}
+};
+
+
 //------------------------------------------------------------------------------------------------------
 //
 //  FUNCTION:   SetVariableListTagPair(	bool **ppbList, const TCHAR* szRootTagName,
@@ -3656,6 +3816,39 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 //  PURPOSE :   allocate and initialize a list from a tag pair in the xml
 //
 //------------------------------------------------------------------------------------------------------
+
+
+void CvXMLLoadUtility::SetVariableListTagPairInfo(CvDynamicArray<bool> * const pList, TCHAR const * const rootTagName,
+	int const tagListLength, bool const defaultListVal)
+{
+	Impl::SetVariableListTagPair<Impl::ListIndexerInfoClass, Impl::XmlValReaderRaw>(this, pList, rootTagName, tagListLength, defaultListVal);
+}
+
+void CvXMLLoadUtility::SetVariableListTagPairInfo(CvDynamicArray<int> *pList, const TCHAR* rootTagName,
+	int tagListLength, int defaultListVal) {
+	Impl::SetVariableListTagPair<Impl::ListIndexerInfoClass, Impl::XmlValReaderRaw>(this, pList, rootTagName, tagListLength, defaultListVal);
+}
+
+void CvXMLLoadUtility::SetVariableListTagPairEnum(CvDynamicArray<bool> * const pList, TCHAR const * const rootTagName,
+	int const tagListLength, bool const defaultListVal)
+{
+	Impl::SetVariableListTagPair<Impl::ListIndexerEnum, Impl::XmlValReaderRaw>(this, pList, rootTagName, tagListLength, defaultListVal);
+}
+
+void CvXMLLoadUtility::SetVariableListTagPairEnum(CvDynamicArray<int> *pList, const TCHAR* rootTagName,
+	int tagListLength, int defaultListVal) {
+	Impl::SetVariableListTagPair<Impl::ListIndexerEnum, Impl::XmlValReaderRaw>(this, pList, rootTagName, tagListLength, defaultListVal);
+}
+
+void CvXMLLoadUtility::SetVariableListTagPairForAudioScriptsInfo(CvDynamicArray<int> *pList, const TCHAR* rootTagName, int tagListLength, int defaultListVal)
+{
+	pList->resize(tagListLength, defaultListVal);
+	Impl::SetVariableListTagPair<Impl::ListIndexerInfoClass, Impl::XmlValReaderAudioRes>(this, pList, rootTagName, tagListLength, defaultListVal);
+}
+
+
+
+
 void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,
 											  int iInfoBaseSize, int iInfoBaseLength, bool bDefaultListVal)
 {
@@ -4013,92 +4206,6 @@ void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, cons
 	else
 	{
 		InitList(ppiList, iTagListLength, iDefaultListVal);
-	}
-/************************************************************************************************/
-/* XMLCOPY                                 END                                                  */
-/************************************************************************************************/
-}
-
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
-//										int iInfoBaseLength, int iDefaultListVal)
-//
-//  PURPOSE :   allocate and initialize a list from a tag pair in the xml for audio scripts
-//
-//------------------------------------------------------------------------------------------------------
-void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName, int iInfoBaseLength, int iDefaultListVal)
-{
-	int i;
-	int iIndexVal;
-	int iNumSibs;
-	TCHAR szTextVal[256];
-	int* piList;
-	CvString szTemp;
-
-	//*ppiList = NULL; // f1rpo (xmldefault)
-
-	if (GETXML->SetToChildByTagName(m_pFXml,szRootTagName))
-	{
-		if (SkipToNextVal())
-		{
-			iNumSibs = GETXML->GetNumChildren(m_pFXml);
-			if(!(0 < iInfoBaseLength))
-			{
-				char	szMessage[1024];
-				sprintf( szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-				gDLL->MessageBox(szMessage, "XML Error");
-			}
-			if (0 < iNumSibs)
-			{
-				InitList(ppiList, iInfoBaseLength, iDefaultListVal);
-				piList = *ppiList;
-				if(!(iNumSibs <= iInfoBaseLength))
-				{
-					char	szMessage[1024];
-					sprintf( szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Error");
-				}
-				if (GETXML->SetToChild(m_pFXml))
-				{
-					for (i=0;i<iNumSibs;i++)
-					{
-						if (GetChildXmlVal(szTextVal))
-						{
-							iIndexVal = FindInInfoClass(szTextVal);
-							if (iIndexVal != -1)
-							{
-								GetNextXmlVal(szTemp);
-								if ( szTemp.GetLength() > 0 )
-									piList[iIndexVal] = gDLL->getAudioTagIndex(szTemp);
-								else
-									piList[iIndexVal] = -1;
-							}
-
-							GETXML->SetToParent(m_pFXml);
-						}
-
-						if (!GETXML->NextSibling(m_pFXml))
-						{
-							break;
-						}
-					}
-
-					GETXML->SetToParent(m_pFXml);
-				}
-			}
-		}
-
-		GETXML->SetToParent(m_pFXml);
-	}
-/************************************************************************************************/
-/* XMLCOPY                                 10/12/07                                MRGENIE      */
-/*                                                                                              */
-/* Always create this array, for XML copy comparison                                            */
-/************************************************************************************************/
-	else
-	{
-		InitList(ppiList, iInfoBaseLength, iDefaultListVal);
 	}
 /************************************************************************************************/
 /* XMLCOPY                                 END                                                  */

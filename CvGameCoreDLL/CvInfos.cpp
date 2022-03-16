@@ -26,6 +26,82 @@
 static CRITICAL_SECTION cInfoCacheSection;
 static bool criticalSectionsInitialized = false;
 
+namespace
+{
+	template<typename T>
+	inline void readStream(FDataStreamBase* const pStream, CvDynamicArray<T> * const pTarget, std::size_t const size)
+	{
+		bool bIsPresent = false;
+		pStream->Read(&bIsPresent);
+		if (!bIsPresent)
+		{
+			pTarget->clear();
+			return;
+		}
+
+		pTarget->realloc(size);
+		pStream->Read(size, pTarget->data());
+	}
+
+	template<typename T>
+	inline void writeToStream(FDataStreamBase* const pStream, CvDynamicArray<T> const & array, std::size_t const size)
+	{
+		if (array.size())
+		{
+			FAssertMsg(size == array.size(), "Error: unexpected array size");
+
+			pStream->Write(true);
+			pStream->Write(size, array.data());
+		}
+		else
+		{
+			pStream->Write(false);
+		}
+	}
+
+	template<typename T>
+	inline void copyNonDefaultsArray(CvDynamicArray<T> * const pDestination, CvDynamicArray<T> const & source, std::size_t const totalItems, T const defaultValue)
+	{
+		if (!source.size())
+		{
+			return;
+		}
+
+		FAssertMsg(totalItems == source.size(), "Incorrect source array size");
+		for (std::size_t j = 0; j < totalItems; j++)
+		{
+			T const sourceItem = source.get(j);
+			if (sourceItem == defaultValue)
+			{
+				continue;
+			}
+
+			if (!(pDestination->size()))
+			{
+				pDestination->reset(totalItems, defaultValue);
+			}
+
+			FAssertMsg(j < pDestination->size(), "Incorrect destination array size");
+
+			T const currentItem = pDestination->get(j);
+			if (currentItem == defaultValue)
+			{
+				pDestination->set(j, sourceItem);
+			}
+		}
+	}
+
+	// <f1rpo> (xmldefault)
+	inline static void GetChildXmlValByName(CvXMLLoadUtility* pXML, int& r, TCHAR const* szName, int iDefault = MIN_INT)
+	{
+		if (r != 0) // If child not found, keep the data set by the copy-ctor.
+			iDefault = r;
+		pXML->GetChildXmlValByName(&r, szName, iDefault);
+	} // </f1rpo>
+}
+
+
+
 //------------------------------------------------------------------------------------------------------
 //
 //  FUNCTION:   CInfoBase()
@@ -41,12 +117,6 @@ m_bGraphicalOnly(false)
 		InitializeCriticalSectionAndSpinCount(&cInfoCacheSection, 4000);
 		criticalSectionsInitialized = true;
 	}
-}
-
-// f1rpo (xmldefault):
-CvInfoBase::CvInfoBase(CvInfoBase const& kOther)
-{
-	FAssertMsg(false, "Copy-ctor not implemented");
 }
 
 CvInfoBase::CvInfoBase(const char* szType) :
@@ -19956,81 +20026,41 @@ m_iVassalPowerModifier(0),
 m_iFreedomAppreciation(0),
 m_iFavoriteCivic(NO_CIVIC),
 m_iFavoriteReligion(NO_RELIGION),
-// <f1rpo> (Sexism, Racism)
-m_eGender(DEFAULT_GENDER),
-m_eRace(DEFAULT_RACE),
-m_piSexistAttitudeChanges(NULL),
-m_piRacistAttitudeChanges(NULL),
-m_piCivicAIWeights(NULL), // (Civic AI Weights)
-// </f1rpo>
-m_pbTraits(NULL),
-m_piFlavorValue(NULL),
-m_piContactRand(NULL),
-m_piContactDelay(NULL),
-m_piMemoryDecayRand(NULL),
-m_piMemoryAttitudePercent(NULL),
-m_piNoWarAttitudeProb(NULL),
-m_piUnitAIWeightModifier(NULL),
-m_piImprovementWeightModifier(NULL),
-m_piDiploPeaceIntroMusicScriptIds(NULL),
-m_piDiploPeaceMusicScriptIds(NULL),
-m_piDiploWarIntroMusicScriptIds(NULL),
-m_piDiploWarMusicScriptIds(NULL)
 /************************************************************************************************/
 /* Afforess	                  Start		 12/9/09                                                */
 /*                                                                                              */
 /*                                                                                              */
 /************************************************************************************************/
-,m_iMilitaryUnitRefuseAttitudeThreshold(ATTITUDE_ANNOYED)
-,m_iWorkerRefuseAttitudeThreshold(ATTITUDE_ANNOYED)
-,m_iCorporationRefuseAttitudeThreshold(ATTITUDE_CAUTIOUS)
-,m_iSecretaryGeneralVoteRefuseAttitudeThreshold(ATTITUDE_ANNOYED)
+m_iMilitaryUnitRefuseAttitudeThreshold(ATTITUDE_ANNOYED),
+m_iWorkerRefuseAttitudeThreshold(ATTITUDE_ANNOYED),
+m_iCorporationRefuseAttitudeThreshold(ATTITUDE_CAUTIOUS),
+m_iSecretaryGeneralVoteRefuseAttitudeThreshold(ATTITUDE_ANNOYED),
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
+// <f1rpo> (Sexism, Racism)
+m_eGender(DEFAULT_GENDER),
+m_eRace(DEFAULT_RACE),
+m_szArtDefineTag(""),
+// </f1rpo>
+m_abTraits(0),
+m_aiFlavorValue(0),
+m_aiContactRand(0),
+m_aiContactDelay(0),
+m_aiMemoryDecayRand(0),
+m_aiMemoryAttitudePercent(0),
+m_aiNoWarAttitudeProb(0),
+m_aiUnitAIWeightModifier(0),
+m_aiImprovementWeightModifier(0),
+m_aiCivicAIWeights(0), // (Civic AI Weights)
+m_aiSexistAttitudeChanges(0),
+m_aiRacistAttitudeChanges(0),
+m_aiDiploPeaceIntroMusicScriptIds(0),
+m_aiDiploPeaceMusicScriptIds(0),
+m_aiDiploWarIntroMusicScriptIds(0),
+m_aiDiploWarMusicScriptIds(0)
 {
 }
-
-// <f1rpo> (xmldefault)
-namespace
-{
-	template<typename T>
-	void allocCopy(T*& pDst, T* pSrc, int iSize)
-	{
-		if (pSrc != NULL)
-		{
-			pDst = new T[iSize];
-			memcpy(pDst, pSrc, iSize * sizeof(T));
-		}
-	}
-}
-
-CvLeaderHeadInfo::CvLeaderHeadInfo(CvLeaderHeadInfo const& kOther)
-{
-	/*	Better not to memcpy the base class.
-		m_iWonderConstructRand is the first data member of CvLeaderHeadInfo. */
-	memcpy(&m_iWonderConstructRand, &kOther.m_iWonderConstructRand,
-			sizeof(CvLeaderHeadInfo) - sizeof(CvInfoBase));
-	allocCopy(m_pbTraits, kOther.m_pbTraits, GC.getNumTraitInfos());
-	allocCopy(m_piFlavorValue, kOther.m_piFlavorValue, GC.getNumFlavorTypes());
-	allocCopy(m_piContactRand, kOther.m_piContactRand, NUM_CONTACT_TYPES);
-	allocCopy(m_piContactDelay, kOther.m_piContactDelay, NUM_CONTACT_TYPES);
-	allocCopy(m_piMemoryDecayRand, kOther.m_piMemoryDecayRand, NUM_MEMORY_TYPES);
-	allocCopy(m_piMemoryAttitudePercent, kOther.m_piMemoryAttitudePercent, NUM_MEMORY_TYPES);
-	allocCopy(m_piNoWarAttitudeProb, kOther.m_piNoWarAttitudeProb, NUM_ATTITUDE_TYPES);
-	allocCopy(m_piUnitAIWeightModifier, kOther.m_piUnitAIWeightModifier, NUM_UNITAI_TYPES);
-	allocCopy(m_piImprovementWeightModifier, kOther.m_piImprovementWeightModifier, GC.getNumImprovementInfos());
-	allocCopy(m_piDiploPeaceIntroMusicScriptIds, kOther.m_piDiploPeaceIntroMusicScriptIds, GC.getNumEraInfos());
-	allocCopy(m_piDiploPeaceMusicScriptIds, kOther.m_piDiploPeaceMusicScriptIds, GC.getNumEraInfos());
-	allocCopy(m_piDiploWarIntroMusicScriptIds, kOther.m_piDiploWarIntroMusicScriptIds, GC.getNumEraInfos());
-	allocCopy(m_piDiploWarMusicScriptIds, kOther.m_piDiploWarMusicScriptIds, GC.getNumEraInfos());
-	// (Civic AI Weights)
-	allocCopy(m_piCivicAIWeights, kOther.m_piCivicAIWeights, GC.getNumCivicInfos());
-	// (Sexism)
-	allocCopy(m_piSexistAttitudeChanges, kOther.m_piSexistAttitudeChanges, GC.getNumGenderTypes());
-	// (Racism)
-	allocCopy(m_piRacistAttitudeChanges, kOther.m_piRacistAttitudeChanges, GC.getNumRaceTypes());
-} // </f1rpo>
 
 //------------------------------------------------------------------------------------------------------
 //
@@ -20041,19 +20071,6 @@ CvLeaderHeadInfo::CvLeaderHeadInfo(CvLeaderHeadInfo const& kOther)
 //------------------------------------------------------------------------------------------------------
 CvLeaderHeadInfo::~CvLeaderHeadInfo()
 {
-	SAFE_DELETE_ARRAY(m_pbTraits);
-	SAFE_DELETE_ARRAY(m_piFlavorValue);
-	SAFE_DELETE_ARRAY(m_piContactRand);
-	SAFE_DELETE_ARRAY(m_piContactDelay);
-	SAFE_DELETE_ARRAY(m_piMemoryDecayRand);
-	SAFE_DELETE_ARRAY(m_piMemoryAttitudePercent);
-	SAFE_DELETE_ARRAY(m_piNoWarAttitudeProb);
-	SAFE_DELETE_ARRAY(m_piUnitAIWeightModifier);
-	SAFE_DELETE_ARRAY(m_piImprovementWeightModifier);
-	SAFE_DELETE_ARRAY(m_piDiploPeaceIntroMusicScriptIds);
-	SAFE_DELETE_ARRAY(m_piDiploPeaceMusicScriptIds);
-	SAFE_DELETE_ARRAY(m_piDiploWarIntroMusicScriptIds);
-	SAFE_DELETE_ARRAY(m_piDiploWarMusicScriptIds);
 }
 
 const TCHAR* CvLeaderHeadInfo::getButton() const
@@ -20495,74 +20512,80 @@ void CvLeaderHeadInfo::setArtDefineTag(const TCHAR* szVal)
 
 bool CvLeaderHeadInfo::hasTrait(int i) const
 {
-	FAssertMsg(i < GC.getNumTraitInfos(), "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pbTraits ? m_pbTraits[i] : false; 
+	bool const isEmpty = !m_abTraits.size();
+	int const maxTraits = GC.getNumTraitInfos();
+	FAssertMsg(isEmpty || (m_abTraits.size() == maxTraits), "Error: traits array size differs from global traits array size");
+	FAssertMsg(i < maxTraits, "Index overflow");
+	FAssertMsg(i > -1, "Index underflow");
+	return isEmpty ? false : m_abTraits.get(i);
 }
 
 int CvLeaderHeadInfo::getFlavorValue(int i) const
 {
-	FAssertMsg(i < GC.getNumFlavorTypes(), "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFlavorValue ? m_piFlavorValue[i] : 0;	
+	bool const isEmpty = !m_aiFlavorValue.size();
+	int const maxFlavors = GC.getNumFlavorTypes();
+	FAssertMsg(isEmpty || (m_aiFlavorValue.size() == maxFlavors), "Error: traits array size differs from global traits array size");
+	FAssertMsg(i < GC.getNumFlavorTypes(), "Index overflow");
+	FAssertMsg(i > -1, "Index out of boundsunderflow");
+	return isEmpty ? 0 : m_aiFlavorValue.get(i);
 }
 
 int CvLeaderHeadInfo::getContactRand(int i) const
 {
 	FAssertMsg(i < NUM_CONTACT_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piContactRand ? m_piContactRand[i] : 0;	
+	return m_aiContactRand.size() ? m_aiContactRand.get(i) : 0;	
 }
 
 int CvLeaderHeadInfo::getContactDelay(int i) const
 {
 	FAssertMsg(i < NUM_CONTACT_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piContactDelay ? m_piContactDelay[i] : 0;	
+	return m_aiContactDelay.size() ? m_aiContactDelay.get(i) : 0;	
 }
 
 int CvLeaderHeadInfo::getMemoryDecayRand(int i) const
 {
 	FAssertMsg(i < NUM_MEMORY_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piMemoryDecayRand ? m_piMemoryDecayRand[i] : 0;	
+	return m_aiMemoryDecayRand.size() ? m_aiMemoryDecayRand.get(i) : 0;	
 }
 
 int CvLeaderHeadInfo::getMemoryAttitudePercent(int i) const
 {
 	FAssertMsg(i < NUM_MEMORY_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piMemoryAttitudePercent ? m_piMemoryAttitudePercent[i] : 0;	
+	return m_aiMemoryAttitudePercent.size() ? m_aiMemoryAttitudePercent.get(i) : 0;	
 }
 
 int CvLeaderHeadInfo::getNoWarAttitudeProb(int i) const
 {
 	FAssertMsg(i < NUM_ATTITUDE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piNoWarAttitudeProb ? m_piNoWarAttitudeProb[i] : 0;	
+	return m_aiNoWarAttitudeProb.size() ? m_aiNoWarAttitudeProb.get(i) : 0;	
 }
 
 int CvLeaderHeadInfo::getUnitAIWeightModifier(int i) const
 {
 	FAssertMsg(i < NUM_UNITAI_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piUnitAIWeightModifier ? m_piUnitAIWeightModifier[i] : 0;	
+	return m_aiUnitAIWeightModifier.size() ? m_aiUnitAIWeightModifier.get(i) : 0;	
 }
 
 int CvLeaderHeadInfo::getImprovementWeightModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumImprovementInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piImprovementWeightModifier ? m_piImprovementWeightModifier[i] : 0;
+	return m_aiImprovementWeightModifier.size() ? m_aiImprovementWeightModifier.get(i) : 0;
 }
 
 // <f1rpo>
 int CvLeaderHeadInfo::getCivicAIWeight(CivicTypes eCivic) const // Civic AI Weights
 {
 	FAssertBounds(0, GC.getNumCivicInfos(), eCivic);
-	if (m_piCivicAIWeights == NULL)
+	if (!m_aiCivicAIWeights.size())
 		return 0;
-	int r = m_piCivicAIWeights[eCivic];
+	int r = m_aiCivicAIWeights.get(eCivic);
 	//FAssert(r >= -100); // Smaller values shouldn't be needed, but let's not commit to that.
 	return r;
 }
@@ -20570,45 +20593,47 @@ int CvLeaderHeadInfo::getCivicAIWeight(CivicTypes eCivic) const // Civic AI Weig
 int CvLeaderHeadInfo::getSexistAttitudeChange(GenderTypes eGender) const // Sexism
 {
 	FAssertBounds(0, GC.getNumGenderTypes(), eGender);
-	if (m_piSexistAttitudeChanges == NULL)
+	if (!m_aiSexistAttitudeChanges.size())
 		return 0;
-	return m_piSexistAttitudeChanges[eGender];
+	return m_aiSexistAttitudeChanges.get(eGender);
 }
 
 int CvLeaderHeadInfo::getRacistAttitudeChange(RaceTypes eRace) const // Racism
 {
 	FAssertBounds(0, GC.getNumRaceTypes(), eRace);
-	if (m_piRacistAttitudeChanges == NULL)
+	if (!m_aiRacistAttitudeChanges.size())
 		return 0;
-	return m_piRacistAttitudeChanges[eRace];
+	return m_aiRacistAttitudeChanges.get(eRace);
 } // </f1rpo>
 
 int CvLeaderHeadInfo::getDiploPeaceIntroMusicScriptIds(int i) const
 {
+	bool const isEmpty = !m_aiDiploPeaceIntroMusicScriptIds.size();
+	FAssertMsg(isEmpty || m_aiDiploPeaceIntroMusicScriptIds.size() != GC.getNumEraInfos(), "Unexpected m_aiDiploPeaceIntroMusicScriptIds size");
 	FAssertMsg(i < GC.getNumEraInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDiploPeaceIntroMusicScriptIds ? m_piDiploPeaceIntroMusicScriptIds[i] : -1;
+	return isEmpty ? -1 : m_aiDiploPeaceIntroMusicScriptIds.get(i);
 }
 
 int CvLeaderHeadInfo::getDiploPeaceMusicScriptIds(int i) const
 {
 	FAssertMsg(i < GC.getNumEraInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDiploPeaceMusicScriptIds ? m_piDiploPeaceMusicScriptIds[i] : -1;
+	return m_aiDiploPeaceMusicScriptIds.size() ? m_aiDiploPeaceMusicScriptIds.get(i) : -1;
 }
 
 int CvLeaderHeadInfo::getDiploWarIntroMusicScriptIds(int i) const
 {
 	FAssertMsg(i < GC.getNumEraInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDiploWarIntroMusicScriptIds ? m_piDiploWarIntroMusicScriptIds[i] : -1;
+	return m_aiDiploWarIntroMusicScriptIds.size() ? m_aiDiploWarIntroMusicScriptIds.get(i) : -1;
 }
 
 int CvLeaderHeadInfo::getDiploWarMusicScriptIds(int i) const
 {
 	FAssertMsg(i < GC.getNumEraInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDiploWarMusicScriptIds ? m_piDiploWarMusicScriptIds[i] : -1;
+	return m_aiDiploWarMusicScriptIds.size() ? m_aiDiploWarMusicScriptIds.get(i) : -1;
 }
 
 const TCHAR* CvLeaderHeadInfo::getLeaderHead() const
@@ -20674,6 +20699,9 @@ void CvLeaderHeadInfo::setDiplomacyVictoryWeight(int i)
 {
 	m_iDiplomacyVictoryWeight = i;
 }
+
+
+
 /************************************************************************************************/
 /* Afforess	                     END                                                            */
 /************************************************************************************************/
@@ -20784,136 +20812,31 @@ void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 	if (uiFlag >= 2)
 	{
 		// Civic AI Weights
-		SAFE_DELETE_ARRAY(m_piCivicAIWeights);
-		stream->Read(&bPresent);
-		if (bPresent)
-		{
-			m_piCivicAIWeights = new int[GC.getNumCivicInfos()];
-			stream->Read(GC.getNumCivicInfos(), m_piCivicAIWeights);
-		}
+		readStream(stream, &m_aiCivicAIWeights, GC.getNumCivicInfos());
+		
 		// Sexism
 		stream->Read((int*)&m_eGender);
-		SAFE_DELETE_ARRAY(m_piSexistAttitudeChanges);
-		stream->Read(&bPresent);
-		if (bPresent)
-		{
-			m_piSexistAttitudeChanges = new int[GC.getNumGenderTypes()];
-			stream->Read(GC.getNumGenderTypes(), m_piSexistAttitudeChanges);
-		}
+		readStream(stream, &m_aiSexistAttitudeChanges, GC.getNumGenderTypes());
 		// Racism
 		stream->Read((int*)&m_eRace);
-		SAFE_DELETE_ARRAY(m_piRacistAttitudeChanges);
-		stream->Read(&bPresent);
-		if (bPresent)
-		{
-			m_piRacistAttitudeChanges = new int[GC.getNumRaceTypes()];
-			stream->Read(GC.getNumRaceTypes(), m_piRacistAttitudeChanges);
-		}
+		readStream(stream, &m_aiRacistAttitudeChanges, GC.getNumRaceTypes());
 	} // </f1rpo>
 
-	SAFE_DELETE_ARRAY(m_pbTraits);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_pbTraits = new bool[GC.getNumTraitInfos()];
-		stream->Read(GC.getNumTraitInfos(), m_pbTraits);
-	}
+	readStream(stream, &m_abTraits, GC.getNumTraitInfos());
+	readStream(stream, &m_aiFlavorValue, GC.getNumFlavorTypes());
+	readStream(stream, &m_aiContactRand, NUM_CONTACT_TYPES);
+	readStream(stream, &m_aiContactDelay, NUM_CONTACT_TYPES);
+	readStream(stream, &m_aiMemoryDecayRand, NUM_MEMORY_TYPES);
+	readStream(stream, &m_aiMemoryAttitudePercent, NUM_MEMORY_TYPES);
+	readStream(stream, &m_aiNoWarAttitudeProb, NUM_ATTITUDE_TYPES);
+	readStream(stream, &m_aiUnitAIWeightModifier, NUM_UNITAI_TYPES);
+	readStream(stream, &m_aiImprovementWeightModifier, GC.getNumImprovementInfos());
 
-	SAFE_DELETE_ARRAY(m_piFlavorValue);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piFlavorValue = new int[GC.getNumFlavorTypes()];
-		stream->Read(GC.getNumFlavorTypes(), m_piFlavorValue);
-	}
+	readStream(stream, &m_aiDiploPeaceIntroMusicScriptIds, GC.getNumEraInfos());
+	readStream(stream, &m_aiDiploPeaceMusicScriptIds, GC.getNumEraInfos());
+	readStream(stream, &m_aiDiploWarIntroMusicScriptIds, GC.getNumEraInfos());
+	readStream(stream, &m_aiDiploWarMusicScriptIds, GC.getNumEraInfos());
 
-	SAFE_DELETE_ARRAY(m_piContactRand);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piContactRand = new int[NUM_CONTACT_TYPES];
-		stream->Read(NUM_CONTACT_TYPES, m_piContactRand);
-	}
-
-	SAFE_DELETE_ARRAY(m_piContactDelay);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piContactDelay = new int[NUM_CONTACT_TYPES];
-		stream->Read(NUM_CONTACT_TYPES, m_piContactDelay);
-	}
-
-	SAFE_DELETE_ARRAY(m_piMemoryDecayRand);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piMemoryDecayRand = new int[NUM_MEMORY_TYPES];
-		stream->Read(NUM_MEMORY_TYPES, m_piMemoryDecayRand);
-	}
-
-	SAFE_DELETE_ARRAY(m_piMemoryAttitudePercent);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piMemoryAttitudePercent = new int[NUM_MEMORY_TYPES];
-		stream->Read(NUM_MEMORY_TYPES, m_piMemoryAttitudePercent);
-	}
-
-	SAFE_DELETE_ARRAY(m_piNoWarAttitudeProb);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piNoWarAttitudeProb = new int[NUM_ATTITUDE_TYPES];
-		stream->Read(NUM_ATTITUDE_TYPES, m_piNoWarAttitudeProb);
-	}
-
-	SAFE_DELETE_ARRAY(m_piUnitAIWeightModifier);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piUnitAIWeightModifier = new int[NUM_UNITAI_TYPES];
-		stream->Read(NUM_UNITAI_TYPES, m_piUnitAIWeightModifier);
-	}
-
-	SAFE_DELETE_ARRAY(m_piImprovementWeightModifier);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piImprovementWeightModifier = new int[GC.getNumImprovementInfos()];
-		stream->Read(GC.getNumImprovementInfos(), m_piImprovementWeightModifier);
-	}
-
-	SAFE_DELETE_ARRAY(m_piDiploPeaceIntroMusicScriptIds);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piDiploPeaceIntroMusicScriptIds = new int[GC.getNumEraInfos()];
-		stream->Read(GC.getNumEraInfos(), m_piDiploPeaceIntroMusicScriptIds);
-	}
-
-	SAFE_DELETE_ARRAY(m_piDiploPeaceMusicScriptIds);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piDiploPeaceMusicScriptIds = new int[GC.getNumEraInfos()];
-		stream->Read(GC.getNumEraInfos(), m_piDiploPeaceMusicScriptIds);
-	}
-
-	SAFE_DELETE_ARRAY(m_piDiploWarIntroMusicScriptIds);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piDiploWarIntroMusicScriptIds = new int[GC.getNumEraInfos()];
-		stream->Read(GC.getNumEraInfos(), m_piDiploWarIntroMusicScriptIds);
-	}
-
-	SAFE_DELETE_ARRAY(m_piDiploWarMusicScriptIds);
-	stream->Read(&bPresent);
-	if (bPresent)
-	{
-		m_piDiploWarMusicScriptIds = new int[GC.getNumEraInfos()];
-		stream->Read(GC.getNumEraInfos(), m_piDiploWarMusicScriptIds);
-	}
 /************************************************************************************************/
 /* Afforess	                  Start		 07/29/10                                               */
 /*                                                                                              */
@@ -21029,159 +20952,29 @@ void CvLeaderHeadInfo::write(FDataStreamBase* stream)
 
 	// <f1rpo>
 	// Civic AI Weights
-	if (m_piCivicAIWeights != NULL)
-	{
-		stream->Write(true); // bPresent
-		stream->Write(GC.getNumCivicInfos(), m_piCivicAIWeights);
-	}
-	else stream->Write(false);
+	writeToStream(stream, m_aiCivicAIWeights, GC.getNumCivicInfos());
 	// Sexism
 	stream->Write(m_eGender);
-	if (m_piSexistAttitudeChanges != NULL)
-	{
-		stream->Write(true); // bPresent
-		stream->Write(GC.getNumGenderTypes(), m_piSexistAttitudeChanges);
-	}
-	else stream->Write(false);
+	writeToStream(stream, m_aiSexistAttitudeChanges, GC.getNumGenderTypes());
 	// Racism
 	stream->Write(m_eRace);
-	if (m_piRacistAttitudeChanges != NULL)
-	{
-		stream->Write(true); // bPresent
-		stream->Write(GC.getNumRaceTypes(), m_piRacistAttitudeChanges);
-	}
-	else stream->Write(false);
+	writeToStream(stream, m_aiRacistAttitudeChanges, GC.getNumRaceTypes());
 	// </f1rpo>
 
-	if (m_pbTraits)
-	{
-		stream->Write(true);
-		stream->Write(GC.getNumTraitInfos(), m_pbTraits);
-	}
-	else
-	{
-		stream->Write(false);
-	}
-
-	if (m_piFlavorValue)
-	{
-		stream->Write(true);
-		stream->Write(GC.getNumFlavorTypes(), m_piFlavorValue);
-	}
-	else
-	{
-		stream->Write(false);
-	}
+	writeToStream(stream, m_abTraits, GC.getNumTraitInfos());
+	writeToStream(stream, m_aiFlavorValue, GC.getNumFlavorTypes());
+	writeToStream(stream, m_aiContactRand, NUM_CONTACT_TYPES);
+	writeToStream(stream, m_aiContactDelay, NUM_CONTACT_TYPES);
+	writeToStream(stream, m_aiMemoryDecayRand, NUM_MEMORY_TYPES);
+	writeToStream(stream, m_aiMemoryAttitudePercent, NUM_MEMORY_TYPES);
+	writeToStream(stream, m_aiNoWarAttitudeProb, NUM_ATTITUDE_TYPES);
+	writeToStream(stream, m_aiUnitAIWeightModifier, NUM_UNITAI_TYPES);
+	writeToStream(stream, m_aiImprovementWeightModifier, GC.getNumImprovementInfos());
 	
-	if (m_piContactRand)
-	{
-		stream->Write(true);
-		stream->Write(NUM_CONTACT_TYPES, m_piContactRand);
-	}
-	else
-	{
-		stream->Write(false);
-	}
-	
-	if (m_piContactDelay)
-	{
-		stream->Write(true);
-		stream->Write(NUM_CONTACT_TYPES, m_piContactDelay);
-	}
-	else
-	{
-		stream->Write(false);
-	}
-	
-	if (m_piMemoryDecayRand)
-	{
-		stream->Write(true);
-		stream->Write(NUM_MEMORY_TYPES, m_piMemoryDecayRand);
-	}
-	else
-	{
-		stream->Write(false);
-	}
-	
-	if (m_piMemoryAttitudePercent)
-	{
-		stream->Write(true);
-		stream->Write(NUM_MEMORY_TYPES, m_piMemoryAttitudePercent);
-	}
-	else
-	{
-		stream->Write(false);
-	}
-	
-	if (m_piNoWarAttitudeProb)
-	{
-		stream->Write(true);
-		stream->Write(NUM_ATTITUDE_TYPES, m_piNoWarAttitudeProb);
-	}
-	else
-	{
-		stream->Write(false);
-	}
-	
-	if (m_piUnitAIWeightModifier)
-	{
-		stream->Write(true);
-		stream->Write(NUM_UNITAI_TYPES, m_piUnitAIWeightModifier);
-	}
-	else
-	{
-		stream->Write(false);
-	}
-	
-	if (m_piImprovementWeightModifier)
-	{
-		stream->Write(true);
-		stream->Write(GC.getNumImprovementInfos(), m_piImprovementWeightModifier);
-	}
-	else
-	{
-		stream->Write(false);
-	}
-	
-	if (m_piDiploPeaceIntroMusicScriptIds)
-	{
-		stream->Write(true);
-		stream->Write(GC.getNumEraInfos(), m_piDiploPeaceIntroMusicScriptIds);
-	}
-	else
-	{
-		stream->Write(false);
-	}
-	
-	if (m_piDiploPeaceMusicScriptIds)
-	{
-		stream->Write(true);
-		stream->Write(GC.getNumEraInfos(), m_piDiploPeaceMusicScriptIds);
-	}
-	else
-	{
-		stream->Write(false);
-	}
-	
-	if (m_piDiploWarIntroMusicScriptIds)
-	{
-		stream->Write(true);
-		stream->Write(GC.getNumEraInfos(), m_piDiploWarIntroMusicScriptIds);
-	}
-	else
-	{
-		stream->Write(false);
-	}
-	
-	if (m_piDiploWarMusicScriptIds)
-	{
-		stream->Write(true);
-		stream->Write(GC.getNumEraInfos(), m_piDiploWarMusicScriptIds);
-	}
-	else
-	{
-		stream->Write(false);
-	}
+	writeToStream(stream, m_aiDiploPeaceIntroMusicScriptIds, GC.getNumEraInfos());
+	writeToStream(stream, m_aiDiploPeaceMusicScriptIds, GC.getNumEraInfos());
+	writeToStream(stream, m_aiDiploWarIntroMusicScriptIds, GC.getNumEraInfos());
+	writeToStream(stream, m_aiDiploWarMusicScriptIds, GC.getNumEraInfos());
 	
 /************************************************************************************************/
 /* Afforess	                  Start		 07/29/10                                               */
@@ -21285,19 +21078,19 @@ void CvLeaderHeadInfo::getCheckSum(unsigned int& iSum)
 
 	// Arrays
 
-	CheckSumI(iSum, GC.getNumTraitInfos(), m_pbTraits);
+	CheckSumI(iSum, GC.getNumTraitInfos(), m_abTraits.data());
+	CheckSumI(iSum, GC.getNumFlavorTypes(), m_aiFlavorValue.data());
 
-	CheckSumI(iSum, GC.getNumFlavorTypes(), m_piFlavorValue);
-	CheckSumI(iSum, NUM_CONTACT_TYPES, m_piContactRand);
-	CheckSumI(iSum, NUM_CONTACT_TYPES, m_piContactDelay);
-	CheckSumI(iSum, NUM_MEMORY_TYPES, m_piMemoryDecayRand);
-	CheckSumI(iSum, NUM_MEMORY_TYPES, m_piMemoryAttitudePercent);
-	CheckSumI(iSum, NUM_ATTITUDE_TYPES, m_piNoWarAttitudeProb);
-	CheckSumI(iSum, NUM_UNITAI_TYPES, m_piUnitAIWeightModifier);
-	CheckSumI(iSum, GC.getNumImprovementInfos(), m_piImprovementWeightModifier);
-	CheckSumI(iSum, GC.getNumCivicInfos(), m_piCivicAIWeights); // f1rpo (Civic AI Weights)
-	CheckSumI(iSum, GC.getNumGenderTypes(), m_piSexistAttitudeChanges); // f1rpo (Sexism)
-	CheckSumI(iSum, GC.getNumRaceTypes(), m_piRacistAttitudeChanges); // f1rpo (Racism)
+	CheckSumI(iSum, NUM_CONTACT_TYPES, m_aiContactRand.data());
+	CheckSumI(iSum, NUM_CONTACT_TYPES, m_aiContactDelay.data());
+	CheckSumI(iSum, NUM_MEMORY_TYPES, m_aiMemoryDecayRand.data());
+	CheckSumI(iSum, NUM_MEMORY_TYPES, m_aiMemoryAttitudePercent.data());
+	CheckSumI(iSum, NUM_ATTITUDE_TYPES, m_aiNoWarAttitudeProb.data());
+	CheckSumI(iSum, NUM_UNITAI_TYPES, m_aiUnitAIWeightModifier.data());
+	CheckSumI(iSum, GC.getNumImprovementInfos(), m_aiImprovementWeightModifier.data());
+	CheckSumI(iSum, GC.getNumCivicInfos(), m_aiCivicAIWeights.data()); // f1rpo (Civic AI Weights)
+	CheckSumI(iSum, GC.getNumGenderTypes(), m_aiSexistAttitudeChanges.data()); // f1rpo (Sexism)
+	CheckSumI(iSum, GC.getNumRaceTypes(), m_aiRacistAttitudeChanges.data()); // f1rpo (Racism)
 
 	CheckSum(iSum, m_iMilitaryUnitRefuseAttitudeThreshold);
 	CheckSum(iSum, m_iWorkerRefuseAttitudeThreshold);
@@ -21314,85 +21107,85 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 {
 	MEMORY_TRACE_FUNCTION();
 
-	CvString szTextVal;
+	std::string szTextVal;
 	if (!CvInfoBase::read(pXML))
 	{
 		return false;
 	}
 
 	pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
-	setArtDefineTag(szTextVal);
+	setArtDefineTag(szTextVal.c_str());
 
 	/*	f1rpo (xmldefault): Redirect the CvXMLLoadUtility::GetChildXmlValByName
 		calls through CvLeaderHeadInfo::GetChildXmlValByName. */
-	m_pXML = pXML;
-	GetChildXmlValByName(m_iWonderConstructRand, "iWonderConstructRand");
-	GetChildXmlValByName(m_iBaseAttitude, "iBaseAttitude");
-	GetChildXmlValByName(m_iBasePeaceWeight, "iBasePeaceWeight");
-	GetChildXmlValByName(m_iPeaceWeightRand, "iPeaceWeightRand");
-	GetChildXmlValByName(m_iWarmongerRespect, "iWarmongerRespect");
-	GetChildXmlValByName(m_iEspionageWeight, "iEspionageWeight");
-	GetChildXmlValByName(m_iRefuseToTalkWarThreshold, "iRefuseToTalkWarThreshold");
-	GetChildXmlValByName(m_iNoTechTradeThreshold, "iNoTechTradeThreshold");
-	GetChildXmlValByName(m_iTechTradeKnownPercent, "iTechTradeKnownPercent");
-	GetChildXmlValByName(m_iMaxGoldTradePercent, "iMaxGoldTradePercent");
-	GetChildXmlValByName(m_iMaxGoldPerTurnTradePercent, "iMaxGoldPerTurnTradePercent");
+
+	GetChildXmlValByName(pXML, m_iWonderConstructRand, "iWonderConstructRand");
+	GetChildXmlValByName(pXML, m_iBaseAttitude, "iBaseAttitude");
+	GetChildXmlValByName(pXML, m_iBasePeaceWeight, "iBasePeaceWeight");
+	GetChildXmlValByName(pXML, m_iPeaceWeightRand, "iPeaceWeightRand");
+	GetChildXmlValByName(pXML, m_iWarmongerRespect, "iWarmongerRespect");
+	GetChildXmlValByName(pXML, m_iEspionageWeight, "iEspionageWeight");
+	GetChildXmlValByName(pXML, m_iRefuseToTalkWarThreshold, "iRefuseToTalkWarThreshold");
+	GetChildXmlValByName(pXML, m_iNoTechTradeThreshold, "iNoTechTradeThreshold");
+	GetChildXmlValByName(pXML, m_iTechTradeKnownPercent, "iTechTradeKnownPercent");
+	GetChildXmlValByName(pXML, m_iMaxGoldTradePercent, "iMaxGoldTradePercent");
+	GetChildXmlValByName(pXML, m_iMaxGoldPerTurnTradePercent, "iMaxGoldPerTurnTradePercent");
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      03/21/10                                jdog5000      */
 /*                                                                                              */
 /* Victory Strategy AI                                                                          */
 /************************************************************************************************/
-	GetChildXmlValByName(m_iCultureVictoryWeight, "iCultureVictoryWeight", 0);
-	GetChildXmlValByName(m_iSpaceVictoryWeight, "iSpaceVictoryWeight", 0);
-	GetChildXmlValByName(m_iConquestVictoryWeight, "iConquestVictoryWeight", 0);
-	GetChildXmlValByName(m_iDominationVictoryWeight, "iDominationVictoryWeight", 0);
-	GetChildXmlValByName(m_iDiplomacyVictoryWeight, "iDiplomacyVictoryWeight", 0);
+	GetChildXmlValByName(pXML, m_iCultureVictoryWeight, "iCultureVictoryWeight", 0);
+	GetChildXmlValByName(pXML, m_iSpaceVictoryWeight, "iSpaceVictoryWeight", 0);
+	GetChildXmlValByName(pXML, m_iConquestVictoryWeight, "iConquestVictoryWeight", 0);
+	GetChildXmlValByName(pXML, m_iDominationVictoryWeight, "iDominationVictoryWeight", 0);
+	GetChildXmlValByName(pXML, m_iDiplomacyVictoryWeight, "iDiplomacyVictoryWeight", 0);
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-	GetChildXmlValByName(m_iMaxWarRand, "iMaxWarRand");
-	GetChildXmlValByName(m_iMaxWarNearbyPowerRatio, "iMaxWarNearbyPowerRatio");
-	GetChildXmlValByName(m_iMaxWarDistantPowerRatio, "iMaxWarDistantPowerRatio");
-	GetChildXmlValByName(m_iMaxWarMinAdjacentLandPercent, "iMaxWarMinAdjacentLandPercent");
-	GetChildXmlValByName(m_iLimitedWarRand, "iLimitedWarRand");
-	GetChildXmlValByName(m_iLimitedWarPowerRatio, "iLimitedWarPowerRatio");
-	GetChildXmlValByName(m_iDogpileWarRand, "iDogpileWarRand");
-	GetChildXmlValByName(m_iMakePeaceRand, "iMakePeaceRand");
-	GetChildXmlValByName(m_iDeclareWarTradeRand, "iDeclareWarTradeRand");
-	GetChildXmlValByName(m_iDemandRebukedSneakProb, "iDemandRebukedSneakProb");
-	GetChildXmlValByName(m_iDemandRebukedWarProb, "iDemandRebukedWarProb");
-	GetChildXmlValByName(m_iRazeCityProb, "iRazeCityProb");
-	GetChildXmlValByName(m_iBuildUnitProb, "iBuildUnitProb");
-	GetChildXmlValByName(m_iBaseAttackOddsChange, "iBaseAttackOddsChange");
-	GetChildXmlValByName(m_iAttackOddsChangeRand, "iAttackOddsChangeRand");
-	GetChildXmlValByName(m_iWorseRankDifferenceAttitudeChange, "iWorseRankDifferenceAttitudeChange");
-	GetChildXmlValByName(m_iBetterRankDifferenceAttitudeChange, "iBetterRankDifferenceAttitudeChange");
-	GetChildXmlValByName(m_iCloseBordersAttitudeChange, "iCloseBordersAttitudeChange");
-	GetChildXmlValByName(m_iLostWarAttitudeChange, "iLostWarAttitudeChange");
-	GetChildXmlValByName(m_iAtWarAttitudeDivisor, "iAtWarAttitudeDivisor");
-	GetChildXmlValByName(m_iAtWarAttitudeChangeLimit, "iAtWarAttitudeChangeLimit");
-	GetChildXmlValByName(m_iAtPeaceAttitudeDivisor, "iAtPeaceAttitudeDivisor");
-	GetChildXmlValByName(m_iAtPeaceAttitudeChangeLimit, "iAtPeaceAttitudeChangeLimit");
-	GetChildXmlValByName(m_iSameReligionAttitudeChange, "iSameReligionAttitudeChange");
-	GetChildXmlValByName(m_iSameReligionAttitudeDivisor, "iSameReligionAttitudeDivisor");
-	GetChildXmlValByName(m_iSameReligionAttitudeChangeLimit, "iSameReligionAttitudeChangeLimit");
-	GetChildXmlValByName(m_iDifferentReligionAttitudeChange, "iDifferentReligionAttitudeChange");
-	GetChildXmlValByName(m_iDifferentReligionAttitudeDivisor, "iDifferentReligionAttitudeDivisor");
-	GetChildXmlValByName(m_iDifferentReligionAttitudeChangeLimit, "iDifferentReligionAttitudeChangeLimit");
-	GetChildXmlValByName(m_iBonusTradeAttitudeDivisor, "iBonusTradeAttitudeDivisor");
-	GetChildXmlValByName(m_iBonusTradeAttitudeChangeLimit, "iBonusTradeAttitudeChangeLimit");
-	GetChildXmlValByName(m_iOpenBordersAttitudeDivisor, "iOpenBordersAttitudeDivisor");
-	GetChildXmlValByName(m_iOpenBordersAttitudeChangeLimit, "iOpenBordersAttitudeChangeLimit");
-	GetChildXmlValByName(m_iDefensivePactAttitudeDivisor, "iDefensivePactAttitudeDivisor");
-	GetChildXmlValByName(m_iDefensivePactAttitudeChangeLimit, "iDefensivePactAttitudeChangeLimit");
-	GetChildXmlValByName(m_iShareWarAttitudeChange, "iShareWarAttitudeChange");
-	GetChildXmlValByName(m_iShareWarAttitudeDivisor, "iShareWarAttitudeDivisor");
-	GetChildXmlValByName(m_iShareWarAttitudeChangeLimit, "iShareWarAttitudeChangeLimit");
-	GetChildXmlValByName(m_iFavoriteCivicAttitudeChange, "iFavoriteCivicAttitudeChange");
-	GetChildXmlValByName(m_iFavoriteCivicAttitudeDivisor, "iFavoriteCivicAttitudeDivisor");
-	GetChildXmlValByName(m_iFavoriteCivicAttitudeChangeLimit, "iFavoriteCivicAttitudeChangeLimit");
-	GetChildXmlValByName(m_iVassalPowerModifier, "iVassalPowerModifier");
-	GetChildXmlValByName(m_iFreedomAppreciation, "iFreedomAppreciation");
+	GetChildXmlValByName(pXML, m_iMaxWarRand, "iMaxWarRand");
+	GetChildXmlValByName(pXML, m_iMaxWarNearbyPowerRatio, "iMaxWarNearbyPowerRatio");
+	GetChildXmlValByName(pXML, m_iMaxWarDistantPowerRatio, "iMaxWarDistantPowerRatio");
+	GetChildXmlValByName(pXML, m_iMaxWarMinAdjacentLandPercent, "iMaxWarMinAdjacentLandPercent");
+	GetChildXmlValByName(pXML, m_iLimitedWarRand, "iLimitedWarRand");
+	GetChildXmlValByName(pXML, m_iLimitedWarPowerRatio, "iLimitedWarPowerRatio");
+	GetChildXmlValByName(pXML, m_iDogpileWarRand, "iDogpileWarRand");
+	GetChildXmlValByName(pXML, m_iMakePeaceRand, "iMakePeaceRand");
+	GetChildXmlValByName(pXML, m_iDeclareWarTradeRand, "iDeclareWarTradeRand");
+	GetChildXmlValByName(pXML, m_iDemandRebukedSneakProb, "iDemandRebukedSneakProb");
+	GetChildXmlValByName(pXML, m_iDemandRebukedWarProb, "iDemandRebukedWarProb");
+	GetChildXmlValByName(pXML, m_iRazeCityProb, "iRazeCityProb");
+	GetChildXmlValByName(pXML, m_iBuildUnitProb, "iBuildUnitProb");
+	GetChildXmlValByName(pXML, m_iBaseAttackOddsChange, "iBaseAttackOddsChange");
+	GetChildXmlValByName(pXML, m_iAttackOddsChangeRand, "iAttackOddsChangeRand");
+	GetChildXmlValByName(pXML, m_iWorseRankDifferenceAttitudeChange, "iWorseRankDifferenceAttitudeChange");
+	GetChildXmlValByName(pXML, m_iBetterRankDifferenceAttitudeChange, "iBetterRankDifferenceAttitudeChange");
+	GetChildXmlValByName(pXML, m_iCloseBordersAttitudeChange, "iCloseBordersAttitudeChange");
+	GetChildXmlValByName(pXML, m_iLostWarAttitudeChange, "iLostWarAttitudeChange");
+	GetChildXmlValByName(pXML, m_iAtWarAttitudeDivisor, "iAtWarAttitudeDivisor");
+	GetChildXmlValByName(pXML, m_iAtWarAttitudeChangeLimit, "iAtWarAttitudeChangeLimit");
+	GetChildXmlValByName(pXML, m_iAtPeaceAttitudeDivisor, "iAtPeaceAttitudeDivisor");
+	GetChildXmlValByName(pXML, m_iAtPeaceAttitudeChangeLimit, "iAtPeaceAttitudeChangeLimit");
+	GetChildXmlValByName(pXML, m_iSameReligionAttitudeChange, "iSameReligionAttitudeChange");
+	GetChildXmlValByName(pXML, m_iSameReligionAttitudeDivisor, "iSameReligionAttitudeDivisor");
+	GetChildXmlValByName(pXML, m_iSameReligionAttitudeChangeLimit, "iSameReligionAttitudeChangeLimit");
+	GetChildXmlValByName(pXML, m_iDifferentReligionAttitudeChange, "iDifferentReligionAttitudeChange");
+	GetChildXmlValByName(pXML, m_iDifferentReligionAttitudeDivisor, "iDifferentReligionAttitudeDivisor");
+	GetChildXmlValByName(pXML, m_iDifferentReligionAttitudeChangeLimit, "iDifferentReligionAttitudeChangeLimit");
+	GetChildXmlValByName(pXML, m_iBonusTradeAttitudeDivisor, "iBonusTradeAttitudeDivisor");
+	GetChildXmlValByName(pXML, m_iBonusTradeAttitudeChangeLimit, "iBonusTradeAttitudeChangeLimit");
+	GetChildXmlValByName(pXML, m_iOpenBordersAttitudeDivisor, "iOpenBordersAttitudeDivisor");
+	GetChildXmlValByName(pXML, m_iOpenBordersAttitudeChangeLimit, "iOpenBordersAttitudeChangeLimit");
+	GetChildXmlValByName(pXML, m_iDefensivePactAttitudeDivisor, "iDefensivePactAttitudeDivisor");
+	GetChildXmlValByName(pXML, m_iDefensivePactAttitudeChangeLimit, "iDefensivePactAttitudeChangeLimit");
+	GetChildXmlValByName(pXML, m_iShareWarAttitudeChange, "iShareWarAttitudeChange");
+	GetChildXmlValByName(pXML, m_iShareWarAttitudeDivisor, "iShareWarAttitudeDivisor");
+	GetChildXmlValByName(pXML, m_iShareWarAttitudeChangeLimit, "iShareWarAttitudeChangeLimit");
+	GetChildXmlValByName(pXML, m_iFavoriteCivicAttitudeChange, "iFavoriteCivicAttitudeChange");
+	GetChildXmlValByName(pXML, m_iFavoriteCivicAttitudeDivisor, "iFavoriteCivicAttitudeDivisor");
+	GetChildXmlValByName(pXML, m_iFavoriteCivicAttitudeChangeLimit, "iFavoriteCivicAttitudeChangeLimit");
+	GetChildXmlValByName(pXML, m_iVassalPowerModifier, "iVassalPowerModifier");
+	GetChildXmlValByName(pXML, m_iFreedomAppreciation, "iFreedomAppreciation");
 
 	/*	f1rpo (xmldefault): Rewrote the loading of attitude thresholds
 		so that missing elements are tolerated if the attitude threshold
@@ -21440,32 +21233,40 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 
 	// <f1rpo>
 	// Civic AI Weights
-	pXML->SetVariableListTagPair(&m_piCivicAIWeights, "CivicAIWeights", -1/*(unused)*/, GC.getNumCivicInfos(), 0, true);
+	pXML->SetVariableListTagPairInfo(&m_aiCivicAIWeights, "CivicAIWeights", GC.getNumCivicInfos(), 0);
+	//Looks like collapsing the values here (i.e. deleting the array if it has not changed during read is unnecessary and may introduce issues if the array did contain non-default values prior to read
+	//same for sexism and racism arrays
+	//pXML->SetVariableListTagPair(&m_piCivicAIWeights, "CivicAIWeights", -1/*(unused)*/, GC.getNumCivicInfos(), 0, true);
 	// Sexism, Racism
 	pXML->GetChildXmlValByName(szTextVal, "Gender");
 	if (!szTextVal.empty())
-		m_eGender = (GenderTypes)GC.getTypesEnum(szTextVal.GetCString());
-	pXML->SetVariableListTagPair(&m_piSexistAttitudeChanges, "SexistAttitudes", -1, GC.getNumGenderTypes(), 0, true);
+		m_eGender = (GenderTypes)GC.getTypesEnum(szTextVal.c_str());
+	pXML->SetVariableListTagPairInfo(&m_aiSexistAttitudeChanges, "SexistAttitudes", GC.getNumCivicInfos(), 0);
+	//pXML->SetVariableListTagPair(&m_piSexistAttitudeChanges, "SexistAttitudes", -1, GC.getNumGenderTypes(), 0, true);
 	pXML->GetChildXmlValByName(szTextVal, "Race");
 	if (!szTextVal.empty())
-		m_eRace = (RaceTypes)GC.getTypesEnum(szTextVal.GetCString());
-	pXML->SetVariableListTagPair(&m_piRacistAttitudeChanges, "RacistAttitudes", -1, GC.getNumRaceTypes(), 0, true);
+		m_eRace = (RaceTypes)GC.getTypesEnum(szTextVal.c_str());
+	pXML->SetVariableListTagPairInfo(&m_aiRacistAttitudeChanges, "RacistAttitudes", GC.getNumCivicInfos(), 0);
+	//pXML->SetVariableListTagPair(&m_piRacistAttitudeChanges, "RacistAttitudes", -1, GC.getNumRaceTypes(), 0, true);
 	// </f1rpo>
 
-	pXML->SetVariableListTagPair(&m_pbTraits, "Traits", sizeof(GC.getTraitInfo((TraitTypes)0)), GC.getNumTraitInfos());
+	pXML->SetVariableListTagPairInfo(&m_abTraits, "Traits", GC.getNumTraitInfos(), false);
+	pXML->SetVariableListTagPairEnum(&m_aiFlavorValue, "Flavors", GC.getNumFlavorTypes(), 0);
 
-	pXML->SetVariableListTagPair(&m_piFlavorValue, "Flavors", GC.getFlavorTypes(), GC.getNumFlavorTypes());
-	pXML->SetVariableListTagPair(&m_piContactRand, "ContactRands", GC.getContactTypes(), NUM_CONTACT_TYPES);
-	pXML->SetVariableListTagPair(&m_piContactDelay, "ContactDelays", GC.getContactTypes(), NUM_CONTACT_TYPES);
-	pXML->SetVariableListTagPair(&m_piMemoryDecayRand, "MemoryDecays", sizeof(GC.getMemoryInfo((MemoryTypes)0)), NUM_MEMORY_TYPES);
-	pXML->SetVariableListTagPair(&m_piMemoryAttitudePercent, "MemoryAttitudePercents", sizeof(GC.getMemoryInfo((MemoryTypes)0)), NUM_MEMORY_TYPES);
-	pXML->SetVariableListTagPair(&m_piNoWarAttitudeProb, "NoWarAttitudeProbs", sizeof(GC.getAttitudeInfo((AttitudeTypes)0)), NUM_ATTITUDE_TYPES);
-	pXML->SetVariableListTagPair(&m_piUnitAIWeightModifier, "UnitAIWeightModifiers", sizeof(GC.getUnitAIInfo((UnitAITypes)0)), NUM_UNITAI_TYPES);
-	pXML->SetVariableListTagPair(&m_piImprovementWeightModifier, "ImprovementWeightModifiers", sizeof(GC.getImprovementInfo((ImprovementTypes)0)), GC.getNumImprovementInfos());
-	pXML->SetVariableListTagPairForAudioScripts(&m_piDiploPeaceIntroMusicScriptIds, "DiplomacyIntroMusicPeace", sizeof(GC.getEraInfo((EraTypes)0)), GC.getNumEraInfos());
-	pXML->SetVariableListTagPairForAudioScripts(&m_piDiploPeaceMusicScriptIds, "DiplomacyMusicPeace", sizeof(GC.getEraInfo((EraTypes)0)), GC.getNumEraInfos());
-	pXML->SetVariableListTagPairForAudioScripts(&m_piDiploWarIntroMusicScriptIds, "DiplomacyIntroMusicWar", sizeof(GC.getEraInfo((EraTypes)0)), GC.getNumEraInfos());
-	pXML->SetVariableListTagPairForAudioScripts(&m_piDiploWarMusicScriptIds, "DiplomacyMusicWar", sizeof(GC.getEraInfo((EraTypes)0)), GC.getNumEraInfos());
+	pXML->SetVariableListTagPairEnum(&m_aiContactRand, "ContactRands", NUM_CONTACT_TYPES, 0);
+	pXML->SetVariableListTagPairEnum(&m_aiContactDelay, "ContactDelays", NUM_CONTACT_TYPES, 0);
+	
+	pXML->SetVariableListTagPairInfo(&m_aiMemoryDecayRand, "MemoryDecays", NUM_MEMORY_TYPES, 0);
+	pXML->SetVariableListTagPairInfo(&m_aiMemoryAttitudePercent, "MemoryAttitudePercents", NUM_MEMORY_TYPES, 0);
+	pXML->SetVariableListTagPairInfo(&m_aiNoWarAttitudeProb, "NoWarAttitudeProbs", NUM_ATTITUDE_TYPES, 0);
+	pXML->SetVariableListTagPairInfo(&m_aiUnitAIWeightModifier, "UnitAIWeightModifiers", NUM_UNITAI_TYPES, 0);
+	pXML->SetVariableListTagPairInfo(&m_aiImprovementWeightModifier, "ImprovementWeightModifiers", GC.getNumImprovementInfos(), 0);
+
+	pXML->SetVariableListTagPairForAudioScriptsInfo(&m_aiDiploPeaceIntroMusicScriptIds, "DiplomacyIntroMusicPeace", GC.getNumEraInfos(), -1);
+	pXML->SetVariableListTagPairForAudioScriptsInfo(&m_aiDiploPeaceMusicScriptIds, "DiplomacyMusicPeace", GC.getNumEraInfos(), -1);
+	pXML->SetVariableListTagPairForAudioScriptsInfo(&m_aiDiploWarIntroMusicScriptIds, "DiplomacyIntroMusicWar", GC.getNumEraInfos(), -1);
+	pXML->SetVariableListTagPairForAudioScriptsInfo(&m_aiDiploWarMusicScriptIds, "DiplomacyMusicWar", GC.getNumEraInfos(), -1);
+
 /************************************************************************************************/
 /* Afforess	                  Start		 07/29/10                                               */
 /*                                                                                              */
@@ -21489,34 +21290,23 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 	#ifdef FASSERT_ENABLE
 	if (!isDefaultsType())
 	{
-		if (m_piContactRand != NULL)
+		if (m_aiContactRand.size())
 		{
-			FOR_EACH_ENUM(Contact)
-				FAssert(m_piContactRand[eLoopContact] >= 0);
+			FOR_EACH_ENUM(Contact) 
+				FAssert(m_aiContactRand.get(eLoopContact) >= 0);
 		}
-		FAssert(m_piContactDelay == NULL || m_piContactRand[CONTACT_PEACE_TREATY] >= 0);
-		FAssert(m_piMemoryAttitudePercent == NULL || m_piMemoryAttitudePercent[MEMORY_TRADED_TECH_TO_US] != -1);
-		if (m_piDiploPeaceMusicScriptIds != NULL)
+		FAssert((!m_aiContactDelay.size()) || m_aiContactDelay.get(CONTACT_PEACE_TREATY) >= 0);
+		FAssert((!m_aiMemoryAttitudePercent.size()) || m_aiMemoryAttitudePercent.get(MEMORY_TRADED_TECH_TO_US) != -1);
+		if (m_aiDiploPeaceMusicScriptIds.size())
 		{
 			FOR_EACH_ENUM(Era)
-				FAssert(m_piDiploPeaceMusicScriptIds[eLoopEra] >= 0);
+				FAssert(m_aiDiploPeaceMusicScriptIds.get(eLoopEra) >= 0);
 		}
 	}
 	#endif
-	m_pXML = NULL;
 	// </f1rpo>
 	return true;
 }
-
-// <f1rpo> (xmldefault)
-CvXMLLoadUtility* CvLeaderHeadInfo::m_pXML = NULL;
-
-void CvLeaderHeadInfo::GetChildXmlValByName(int& r, TCHAR const* szName, int iDefault)
-{
-	if (r != 0) // If child not found, keep the data set by the copy-ctor.
-		iDefault = r;
-	m_pXML->GetChildXmlValByName(&r, szName, iDefault);
-} // </f1rpo>
 
 /************************************************************************************************/
 /* XMLCOPY                                 10/12/07                                MRGENIE      */
@@ -21525,7 +21315,6 @@ void CvLeaderHeadInfo::GetChildXmlValByName(int& r, TCHAR const* szName, int iDe
 /************************************************************************************************/
 void CvLeaderHeadInfo::copyNonDefaults(CvLeaderHeadInfo* pClassInfo, CvXMLLoadUtility* pXML)
 {	
-
 	bool bDefault = false;
 	int iDefault = 0;
 	int iTextDefault = -1;
@@ -21615,173 +21404,32 @@ void CvLeaderHeadInfo::copyNonDefaults(CvLeaderHeadInfo* pClassInfo, CvXMLLoadUt
 	if (getFavoriteReligion() == iTextDefault) m_iFavoriteReligion = pClassInfo->getFavoriteReligion();
 	// <f1rpo>
 	// Civic AI Weights
-	FOR_EACH_ENUM(Civic)
-	{
-		if (getCivicAIWeight(eLoopCivic) == iDefault &&
-			pClassInfo->getCivicAIWeight(eLoopCivic) != iDefault)
-		{
-			if (m_piCivicAIWeights == NULL)
-				CvXMLLoadUtility::InitList(&m_piCivicAIWeights, GC.getNumCivicInfos(), iDefault);
-			m_piCivicAIWeights[eLoopCivic] = pClassInfo->getCivicAIWeight(eLoopCivic);
-		}
-	}
+	copyNonDefaultsArray(&m_aiCivicAIWeights, pClassInfo->m_aiCivicAIWeights, GC.getNumCivicInfos(), iDefault);
 	// Sexism
 	if (getGender() == iDefault)
 		m_eGender = pClassInfo->getGender();
-	FOR_EACH_ENUM(Gender)
-	{
-		if (getSexistAttitudeChange(eLoopGender) == iDefault &&
-			pClassInfo->getSexistAttitudeChange(eLoopGender) != iDefault)
-		{
-			if (m_piSexistAttitudeChanges == NULL)
-				CvXMLLoadUtility::InitList(&m_piSexistAttitudeChanges, GC.getNumGenderTypes(), iDefault);
-			m_piSexistAttitudeChanges[eLoopGender] = pClassInfo->getSexistAttitudeChange(eLoopGender);
-		}
-	}
+	copyNonDefaultsArray(&m_aiSexistAttitudeChanges, pClassInfo->m_aiSexistAttitudeChanges, GC.getNumGenderTypes(), iDefault);
 	// Racism
 	if (getRace() == iDefault)
 		m_eRace = pClassInfo->getRace();
-	FOR_EACH_ENUM(Race)
-	{
-		if (getRacistAttitudeChange(eLoopRace) == iDefault &&
-			pClassInfo->getRacistAttitudeChange(eLoopRace) != iDefault)
-		{
-			if (m_piRacistAttitudeChanges == NULL)
-				CvXMLLoadUtility::InitList(&m_piRacistAttitudeChanges, GC.getNumRaceTypes(), iDefault);
-			m_piRacistAttitudeChanges[eLoopRace] = pClassInfo->getRacistAttitudeChange(eLoopRace);
-		}
-	} // </f1rpo>
-	
-	for ( int j = 0; j < GC.getNumTraitInfos(); j++)
-	{
-		if ( hasTrait(j) == bDefault && pClassInfo->hasTrait(j) != bDefault)
-		{
-			if ( NULL == m_pbTraits )
-			{
-				CvXMLLoadUtility::InitList(&m_pbTraits,GC.getNumTraitInfos(),bDefault);
-			}
-			m_pbTraits[j] = pClassInfo->hasTrait(j);
-		}
-	}
+	copyNonDefaultsArray(&m_aiRacistAttitudeChanges, pClassInfo->m_aiRacistAttitudeChanges, GC.getNumRaceTypes(), iDefault);
+	// </f1rpo>
 
-	for ( int j = 0; j < GC.getNumFlavorTypes(); j++)
-	{
-		if ( getFlavorValue(j) == iDefault && pClassInfo->getFlavorValue(j) != iDefault)
-		{
-			if ( NULL == m_piFlavorValue )
-			{
-				CvXMLLoadUtility::InitList(&m_piFlavorValue,GC.getNumFlavorTypes(),iDefault);
-			}
-			m_piFlavorValue[j] = pClassInfo->getFlavorValue(j);
-		}
-	}
-	for ( int j = 0; j < NUM_CONTACT_TYPES; j++)
-	{
-		if ( getContactRand(j) == iDefault && pClassInfo->getContactRand(j) != iDefault)
-		{
-			if ( NULL == m_piContactRand )
-			{
-				CvXMLLoadUtility::InitList(&m_piContactRand,NUM_CONTACT_TYPES,iDefault);
-			}
-			m_piContactRand[j] = pClassInfo->getContactRand(j);
-		}
-		if ( getContactDelay(j) == iDefault && pClassInfo->getContactDelay(j) != iDefault)
-		{
-			if ( NULL == m_piContactDelay )
-			{
-				CvXMLLoadUtility::InitList(&m_piContactDelay,NUM_CONTACT_TYPES,iDefault);
-			}
-			m_piContactDelay[j] = pClassInfo->getContactDelay(j);
-		}
-	}
-	for ( int j = 0; j < NUM_MEMORY_TYPES; j++)
-	{
-		if ( getMemoryDecayRand(j) == iDefault && pClassInfo->getMemoryDecayRand(j) != iDefault)
-		{
-			if ( NULL == m_piMemoryDecayRand )
-			{
-				CvXMLLoadUtility::InitList(&m_piMemoryDecayRand,NUM_MEMORY_TYPES,iDefault);
-			}
-			m_piMemoryDecayRand[j] = pClassInfo->getMemoryDecayRand(j);
-		}
-		if ( getMemoryAttitudePercent(j) == iDefault && pClassInfo->getMemoryAttitudePercent(j) != iDefault )
-		{
-			if ( NULL == m_piMemoryAttitudePercent )
-			{
-				CvXMLLoadUtility::InitList(&m_piMemoryAttitudePercent,NUM_MEMORY_TYPES,iDefault);
-			}
-			m_piMemoryAttitudePercent[j] = pClassInfo->getMemoryAttitudePercent(j);
-		}
-	}
-	for ( int j = 0; j < NUM_ATTITUDE_TYPES; j++)
-	{
-		if ( getNoWarAttitudeProb(j) == iDefault && pClassInfo->getNoWarAttitudeProb(j) != iDefault)
-		{
-			if ( NULL == m_piNoWarAttitudeProb )
-			{
-				CvXMLLoadUtility::InitList(&m_piNoWarAttitudeProb,NUM_ATTITUDE_TYPES,iDefault);
-			}
-			m_piNoWarAttitudeProb[j] = pClassInfo->getNoWarAttitudeProb(j);
-		}
-	}
-	for ( int j = 0; j < NUM_UNITAI_TYPES; j++)
-	{
-		if ( getUnitAIWeightModifier(j) == iDefault && pClassInfo->getUnitAIWeightModifier(j) != iDefault)
-		{
-			if ( NULL == m_piUnitAIWeightModifier )
-			{
-				CvXMLLoadUtility::InitList(&m_piUnitAIWeightModifier,NUM_UNITAI_TYPES,iDefault);
-			}
-			m_piUnitAIWeightModifier[j] = pClassInfo->getUnitAIWeightModifier(j);
-		}
-	}
-	for ( int j = 0; j < GC.getNumImprovementInfos(); j++)
-	{
-		if ( getImprovementWeightModifier(j) == iDefault && pClassInfo->getImprovementWeightModifier(j) != iDefault)
-		{
-			if ( NULL == m_piImprovementWeightModifier )
-			{
-				CvXMLLoadUtility::InitList(&m_piImprovementWeightModifier, GC.getNumImprovementInfos(),iDefault);
-			}
-			m_piImprovementWeightModifier[j] = pClassInfo->getImprovementWeightModifier(j);
-		}
-	}
+	copyNonDefaultsArray(&m_abTraits, pClassInfo->m_abTraits, GC.getNumTraitInfos(), bDefault);
+	copyNonDefaultsArray(&m_aiFlavorValue, pClassInfo->m_aiFlavorValue, GC.getNumFlavorTypes(), iDefault);
+	copyNonDefaultsArray(&m_aiContactRand, pClassInfo->m_aiContactRand, NUM_CONTACT_TYPES, iDefault);
+	copyNonDefaultsArray(&m_aiContactDelay, pClassInfo->m_aiContactDelay, NUM_CONTACT_TYPES, iDefault);
+	copyNonDefaultsArray(&m_aiMemoryDecayRand, pClassInfo->m_aiMemoryDecayRand, NUM_MEMORY_TYPES, iDefault);
+	copyNonDefaultsArray(&m_aiMemoryAttitudePercent, pClassInfo->m_aiMemoryAttitudePercent, NUM_MEMORY_TYPES, iDefault);
+	copyNonDefaultsArray(&m_aiNoWarAttitudeProb, pClassInfo->m_aiNoWarAttitudeProb, NUM_ATTITUDE_TYPES, iDefault);
+	copyNonDefaultsArray(&m_aiUnitAIWeightModifier, pClassInfo->m_aiUnitAIWeightModifier, NUM_UNITAI_TYPES, iDefault);
+	copyNonDefaultsArray(&m_aiImprovementWeightModifier, pClassInfo->m_aiImprovementWeightModifier, GC.getNumImprovementInfos(), iDefault);
 
-	for ( int j = 0; j < GC.getNumEraInfos(); j++)  
-	{
-		if ( getDiploPeaceIntroMusicScriptIds(j) == iAudioDefault && pClassInfo->getDiploPeaceIntroMusicScriptIds(j) != iAudioDefault)
-		{
-			if ( NULL == m_piDiploPeaceIntroMusicScriptIds )
-			{
-				CvXMLLoadUtility::InitList(&m_piDiploPeaceIntroMusicScriptIds,GC.getNumEraInfos(),iAudioDefault);
-			}
-			m_piDiploPeaceIntroMusicScriptIds[j] = pClassInfo->getDiploPeaceIntroMusicScriptIds(j);
-		}
-		if ( getDiploPeaceMusicScriptIds(j) == iAudioDefault && pClassInfo->getDiploPeaceMusicScriptIds(j) != iAudioDefault)
-		{
-			if ( NULL == m_piDiploPeaceMusicScriptIds )
-			{
-				CvXMLLoadUtility::InitList(&m_piDiploPeaceMusicScriptIds,GC.getNumEraInfos(),iAudioDefault);
-			}
-			m_piDiploPeaceMusicScriptIds[j] = pClassInfo->getDiploPeaceMusicScriptIds(j);
-		}
-		if ( getDiploWarIntroMusicScriptIds(j) == iAudioDefault && pClassInfo->getDiploWarIntroMusicScriptIds(j) != iAudioDefault)
-		{
-			if ( NULL == m_piDiploWarIntroMusicScriptIds )
-			{
-				CvXMLLoadUtility::InitList(&m_piDiploWarIntroMusicScriptIds,GC.getNumEraInfos(),iAudioDefault);
-			}
-			m_piDiploWarIntroMusicScriptIds[j] = pClassInfo->getDiploWarIntroMusicScriptIds(j);
-		}
-		if ( getDiploWarMusicScriptIds(j) == iAudioDefault && pClassInfo->getDiploWarMusicScriptIds(j) != iAudioDefault)
-		{
-			if ( NULL == m_piDiploWarMusicScriptIds )
-			{
-				CvXMLLoadUtility::InitList(&m_piDiploWarMusicScriptIds,GC.getNumEraInfos(),iAudioDefault);
-			}
-			m_piDiploWarMusicScriptIds[j] = pClassInfo->getDiploWarMusicScriptIds(j);
-		}
-	}
+	copyNonDefaultsArray(&m_aiDiploPeaceIntroMusicScriptIds, pClassInfo->m_aiDiploPeaceIntroMusicScriptIds, GC.getNumEraInfos(), iDefault);
+	copyNonDefaultsArray(&m_aiDiploPeaceMusicScriptIds, pClassInfo->m_aiDiploPeaceMusicScriptIds, GC.getNumEraInfos(), iDefault);
+	copyNonDefaultsArray(&m_aiDiploWarIntroMusicScriptIds, pClassInfo->m_aiDiploWarIntroMusicScriptIds, GC.getNumEraInfos(), iDefault);
+	copyNonDefaultsArray(&m_aiDiploWarMusicScriptIds, pClassInfo->m_aiDiploWarMusicScriptIds, GC.getNumEraInfos(), iDefault);
+
 /************************************************************************************************/
 /* Afforess	                  Start		 12/9/09                                                */
 /*                                                                                              */
@@ -27973,12 +27621,6 @@ void CvArtInfoLeaderhead::copyNonDefaults(CvArtInfoLeaderhead* pClassInfo, CvXML
 // CvArtInfoScalableAsset
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-// f1rpo (xmldefault):
-CvArtInfoScalableAsset::CvArtInfoScalableAsset(CvArtInfoScalableAsset const& kOther)
-{
-	FAssertMsg(false, "No copy-ctor implemented");
-}
-
 bool CvArtInfoScalableAsset::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvArtInfoAsset::read(pXML))
@@ -30262,12 +29904,6 @@ m_fProjectileArc(0.0f)
 {
 }
 
-// f1rpo (xmldefault):
-CvEffectInfo::CvEffectInfo(CvEffectInfo const& kOther)
-{
-	FAssertMsg(false, "Copy-ctor not implemented");
-}
-
 CvEffectInfo::~CvEffectInfo()
 {
 }
@@ -30383,11 +30019,6 @@ void CvEffectInfo::copyNonDefaults(CvEffectInfo* pClassInfo, CvXMLLoadUtility* p
 CvAttachableInfo::CvAttachableInfo() :
 m_fUpdateRate(0.0f)
 {
-}
-// f1rpo (xmldefault):
-CvAttachableInfo::CvAttachableInfo(CvAttachableInfo const& kOther)
-{
-	FAssertMsg(false, "Copy-ctor not implemented");
 }
 
 CvAttachableInfo::~CvAttachableInfo()

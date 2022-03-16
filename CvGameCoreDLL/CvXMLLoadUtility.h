@@ -34,6 +34,8 @@ class CvImprovementBonusInfo;
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvXMLLoadUtility
 {
+private:
+	class Impl;
 //---------------------------------------PUBLIC INTERFACE---------------------------------
 public:
 	// default constructor
@@ -257,8 +259,24 @@ public:
 /************************************************************************************************/
 
 	// allocate and initialize a list from a tag pair in the xml
+	void SetVariableListTagPairInfo(CvDynamicArray<bool> *pList, const TCHAR* rootTagName,
+		int iagListLength, bool defaultListVal);
+	void SetVariableListTagPairInfo(CvDynamicArray<int> *pList, const TCHAR* rootTagName,
+		int tagListLength, int defaultListVal);
+
+	void SetVariableListTagPairEnum(CvDynamicArray<bool> *pList, const TCHAR* rootTagName,
+		int iagListLength, bool defaultListVal);
+	void SetVariableListTagPairEnum(CvDynamicArray<int> *pList, const TCHAR* rootTagName,
+		int tagListLength, int defaultListVal);
+
+	void SetVariableListTagPairForAudioScriptsInfo(CvDynamicArray<int> *pList, const TCHAR* szRootTagName,
+		int tagListLength, int iDefaultListVal = -1);
+
+
+
 	void SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,
 		int iInfoBaseSize, int iInfoBaseLength, bool bDefaultListVal = false);
+
 
 	// allocate and initialize a list from a tag pair in the xml
 	void SetVariableListTagPair(float **ppfList, const TCHAR* szRootTagName,
@@ -275,10 +293,6 @@ public:
 	// allocate and initialize a list from a tag pair in the xml for audio scripts
 	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
 		CvString* m_paszTagList, int iTagListLength, int iDefaultListVal = -1);
-
-	// allocate and initialize a list from a tag pair in the xml
-	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
-		int iInfoBaseLength, int iDefaultListVal = -1);
 
 	// allocate and initialize a list from a tag pair in the xml
 	void SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,

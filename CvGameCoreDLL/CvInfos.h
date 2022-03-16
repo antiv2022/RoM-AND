@@ -40,6 +40,157 @@
 
 class CvXMLLoadUtility;
 
+template<typename T>
+class CvDynamicArray
+{
+public:
+	inline CvDynamicArray(std::size_t const size) : m_size(size), m_pData(NULL)
+	{
+		if (m_size)
+		{
+			m_pData = new T[size];
+		}
+	}
+
+	inline CvDynamicArray(CvDynamicArray const &other) : m_size(0), m_pData(NULL)
+	{
+		std::size_t const size = other.m_size;
+		if (size == 0 || !other.m_pData)
+		{
+			return;
+		}
+
+		m_pData = new T[size];
+		m_size = size;
+		memcpy(m_pData, other.m_pData, size * sizeof(T));
+	}
+
+	inline ~CvDynamicArray()
+	{
+		clear();
+	};
+
+	inline void clear()
+	{
+		if (m_pData)
+		{
+			delete[] m_pData;
+			m_pData = NULL;
+			m_size = 0;
+		}
+	}
+
+	inline void reset(std::size_t const size, T const value)
+	{
+		clear();
+		m_pData = new T[size];
+		m_size = size;
+		fillTailingValues(0, value);
+	}
+
+	inline void realloc(std::size_t const newSize)
+	{
+		std::size_t const size = m_size;
+		if (newSize > size)
+		{
+			T * const pOldData = m_pData;
+			m_pData = new T[newSize];
+			if (pOldData)
+			{
+				delete[] pOldData;
+			}
+		}
+		m_size = newSize;
+	}
+
+	inline void resize(std::size_t const newSize, T const defaultValue)
+	{
+		std::size_t const size = m_size;
+		if (newSize > size)
+		{
+			T * const pOldData = m_pData;
+			m_pData = new T[newSize];
+			if (pOldData)
+			{
+				memcpy(m_pData, pOldData, size * sizeof(T));
+				delete[] pOldData;
+			}
+		}
+		m_size = newSize;
+		fillTailingValues(size, defaultValue);
+	}
+
+	inline std::size_t size() const
+	{
+		return m_size;
+	}
+
+	inline T get(std::size_t const index) const
+	{
+		return m_pData[index];
+	}
+
+	inline T getChecked(int const index) const
+	{
+		if (index < 0) {
+			std::cout << "ERROR: CvDynamicArray::get: index underflow" << std::endl;
+			exit(1);
+		}
+
+		if (index >= m_size) {
+			std::cout << "ERROR: CvDynamicArray::get: index overflow" << std::endl;
+			exit(1);
+		}
+
+		return get(index);
+	}
+
+	inline void set(std::size_t const index, T const value)
+	{
+		m_pData[index] = value;
+	}
+
+	inline void setChecked(int index, T const value)
+	{
+		if (index < 0) {
+			std::cout << "ERROR: CvDynamicArray::get: index underflow" << std::endl;
+			exit(1);
+		}
+
+		if (index >= m_size) {
+			std::cout << "ERROR: CvDynamicArray::get: index overflow" << std::endl;
+			exit(1);
+		}
+
+		set(index, value);
+	}
+
+	inline T * data()
+	{
+		return m_pData;
+	}
+
+	inline T const * data() const
+	{
+		return m_pData;
+	}
+
+private:
+	std::size_t m_size;
+	T * m_pData;
+
+
+
+	void operator=(CvDynamicArray const&);
+	inline void fillTailingValues(std::size_t const startIdx, T const value)
+	{
+		for (std::size_t idx = startIdx; idx < m_size; ++idx)
+		{
+			m_pData[idx] = value;
+		}
+	}
+};
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
 //  class : CvInfoBase
@@ -53,7 +204,6 @@ class CvInfoBase
 //---------------------------------------PUBLIC INTERFACE---------------------------------
 public:
 	DllExport CvInfoBase();
-	CvInfoBase(CvInfoBase const& kOther); // f1rpo (xmldefault)
 	CvInfoBase(const char* szType);
 
 	DllExport virtual ~CvInfoBase();
@@ -5458,14 +5608,13 @@ protected:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvArtInfoLeaderhead;
-class CvLeaderHeadInfo :
+class CvLeaderHeadInfo:
 	public CvInfoBase
 {
 	//---------------------------------------PUBLIC INTERFACE---------------------------------
 public:
 
 	CvLeaderHeadInfo();
-	CvLeaderHeadInfo(CvLeaderHeadInfo const& kOther); // f1rpo (xmldefault)
 	virtual ~CvLeaderHeadInfo();
 
 	int getWonderConstructRand() const;				// Exposed to Python
@@ -5598,10 +5747,6 @@ public:
 	void setDominationVictoryWeight(int i);
 	void setDiplomacyVictoryWeight(int i);
 protected:
-	int m_iMilitaryUnitRefuseAttitudeThreshold;
-	int m_iWorkerRefuseAttitudeThreshold;
-	int m_iCorporationRefuseAttitudeThreshold;
-	int m_iSecretaryGeneralVoteRefuseAttitudeThreshold;
 	/*void setDefaultMemoryInfo();
 	void setDefaultContactInfo();*/ // f1rpo (xmldefault): obsolete
 public:
@@ -5710,38 +5855,38 @@ protected:
 	int m_iFreedomAppreciation;
 	int m_iFavoriteCivic;
 	int m_iFavoriteReligion;
+	int m_iMilitaryUnitRefuseAttitudeThreshold;
+	int m_iWorkerRefuseAttitudeThreshold;
+	int m_iCorporationRefuseAttitudeThreshold;
+	int m_iSecretaryGeneralVoteRefuseAttitudeThreshold;
 	GenderTypes m_eGender; // f1rpo (Sexism)
 	RaceTypes m_eRace; // f1rpo (Racism)
 
 	CvString m_szArtDefineTag;
 
 	// Arrays
+	CvDynamicArray<bool> m_abTraits;
+	CvDynamicArray<int> m_aiFlavorValue;
+	CvDynamicArray<int> m_aiContactRand;
+	CvDynamicArray<int> m_aiContactDelay;
+	CvDynamicArray<int> m_aiMemoryDecayRand;
+	CvDynamicArray<int> m_aiMemoryAttitudePercent;
+	CvDynamicArray<int> m_aiNoWarAttitudeProb;
+	CvDynamicArray<int> m_aiUnitAIWeightModifier;
+	CvDynamicArray<int> m_aiImprovementWeightModifier;
+	CvDynamicArray<int> m_aiCivicAIWeights; // f1rpo (Civic AI Weights)
+	CvDynamicArray<int> m_aiSexistAttitudeChanges; // f1rpo (Sexism)
+	CvDynamicArray<int> m_aiRacistAttitudeChanges; // f1rpo (Racism)
 
-	bool* m_pbTraits;
-
-	int* m_piFlavorValue;
-	int* m_piContactRand;
-	int* m_piContactDelay;
-	int* m_piMemoryDecayRand;
-	int* m_piMemoryAttitudePercent;
-	int* m_piNoWarAttitudeProb;
-	int* m_piUnitAIWeightModifier;
-	int* m_piImprovementWeightModifier;
-	int* m_piCivicAIWeights; // f1rpo (Civic AI Weights)
-	int* m_piSexistAttitudeChanges; // f1rpo (Sexism)
-	int* m_piRacistAttitudeChanges; // f1rpo (Racism)
-	int* m_piDiploPeaceIntroMusicScriptIds;
-	int* m_piDiploPeaceMusicScriptIds;
-	int* m_piDiploWarIntroMusicScriptIds;
-	int* m_piDiploWarMusicScriptIds;
-	// <f1rpo> (xmldefault)
-	static CvXMLLoadUtility* m_pXML;
-	static void GetChildXmlValByName(int& r, TCHAR const* szName, int iDefault = MIN_INT);
-	// </f1rpo>
+	CvDynamicArray<int> m_aiDiploPeaceIntroMusicScriptIds;
+	CvDynamicArray<int> m_aiDiploPeaceMusicScriptIds;
+	CvDynamicArray<int> m_aiDiploWarIntroMusicScriptIds;
+	CvDynamicArray<int> m_aiDiploWarMusicScriptIds;
 
 	// f1rpo: Python wrappers for functions that take enum-type parameters
 	void friend CyInfoPythonInterface3();
 private:
+	
 	int pyCivicAIWeight(int iCivic) const { return getCivicAIWeight((CivicTypes)iCivic); } // f1rpo (Civic AI Weights)
 	int pySexistAttitudeChange(int iGender) const { return getSexistAttitudeChange((GenderTypes)iGender); } // f1rpo (Sexism)
 	int pyRacistAttitudeChange(int iRace) const { return getRacistAttitudeChange((RaceTypes)iRace); } // f1rpo (Racism)
@@ -7182,7 +7327,6 @@ class CvArtInfoScalableAsset :
 public:
 	// <f1rpo> (xmldefault - for LoadGlobalClassInfo template)
 	CvArtInfoScalableAsset() {}
-	CvArtInfoScalableAsset(CvArtInfoScalableAsset const& kOther);
 	bool isDefaultsType() const { return false; }
 	// </f1rpo>
 	bool read(CvXMLLoadUtility* pXML);
@@ -8237,7 +8381,6 @@ public:
 
 	DllExport CvEffectInfo();
 	// <f1rpo> (xmldefault - for LoadGlobalClassInfo template)
-	CvEffectInfo(CvEffectInfo const& kOther);
 	bool isDefaultsType() const { return false; }
 	// </f1rpo>
 	DllExport virtual ~CvEffectInfo();
@@ -8306,7 +8449,6 @@ public:
 
 	DllExport CvAttachableInfo();
 	// <f1rpo> (xmldefault - for LoadGlobalClassInfo template)
-	CvAttachableInfo(CvAttachableInfo const& kOther);
 	bool isDefaultsType() const { return false; }
 	// </f1rpo>
 	DllExport virtual ~CvAttachableInfo();

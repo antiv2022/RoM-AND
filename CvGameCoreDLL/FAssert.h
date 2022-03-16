@@ -24,6 +24,7 @@ bool FAssertDlg( const char*, const char*, const char*, unsigned int, bool& );
 	static bool bIgnoreAlways = false; \
 	if( !bIgnoreAlways && !(expr) ) \
 { \
+	std::cout << "ASSERT FAILED: " << #expr << " " << __FILE__ << " " << __LINE__ << std::endl; \
 	if( FAssertDlg( #expr, 0, __FILE__, __LINE__, bIgnoreAlways ) ) \
 { _asm int 3 } \
 } \
@@ -34,6 +35,7 @@ bool FAssertDlg( const char*, const char*, const char*, unsigned int, bool& );
 	static bool bIgnoreAlways = false; \
 	if( !bIgnoreAlways && !(expr) ) \
 { \
+	std::cout << "ASSERT FAILED: " << #expr << " " << msg << __FILE__ << " " << __LINE__ << std::endl; \
 	if( FAssertDlg( #expr, msg, __FILE__, __LINE__, bIgnoreAlways ) ) \
 { _asm int 3 } \
 } \
